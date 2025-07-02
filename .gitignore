@@ -1,0 +1,18 @@
+# Root .gitignore
+
+# Node modules
+client/node_modules/
+server/node_modules/
+
+# Environment files
+client/.env
+server/.env
+
+# Vite / React build
+client/dist/
+
+# System
+.DS_Store
+
+# Uploads (optional — only if you don’t want PDFs tracked)
+server/uploads/
