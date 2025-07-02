@@ -12,9 +12,7 @@ const RegisterForm = () => {
     role: "seeker", // seeker by default
     phone: "", // <-- added phone here
   });
-  interface RegisterFormProps {
-    onSuccess: () => void;
-  }
+
   const [seekerType, setSeekerType] = useState("");
   const [error, setError] = useState("");
 

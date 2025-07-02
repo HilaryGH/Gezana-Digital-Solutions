@@ -1,7 +1,7 @@
 import ProviderNavbar from "./ProviderNavbar"; // adjust path if needed
 import MyProfile from "../MyProfile";
 import AddService from "./AddService";
-import ServiceList from "./ServiceList";
+
 import { useLocation } from "react-router-dom";
 
 const ProviderDashboard = () => {

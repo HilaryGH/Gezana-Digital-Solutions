@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import Avatar from "../Avatar";
+
 import { Menu, X } from "lucide-react";
 
 const AdminNavbar = () => {
-  const userName = localStorage.getItem("name") || "GU";
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
