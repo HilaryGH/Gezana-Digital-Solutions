@@ -34,8 +34,10 @@ import AdminProvidersList from "./component/Admin/AdminProvidersList";
 function AppContent() {
   const location = useLocation();
 
-  // Define routes where the general Navbar and Footer should not be shown
-  const dashboardRoutes = [
+  // Routes where Navbar should NOT be shown
+  const noNavbarRoutes = [
+    "/signup",
+    "/login",
     "/seeker-dashboard",
     "/provider-dashboard",
     "/admin-dashboard",
@@ -47,24 +49,22 @@ function AppContent() {
     "/provider/service-lists",
   ];
 
-  // Check if the current path is in a dashboard route
-  const isDashboardRoute = dashboardRoutes.some((path) =>
+  const isNoNavbarRoute = noNavbarRoutes.some((path) =>
     location.pathname.startsWith(path)
   );
 
-  // Determine if we're on the home page
   const isHomePage = location.pathname === "/";
 
   return (
     <>
-      {/* Show general Navbar only on non-dashboard pages */}
-      {!isDashboardRoute && <Navbar />}
+      {/* Show Navbar only if current path is NOT in noNavbarRoutes */}
+      {!isNoNavbarRoute && <Navbar />}
 
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
+        <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
 

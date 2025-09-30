@@ -1,51 +1,26 @@
-import { useState } from "react";
+import React from "react";
 import LoginForm from "./LoginForm";
-import RegisterForm from "./RegisterForm";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
-  const [isLogin, setIsLogin] = useState(true);
-
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-md relative">
-        <button
-          className="absolute top-2 right-3 text-xl font-bold text-gray-500 hover:text-red-600"
-          onClick={onClose}
-        >
-          &times;
-        </button>
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      {/* Transparent background overlay */}
+      <div
+        className="absolute inset-0  bg-opacity-60 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-        {isLogin ? <LoginForm /> : <RegisterForm />}
-
-        <div className="mt-4 text-center">
-          {isLogin ? (
-            <p>
-              Don't have an account?{" "}
-              <button
-                className="text-blue-600 font-semibold"
-                onClick={() => setIsLogin(false)}
-              >
-                Register
-              </button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{" "}
-              <button
-                className="text-blue-600 font-semibold"
-                onClick={() => setIsLogin(true)}
-              >
-                Login
-              </button>
-            </p>
-          )}
+      {/* Modal content */}
+      <div className="relative z-10 w-full max-w-md">
+        <div className="bg-orange-500 text-white p-8 rounded-2xl shadow-xl">
+          <LoginForm onClose={onClose} />
         </div>
       </div>
     </div>
