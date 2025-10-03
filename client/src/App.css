@@ -1,10 +1,12 @@
+/* Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@500;600&display=swap");
 @import "tailwindcss";
 
-body {
+*/ body {
   font-family: "Inter", sans-serif;
 }
 
+/* Font utilities */
 .font-poppins {
   font-family: "Poppins", sans-serif;
 }
@@ -13,29 +15,37 @@ body {
   font-family: "Inter", sans-serif;
 }
 
+/* Colors & backgrounds */
 .bg-btn {
   background-color: #1d6ceb;
 }
-/* Neutral companions */
+
 .text-orange {
-  color: #FF6B00; /* dark gray */
+  color: #FF6B00;
 }
+
 .text-medium {
-  color: #4b5563; /* medium gray */
+  color: #4b5563;
 }
+
 .bg-light-section {
-  background-color: #f9fafb; /* very light gray for sections */
+  background-color: #f9fafb;
 }
+
 .border-soft {
-  border-color: #e5e7eb; /* light border */
+  border-color: #e5e7eb;
 }
+
 .text-accent {
-  color: #facc15; /* golden accent for buttons or links */
+  color: #facc15;
 }
+
+/* Animations */
 @keyframes zoomInSlow {
   0% {
     transform: scale(1);
   }
+
   100% {
     transform: scale(1.1);
   }
@@ -45,13 +55,16 @@ body {
   animation: zoomInSlow 20s ease-in-out infinite alternate;
   transform-origin: center;
 }
+
 @keyframes horizontalFlip {
   0% {
     transform: rotateY(0deg);
   }
+
   50% {
     transform: rotateY(10deg);
   }
+
   100% {
     transform: rotateY(0deg);
   }
@@ -62,5 +75,35 @@ body {
   transform-style: preserve-3d;
 }
 
+/* Bubble effect */
+/* Bubble Base */
+.bubble {
+  position: absolute;
+  bottom: -50px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 165, 0, 0.8) 0%, rgba(255, 140, 0, 0.4) 70%, rgba(255, 165, 0, 0) 100%);
+  filter: blur(8px);
+  animation-name: floatUp;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
 
+/* Floating animation */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0.6;
+  }
 
+  50% {
+    transform: translateY(-50vh) scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-100vh) scale(0.5);
+    opacity: 0;
+  }
+}
