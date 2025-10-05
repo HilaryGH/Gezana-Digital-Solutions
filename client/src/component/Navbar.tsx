@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { FaBars, FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar } from "react-icons/fa";
+import { FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar } from "react-icons/fa";
 import { MdConnectWithoutContact, MdVerified } from "react-icons/md";
-import { HiSparkles } from "react-icons/hi";
+import { HiSparkles, HiMenuAlt3 } from "react-icons/hi";
+import { IoSearchOutline } from "react-icons/io5";
 import AuthModal from "./AuthModal";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
+  const toggleSearch = () => setSearchOpen(!searchOpen);
 
   // Handle scroll effect
   useEffect(() => {
@@ -24,28 +27,74 @@ const Navbar = () => {
     <>
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
         scrolled 
-          ? "bg-white/95 backdrop-blur-md shadow-xl border-b border-orange-100" 
-          : "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900"
+          ? "bg-black/95 backdrop-blur-xl shadow-2xl border-b border-orange-100/50" 
+          : "bg-black shadow-2xl"
       }`}>
+        {/* Top Announcement Bar */}
+        <div className={`w-full transition-all duration-500 ${
+          scrolled ? 'h-0 overflow-hidden' : 'h-12'
+        }`}>
+          <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`,
+              }}></div>
+            </div>
+            
+            <div className="relative z-10 flex items-center justify-between px-6 py-3">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium">Live</span>
+                </div>
+                <p className="text-sm font-medium">
+                  🎉 <span className="font-bold">500+</span> new service providers joined this week!
+                </p>
+              </div>
+              
+              <div className="hidden md:flex items-center space-x-6">
+                <div className="flex items-center space-x-2 text-orange-100">
+                  <span className="text-xs">⚡</span>
+                  <span className="text-xs">Instant bookings</span>
+                </div>
+                <div className="flex items-center space-x-2 text-orange-100">
+                  <span className="text-xs">🛡️</span>
+                  <span className="text-xs">Verified providers</span>
+                </div>
+                <button 
+                  onClick={() => setAuthModalOpen(true)}
+                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105"
+                >
+                  Join Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo & Brand */}
-            <div className="flex items-center space-x-3 group">
+            <div className="flex items-center space-x-3 group cursor-pointer -ml-8 lg:-ml-12">
               <div className="relative">
-                <img
-                  src="Gezana-logo.PNG"
-                  alt="Gezana Logo"
-                  className="h-10 md:h-12 object-contain transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute -top-1 -right-1">
+                <div className={`p-2 rounded-lg transition-all duration-300 ${
+                  scrolled ? 'bg-orange-50' : 'bg-white/20'
+                }`}>
+                  <img
+                    src="Gezana-logo.PNG"
+                    alt="Gezana Logo"
+                    className="h-8 md:h-10 object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+                <div className="absolute -top-0.5 -right-0.5">
                   <HiSparkles className={`w-4 h-4 ${scrolled ? 'text-orange-500' : 'text-orange-400'} animate-pulse`} />
                 </div>
               </div>
               <div className="hidden sm:block">
-                <h1 className={`text-xl font-bold ${scrolled ? 'text-slate-800' : 'text-white'} transition-colors duration-300`}>
+                <h1 className={`text-xl font-bold text-white transition-colors duration-300 group-hover:text-orange-500`}>
                   Gezana
                 </h1>
-                <p className={`text-xs ${scrolled ? 'text-orange-600' : 'text-orange-400'} font-medium`}>
+                <p className={`text-sm text-orange-400 font-medium transition-colors duration-300`}>
                   Connect • Serve • Succeed
                 </p>
               </div>
@@ -53,73 +102,87 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
+              {/* Search Bar */}
+              <div className="relative">
+                <button
+                  onClick={toggleSearch}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all duration-300 group ${
+                    scrolled 
+                      ? 'bg-orange-50 text-slate-700 hover:bg-orange-100' 
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-medium">Search services, providers, or categories...</span>
+                </button>
+              </div>
+
+              {/* Navigation Links */}
               <div className="flex items-center space-x-6">
                 <a 
                   href="#about" 
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 group ${
-                    scrolled 
-                      ? 'text-slate-700 hover:text-orange-600 hover:bg-orange-50' 
-                      : 'text-white hover:text-orange-400 hover:bg-white/10'
-                  }`}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
-                  <FaUsers className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">About Us</span>
+                  <FaUsers className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-medium">About</span>
                 </a>
                 
                 <a 
                   href="#services" 
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 group ${
-                    scrolled 
-                      ? 'text-slate-700 hover:text-orange-600 hover:bg-orange-50' 
-                      : 'text-white hover:text-orange-400 hover:bg-white/10'
-                  }`}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
-                  <MdConnectWithoutContact className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">Services</span>
+                  <MdConnectWithoutContact className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-medium">Services</span>
                 </a>
                 
                 <a 
                   href="#contact" 
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 group ${
-                    scrolled 
-                      ? 'text-slate-700 hover:text-orange-600 hover:bg-orange-50' 
-                      : 'text-white hover:text-orange-400 hover:bg-white/10'
-                  }`}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
-                  <FaHandshake className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">Contact</span>
+                  <FaHandshake className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-medium">Contact</span>
                 </a>
               </div>
 
-              {/* CTA Button */}
+              {/* Join Button */}
               <button
                 onClick={() => setAuthModalOpen(true)}
-                className={`relative overflow-hidden px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group ${
-                  scrolled
-                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700'
-                    : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500'
-                }`}
+                className={`relative overflow-hidden px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500`}
               >
-                <span className="relative z-10 flex items-center space-x-2">
-                  <MdVerified className="w-4 h-4" />
-                  <span>Join Gezana</span>
+                <span className="relative z-10 flex items-center space-x-1.5">
+                  <MdVerified className="w-3.5 h-3.5" />
+                  <span>Join</span>
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={toggleMenu}
-              className={`lg:hidden p-2 rounded-lg transition-all duration-300 ${
-                scrolled 
-                  ? 'text-slate-700 hover:bg-orange-50' 
-                  : 'text-white hover:bg-white/10'
-              }`}
-              aria-label="Toggle menu"
-            >
-              {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-            </button>
+            {/* Mobile Actions */}
+            <div className="flex items-center space-x-2 lg:hidden">
+              <button
+                onClick={toggleSearch}
+                className={`p-1.5 rounded-lg transition-all duration-300 ${
+                  scrolled 
+                    ? 'text-slate-700 hover:bg-orange-50' 
+                    : 'text-white hover:bg-white/10'
+                }`}
+                aria-label="Search"
+              >
+                <IoSearchOutline size={18} />
+              </button>
+              
+              <button
+                onClick={toggleMenu}
+                className={`p-1.5 rounded-lg transition-all duration-300 ${
+                  scrolled 
+                    ? 'text-slate-700 hover:bg-orange-50' 
+                    : 'text-white hover:bg-white/10'
+                }`}
+                aria-label="Toggle menu"
+              >
+                {menuOpen ? <FaTimes size={20} /> : <HiMenuAlt3 size={20} />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -132,18 +195,21 @@ const Navbar = () => {
         )}
 
         {/* Mobile Slide Menu */}
-        <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-50 transform transition-transform duration-300 ease-out lg:hidden ${
+        <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-50 transform transition-transform duration-300 ease-out lg:hidden shadow-2xl ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}>
           <div className="flex flex-col h-full">
             {/* Mobile Header */}
-            <div className="flex items-center justify-between p-6 bg-gradient-to-r from-orange-500 to-orange-600">
-              <div className="flex items-center space-x-3">
-                <img
-                  src="logo 3.png"
+            <div className="flex items-center justify-between p-6 bg-gradient-to-r from-orange-500 to-orange-600 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-orange-500/20"></div>
+              <div className="relative flex items-center space-x-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <img
+                    src="Gezana-logo.PNG"
                   alt="Gezana Logo"
                   className="h-8 object-contain"
                 />
+                </div>
                 <div>
                   <h2 className="text-white font-bold text-lg">Gezana</h2>
                   <p className="text-orange-100 text-xs">Your Service Hub</p>
@@ -151,7 +217,7 @@ const Navbar = () => {
               </div>
               <button
                 onClick={toggleMenu}
-                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                className="relative p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
               >
                 <FaTimes size={20} />
               </button>
@@ -223,6 +289,45 @@ const Navbar = () => {
             </div>
           </div>
         </div>
+
+        {/* Search Modal */}
+        {searchOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-all duration-300 animate-in slide-in-from-top-4">
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <IoSearchOutline className="w-6 h-6 text-orange-500" />
+                  <input
+                    type="text"
+                    placeholder="Search for services, providers, or categories..."
+                    className="flex-1 text-lg border-none outline-none bg-transparent"
+                    autoFocus
+                  />
+                  <button
+                    onClick={toggleSearch}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Popular Searches</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Plumbing', 'Cleaning', 'Electrician', 'Painting', 'Gardening', 'Babysitting'].map((item) => (
+                    <button
+                      key={item}
+                      className="text-left p-3 rounded-lg hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </nav>
 
       <AuthModal
