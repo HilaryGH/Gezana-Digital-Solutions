@@ -16,7 +16,7 @@ interface Provider {
   email?: string;
 }
 
-interface Service {
+interface BookingService {
   name: string;
   category: Category;
   provider: Provider;
@@ -25,7 +25,7 @@ interface Service {
 interface Booking {
   _id: string;
   user: User;
-  service: Service;
+  service: BookingService;
   date: string;
   status: string;
   createdAt: string;

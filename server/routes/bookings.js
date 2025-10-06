@@ -62,35 +62,70 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
-// Create a booking
-router.post("/", verifyToken, async (req, res) => {
+// Create a booking (supports both logged-in users and guests)
+router.post("/", async (req, res) => {
   try {
-    const { category, type, service,serviceType, date, note } = req.body;
+    const { service, date, note, guestInfo } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
 
-    console.log("Booking request by:", req.user);
-    console.log("Request body:", { category, type, service, date, note });
+    console.log("Booking request:", { service, date, note, guestInfo: !!guestInfo });
+    console.log("Has token:", !!token);
 
     if (!service) {
       return res.status(400).json({ message: "Service ID is required" });
     }
 
-   const booking = await Booking.create({
-  user: req.user.id,
-  category,
-  type,
-  serviceType, // ✅ Include this field
-  service,
-  date,
-  note,
-});
+    // Fetch the service to get category and serviceType
+    const serviceDoc = await Service.findById(service).populate('category type');
+    if (!serviceDoc) {
+      return res.status(404).json({ message: "Service not found" });
+    }
 
-    // Loyalty Points Logic
-    const bookingCount = await Booking.countDocuments({ user: req.user.id });
-    const points = bookingCount === 1 ? 50 : 20;
+    let userId = null;
+    
+    // If token is provided, verify it and get user ID
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.id || decoded._id;
+      } catch (err) {
+        console.log("Invalid token, proceeding as guest");
+      }
+    }
 
-    await User.findByIdAndUpdate(req.user.id, {
-      $inc: { loyaltyPoints: points },
-    });
+    // Validate guest information if no user ID
+    if (!userId && (!guestInfo || !guestInfo.fullName || !guestInfo.email || !guestInfo.phone || !guestInfo.address)) {
+      return res.status(400).json({ 
+        message: "Guest information is required: fullName, email, phone, and address" 
+      });
+    }
+
+    const bookingData = {
+      user: userId,
+      category: serviceDoc.category._id,
+      serviceType: serviceDoc.type._id,
+      service,
+      date,
+      note,
+    };
+
+    // Add guest information if no user ID
+    if (!userId && guestInfo) {
+      bookingData.guestInfo = guestInfo;
+    }
+
+    const booking = await Booking.create(bookingData);
+
+    // Loyalty Points Logic (only for logged-in users)
+    if (userId) {
+      const bookingCount = await Booking.countDocuments({ user: userId });
+      const points = bookingCount === 1 ? 50 : 20;
+
+      await User.findByIdAndUpdate(userId, {
+        $inc: { loyaltyPoints: points },
+      });
+    }
 
     res.status(201).json(booking);
   } catch (err) {

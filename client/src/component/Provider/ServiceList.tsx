@@ -6,7 +6,7 @@ interface Category {
   name: string;
 }
 
-interface Service {
+interface ServiceListItem {
   _id: string;
   name: string;
   category: Category; // category is now an object with name
@@ -16,8 +16,8 @@ interface Service {
 }
 
 const ServiceList: React.FC = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<ServiceListItem[]>([]);
+  const [filteredServices, setFilteredServices] = useState<ServiceListItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -27,7 +27,7 @@ const ServiceList: React.FC = () => {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get<Service[]>("/services/mine", {
+      const res = await axios.get<ServiceListItem[]>("/services/mine", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(res.data);

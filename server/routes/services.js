@@ -27,9 +27,7 @@ router.post(
   "/",
   verifyToken,
   upload.fields([
-    { name: "idCard", maxCount: 1 },
-    { name: "businessLicense", maxCount: 1 },
-    { name: "skillLicense", maxCount: 1 },
+    { name: "photos", maxCount: 5 }, // Allow multiple photos
   ]),
   async (req, res) => {
     if (req.user.role !== "provider") {
@@ -37,23 +35,38 @@ router.post(
     }
 
     try {
-      const { name, category, type, description, price } = req.body;
+      const { 
+        title, 
+        description, 
+        category, 
+        subcategory, 
+        price, 
+        priceType, 
+        location 
+      } = req.body;
 
+      // Create service with new structure
       const newService = await Service.create({
-        name, // still storing name separately
-        category,
-        type, // ✅ store selected type
+        name: title, // Map title to name
+        category: category, // Store as string for now
+        type: subcategory, // Map subcategory to type
         description,
-        price,
+        price: parseFloat(price),
         provider: req.user.id,
-        idCard: req.files?.idCard?.[0]?.path || null,
-        businessLicense: req.files?.businessLicense?.[0]?.path || null,
-        skillLicense: req.files?.skillLicense?.[0]?.path || null,
+        // Handle photo uploads
+        photos: req.files?.photos?.map(file => file.path) || [],
+        // Optional fields
+        priceType: priceType || 'fixed',
+        location: location || '',
       });
 
       res.status(201).json(newService);
     } catch (err) {
-      res.status(500).json({ message: "Service creation failed", error: err.message });
+      console.error("Service creation error:", err);
+      res.status(500).json({ 
+        message: "Service creation failed", 
+        error: err.message 
+      });
     }
   }
 );
@@ -85,12 +98,36 @@ router.get("/", async (req, res) => {
       .populate({
         path: "provider",
         match: { isActive: true },
-        select: "name",
+        select: "name email rating",
       });
 
     const availableServices = services.filter((s) => s.provider !== null);
 
-    res.json(availableServices);
+    // Transform the data to match client expectations
+    const transformedServices = availableServices.map(service => ({
+      id: service._id,
+      title: service.name, // Map name to title
+      description: service.description,
+      category: service.category?.name || service.category,
+      subcategory: service.type?.name || service.type,
+      price: service.price,
+      priceType: service.priceType,
+      photos: service.photos.map(photo => {
+        if (photo.startsWith('http')) return photo;
+        // Handle different photo path formats
+        const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
+        return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
+      }),
+      providerId: service.provider._id,
+      providerName: service.provider.name,
+      providerRating: service.provider.rating || 4.5, // Default rating if not available
+      isAvailable: service.isActive,
+      location: service.location,
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    }));
+
+    res.json(transformedServices);
   } catch (err) {
     res.status(500).json({ message: "Could not fetch services" });
   }
@@ -190,6 +227,105 @@ router.get("/by-filter", async (req, res) => {
     res.json(services);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch services", error: err.message });
+  }
+});
+
+// Admin routes for service management
+/**
+ * GET /api/admin/services - Get all services for admin
+ */
+router.get("/admin/services", verifyToken, async (req, res) => {
+  // Check if user is admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  try {
+    const services = await Service.find({})
+      .populate("provider", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(services);
+  } catch (err) {
+    console.error("Error fetching admin services:", err);
+    res.status(500).json({ message: "Failed to fetch services" });
+  }
+});
+
+/**
+ * PUT /api/admin/services/:id/approve - Approve a service
+ */
+router.put("/admin/services/:id/approve", verifyToken, async (req, res) => {
+  // Check if user is admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  try {
+    const service = await Service.findByIdAndUpdate(
+      req.params.id,
+      { isActive: true },
+      { new: true }
+    ).populate("provider", "name email");
+
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    res.json({ message: "Service approved successfully", service });
+  } catch (err) {
+    console.error("Error approving service:", err);
+    res.status(500).json({ message: "Failed to approve service" });
+  }
+});
+
+/**
+ * PUT /api/admin/services/:id/reject - Reject a service
+ */
+router.put("/admin/services/:id/reject", verifyToken, async (req, res) => {
+  // Check if user is admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  try {
+    const service = await Service.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { new: true }
+    ).populate("provider", "name email");
+
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    res.json({ message: "Service rejected successfully", service });
+  } catch (err) {
+    console.error("Error rejecting service:", err);
+    res.status(500).json({ message: "Failed to reject service" });
+  }
+});
+
+/**
+ * DELETE /api/admin/services/:id - Delete a service (admin only)
+ */
+router.delete("/admin/services/:id", verifyToken, async (req, res) => {
+  // Check if user is admin
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  try {
+    const service = await Service.findByIdAndDelete(req.params.id);
+
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    res.json({ message: "Service deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting service:", err);
+    res.status(500).json({ message: "Failed to delete service" });
   }
 });
 

@@ -1,42 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import About from "./About";
+import ServiceSearch from "./ServiceSearch";
 import { ShieldCheck, ShoppingCart, Users, ChevronDown, ChevronUp } from "lucide-react";
 
 const serviceCategories = [
   {
     name: "Home Maintenance",
     icon: "🔧",
-    services: ["Plumbing", "Electrical Work", "Painting", "Carpentry"],
+    services: ["Plumbing", "Electrical", "Carpentry", "General Repairs", "Door & Window Repair", "Furniture Assembly", "TV Mounting", "Roofing", "Flooring", "HVAC Services", "Handyman Services", "Lock Installation", "Shelf Installation", "Cabinet Installation", "Light Fixture Installation"],
   },
   {
     name: "Cleaning Services",
     icon: "🧹",
-    services: ["House Cleaning", "Office Cleaning", "Carpet Cleaning", "Window Cleaning"],
+    services: ["Residential Cleaning", "Carpet Washing", "Pest Control", "Deep Cleaning", "Move-in/Move-out Cleaning", "Post-Construction Cleaning", "Window Cleaning", "Office Cleaning", "Upholstery Cleaning", "Appliance Cleaning", "Gutter Cleaning", "Pressure Washing", "Green Cleaning", "Sanitization Services", "Event Cleanup", "Regular Maintenance"],
   },
   {
     name: "Appliance Repair",
     icon: "⚙️",
-    services: ["Refrigerator Repair", "Washing Machine Repair", "AC Repair", "Oven Repair"],
+    services: ["Refrigerator Repair", "AC Repair", "Washing Machine Repair", "Dryer Repair", "Dishwasher Repair", "Oven Repair", "Microwave Repair", "Water Heater Repair", "Garbage Disposal Repair", "Ice Maker Repair", "Stove Repair", "Freezer Repair", "Appliance Installation", "Appliance Maintenance", "Emergency Repair", "Warranty Service"],
   },
   {
     name: "Personal Care",
-    icon: "👶",
-    services: ["Babysitting", "Nanny Services", "Elderly Care", "Pet Care"],
+    icon: "💄",
+    services: ["Haircut", "Hairstyle", "Facial", "Manicure & Pedicure", "Makeup Services", "Eyebrow Shaping", "Hair Coloring", "Spa Treatments", "Massage Therapy", "Beauty Consultation", "Hair Styling", "Nail Art", "Bridal Makeup", "Skincare Treatment", "Hair Treatment", "Beauty Therapy"],
   },
   {
-    name: "Household & Home Services",
-    icon: "🏠",
-    services: ["Gardening", "Laundry", "Home Organization", "Pest Control"],
+    name: "Housemaid Services",
+    icon: "👩‍💼",
+    services: ["Daily Housekeeping", "Cooking Services", "Laundry Services", "Ironing Services", "Grocery Shopping", "Child Care Assistance", "Elderly Care", "Pet Care", "Meal Preparation", "Home Organization", "Personal Assistant", "Companion Care", "Special Needs Care", "Overnight Care", "Tutoring Services", "After School Care"],
   },
   {
     name: "Hotel/Lounge Services",
     icon: "🏨",
-    services: ["Room Service", "Concierge", "Housekeeping", "Event Planning", "Catering", "Spa Services"],
+    services: ["Room Service", "Concierge", "Housekeeping", "Event Planning", "Catering", "Spa Services", "Front Desk", "Guest Services", "Bartending", "Waitressing", "VIP Services", "Reception Services", "Security Services", "Valet Services", "Bell Services", "Guest Relations"],
   },
 ];
 
 const Home = () => {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Handle search query from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const search = urlParams.get('search');
+    if (search) {
+      setSearchQuery(search);
+    }
+  }, []);
 
   return (
     <>
@@ -61,16 +72,16 @@ const Home = () => {
           </div>
           
              {/* House Container */}
-             <div className="relative mx-auto w-[350px] sm:w-[450px] md:w-[550px] lg:w-[650px] h-[200px] sm:h-[240px] md:h-[280px] lg:h-[320px] flex flex-col items-center justify-end">
+             <div className="relative mx-auto w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] h-[160px] sm:h-[190px] md:h-[220px] lg:h-[250px] flex flex-col items-center justify-end">
 
                {/* Roof */}
-               <div className="relative w-0 h-0 border-l-[175px] sm:border-l-[225px] md:border-l-[275px] lg:border-l-[325px] border-r-[175px] sm:border-r-[225px] md:border-r-[275px] lg:border-r-[325px] border-b-[50px] sm:border-b-[65px] md:border-b-[80px] lg:border-b-[95px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
+               <div className="relative w-0 h-0 border-l-[140px] sm:border-l-[180px] md:border-l-[220px] lg:border-l-[260px] border-r-[140px] sm:border-r-[180px] md:border-r-[220px] lg:border-r-[260px] border-b-[40px] sm:border-b-[50px] md:border-b-[60px] lg:border-b-[70px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
                   
                {/* Roof Overhang */}
                <div className="w-full h-[5px] sm:h-[7px] md:h-[9px] lg:h-[11px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
 
                {/* Walls Section - Narrower than roof */}
-               <div className="relative w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] h-[120px] sm:h-[150px] md:h-[180px] lg:h-[210px] flex mx-auto">
+               <div className="relative w-[220px] sm:w-[280px] md:w-[340px] lg:w-[400px] h-[90px] sm:h-[110px] md:h-[130px] lg:h-[150px] flex mx-auto">
 
                  {/* Left Wall */}
                  <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-l-lg"></div>
@@ -83,34 +94,34 @@ const Home = () => {
                 </div>
                 
                {/* Heading centered in walls */}
-               <div className="absolute top-[105px] sm:top-[130px] md:top-[155px] lg:top-[180px] left-1/2 transform -translate-x-1/2 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] text-center px-4">
-                 <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold drop-shadow-lg animate-text-glow">
+               <div className="absolute top-[70px] sm:top-[100px] md:top-[120px] lg:top-[140px] left-1/2 transform -translate-x-1/2 w-[220px] sm:w-[280px] md:w-[340px] lg:w-[400px] text-center px-4">
+                 <h1 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg animate-text-glow">
                     Your Home, Our Priority
                   </h1>
                </div>
 
                {/* Beautiful Buttons inside walls */}
-               <div className="absolute top-[155px] sm:top-[185px] md:top-[215px] lg:top-[245px] left-1/2 transform -translate-x-1/2 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] px-4">
-                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 w-full">
+               <div className="absolute top-[130px] sm:top-[155px] md:top-[180px] lg:top-[205px] left-1/2 transform -translate-x-1/2 w-[180px] sm:w-[240px] md:w-[300px] lg:w-[360px] px-2">
+                 <div className="flex flex-col sm:flex-row gap-1 sm:gap-1.5 md:gap-2 w-full">
                    {/* Find Services Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-3 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 md:py-3 lg:py-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg shadow-lg sm:shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 sm:hover:scale-110 hover:-translate-y-1 sm:hover:-translate-y-2 animate-button-bounce overflow-hidden">
+                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-1 sm:px-1.5 md:px-2 lg:px-3 py-0.5 sm:py-0.5 md:py-1 lg:py-1.5 rounded-full font-bold text-xs sm:text-xs md:text-xs lg:text-sm shadow-sm sm:shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 sm:hover:scale-110 hover:-translate-y-1 sm:hover:-translate-y-2 animate-button-bounce overflow-hidden">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                        <span className="relative z-10 flex items-center justify-center">
                       Find Services
                        </span>
-                       <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-lg sm:rounded-xl"></div>
+                       <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-full"></div>
                     </button>
                    </div>
 
                    {/* Become a Provider Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-3 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 md:py-3 lg:py-4 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm md:text-base lg:text-lg shadow-lg sm:shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 sm:hover:scale-110 hover:-translate-y-1 sm:hover:-translate-y-2 animate-button-bounce overflow-hidden border-2 border-orange-500">
+                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-1 sm:px-1.5 md:px-2 lg:px-3 py-0.5 sm:py-0.5 md:py-1 lg:py-1.5 rounded-full font-bold text-xs sm:text-xs md:text-xs lg:text-sm shadow-sm sm:shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 sm:hover:scale-110 hover:-translate-y-1 sm:hover:-translate-y-2 animate-button-bounce overflow-hidden border-2 border-orange-500">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
                        <span className="relative z-10 flex items-center justify-center">
                       Become a Provider
                        </span>
-                       <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-lg sm:rounded-xl"></div>
+                       <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-full"></div>
                     </button>
                   </div>
                  </div>
@@ -122,7 +133,7 @@ const Home = () => {
           </div>
 
           {/* Right Side - Services */}
-          <div className="relative w-full lg:w-1/2 h-1/2 lg:h-full bg-gradient-to-br from-orange-100 via-white to-orange-50 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full lg:w-1/2 h-1/2 lg:h-full bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden min-h-[400px] sm:min-h-[500px]">
             
             {/* Beautiful Background Elements */}
             <div className="absolute inset-0">
@@ -132,19 +143,18 @@ const Home = () => {
             </div>
 
             {/* Services Content */}
-            <div className="relative z-10 w-full max-w-4xl mx-auto px-4 lg:px-8 text-center">
+            <div className="relative z-10 w-full max-w-4xl mx-auto px-2 sm:px-4 lg:px-8 text-center">
               {/* Section Header */}
-              <div className="mb-6 lg:mb-8">
-                <div className="inline-flex items-center justify-center w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full mb-3 lg:mb-4 shadow-lg">
-                  <span className="text-xl lg:text-2xl">🏠</span>
-                </div>
-                <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-                  Discover our comprehensive range of professional services designed to make your life easier.
-                </p>
+              <div className="mb-4 sm:mb-6 lg:mb-8">
+                
+              <h3 className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+  Explore our services that simplify your life.
+</h3>
+
               </div>
               
               {/* Service Categories Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 lg:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full max-h-[300px] sm:max-h-[400px] lg:max-h-none overflow-y-auto sm:overflow-y-visible">
                 {serviceCategories.map((category, index) => (
                   <div
                     key={category.name}
@@ -153,7 +163,7 @@ const Home = () => {
                   >
                     {/* Service Card */}
                     <div
-                      className={`bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer border border-gray-100 hover:border-orange-200 overflow-hidden ${
+                      className={`bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer border border-gray-100 hover:border-orange-200 overflow-hidden w-full ${
                         expandedCategory === category.name ? 'ring-4 ring-orange-200 shadow-2xl scale-105' : ''
                       }`}
                       onClick={() =>
@@ -163,19 +173,19 @@ const Home = () => {
                       }
                     >
                       {/* Card Header */}
-                      <div className="p-3 lg:p-4 text-center relative">
+                      <div className="p-2 lg:p-3 text-center relative">
                         {/* Background Pattern */}
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         
                         {/* Icon */}
-                        <div className="relative z-10 mb-2 lg:mb-3">
-                          <div className="inline-flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg lg:rounded-xl group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-500">
-                            <span className="text-lg lg:text-xl group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
+                        <div className="relative z-10 mb-1 lg:mb-2">
+                          <div className="inline-flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg lg:rounded-xl group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-500">
+                            <span className="text-sm lg:text-lg group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
                           </div>
                         </div>
                         
                         {/* Title */}
-                        <h3 className="relative z-10 text-sm lg:text-base font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors duration-300">
+                        <h3 className="relative z-10 text-xs lg:text-sm font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors duration-300">
                           {category.name}
                         </h3>
                         
@@ -184,12 +194,12 @@ const Home = () => {
                           {expandedCategory === category.name ? (
                             <div className="flex items-center space-x-1 text-orange-600">
                               <span className="text-xs font-medium">View Less</span>
-                              <ChevronUp className="w-3 h-3 animate-pulse" />
+                              <ChevronUp className="w-2 h-2 animate-pulse" />
                             </div>
                           ) : (
                             <div className="flex items-center space-x-1 text-gray-500 group-hover:text-orange-500 transition-colors">
                               <span className="text-xs font-medium">View Services</span>
-                              <ChevronDown className="w-3 h-3" />
+                              <ChevronDown className="w-2 h-2" />
                             </div>
                           )}
                         </div>
@@ -197,19 +207,19 @@ const Home = () => {
                       
                       {/* Expanded Services */}
                       <div className={`overflow-hidden transition-all duration-500 ${
-                        expandedCategory === category.name ? 'max-h-60 lg:max-h-80 opacity-100' : 'max-h-0 opacity-0'
+                        expandedCategory === category.name ? 'max-h-40 lg:max-h-60 opacity-100' : 'max-h-0 opacity-0'
                       }`}>
-                        <div className="px-3 lg:px-4 pb-3 lg:pb-4">
-                          <div className="border-t border-gray-100 pt-2 lg:pt-3">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Available Services</h4>
+                        <div className="px-2 lg:px-3 pb-2 lg:pb-3">
+                          <div className="border-t border-gray-100 pt-1 lg:pt-2">
+                            <h4 className="text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">Available Services</h4>
                             <div className="grid grid-cols-1 gap-1">
                               {category.services.map((service, serviceIndex) => (
                                 <div
                                   key={service}
-                                  className="flex items-center space-x-2 p-1.5 lg:p-2 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer group/service"
+                                  className="flex items-center space-x-2 p-1 lg:p-1.5 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer group/service"
                                   style={{ animationDelay: `${serviceIndex * 0.05}s` }}
                                 >
-                                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full group-hover/service:bg-orange-600 transition-colors"></div>
+                                  <div className="w-1 h-1 bg-orange-400 rounded-full group-hover/service:bg-orange-600 transition-colors"></div>
                                   <span className="text-xs text-gray-600 group-hover/service:text-orange-600 transition-colors font-medium">
                                     {service}
                                   </span>
@@ -224,6 +234,35 @@ const Home = () => {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Featured Services Section */}
+        <div className="relative w-full bg-gradient-to-b from-white via-orange-50/30 to-white py-20">
+          <div className="max-w-7xl mx-auto px-6">
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-6">
+                <span className="text-2xl">⭐</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                Featured <span className="text-orange-600">Services</span>
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Discover top-rated services from verified providers in your area
+              </p>
+            </div>
+
+            {/* Services Search and Display */}
+            <ServiceSearch
+              initialQuery={searchQuery}
+              onServiceSelect={(service) => {
+                console.log('Service selected:', service);
+                // Handle service selection (e.g., navigate to service details)
+              }}
+              showFilters={true}
+              layout="grid"
+            />
           </div>
         </div>
 
