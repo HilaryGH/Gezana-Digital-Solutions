@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import About from "./About";
 import ServiceSearch from "./ServiceSearch";
 import { ShieldCheck, ShoppingCart, Users, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -265,116 +264,80 @@ const Home = () => {
             />
           </div>
         </div>
+      </section>
 
-        {/* Service Categories Section */}
-        <div className="relative w-full bg-gradient-to-b from-white via-orange-50/30 to-white py-20">
+      {/* How It Works Section */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-orange-50/30 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-6">
-                <span className="text-2xl">🏠</span>
+              <span className="text-2xl">⚡</span>
               </div>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Our <span className="text-orange-600">Services</span>
+              How It <span className="text-orange-600">Works</span>
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Discover our comprehensive range of professional services designed to make your life easier and your home more comfortable.
+              Get the services you need in just three simple steps. Our streamlined process makes booking professional services effortless.
+            </p>
+          </div>
+          
+          {/* Steps Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {/* Step 1 */}
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                  <span className="text-3xl font-bold text-white">1</span>
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-white">🔍</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Browse & Search</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Explore our comprehensive range of services or use our smart search to find exactly what you need in your area.
               </p>
             </div>
             
-            {/* Service Categories Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {serviceCategories.map((category, index) => (
-                <div
-                  key={category.name}
-                  className="group relative"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {/* Service Card */}
-                  <div
-                    className={`bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer border border-gray-100 hover:border-orange-200 overflow-hidden ${
-                      expandedCategory === category.name ? 'ring-4 ring-orange-200 shadow-2xl scale-105' : ''
-                    }`}
-                    onClick={() =>
-                      setExpandedCategory(
-                        expandedCategory === category.name ? null : category.name
-                      )
-                    }
-                  >
-                    {/* Card Header */}
-                    <div className="p-8 text-center relative">
-                      {/* Background Pattern */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      
-                      {/* Icon */}
-                      <div className="relative z-10 mb-6">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-500">
-                          <span className="text-3xl group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
+            {/* Step 2 */}
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                  <span className="text-3xl font-bold text-white">2</span>
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-white">📅</span>
                         </div>
                       </div>
-                      
-                      {/* Title */}
-                      <h3 className="relative z-10 text-xl font-bold text-gray-900 mb-4 group-hover:text-orange-600 transition-colors duration-300">
-                        {category.name}
-                      </h3>
-                      
-                      {/* Expand Button */}
-                      <div className="relative z-10 flex items-center justify-center">
-                        {expandedCategory === category.name ? (
-                          <div className="flex items-center space-x-2 text-orange-600">
-                            <span className="text-sm font-medium">View Less</span>
-                            <ChevronUp className="w-5 h-5 animate-pulse" />
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-2 text-gray-500 group-hover:text-orange-500 transition-colors">
-                            <span className="text-sm font-medium">View Services</span>
-                            <ChevronDown className="w-5 h-5" />
-                          </div>
-                        )}
-                      </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Book & Schedule</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Choose your preferred provider, select a convenient time slot, and book instantly with secure online payment.
+              </p>
                     </div>
                     
-                    {/* Expanded Services */}
-                    <div className={`overflow-hidden transition-all duration-500 ${
-                      expandedCategory === category.name ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                    }`}>
-                      <div className="px-8 pb-8">
-                        <div className="border-t border-gray-100 pt-6">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Available Services</h4>
-                          <div className="grid grid-cols-1 gap-2">
-                            {category.services.map((service, serviceIndex) => (
-                              <div
-                                key={service}
-                                className="flex items-center space-x-3 p-3 rounded-xl hover:bg-orange-50 transition-colors cursor-pointer group/service"
-                                style={{ animationDelay: `${serviceIndex * 0.05}s` }}
-                              >
-                                <div className="w-2 h-2 bg-orange-400 rounded-full group-hover/service:bg-orange-600 transition-colors"></div>
-                                <span className="text-sm text-gray-600 group-hover/service:text-orange-600 transition-colors font-medium">
-                                  {service}
-                                </span>
+            {/* Step 3 */}
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                  <span className="text-3xl font-bold text-white">3</span>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-white">✨</span>
                 </div>
-              ))}
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Enjoy Service</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Sit back and relax while our verified professionals deliver exceptional service right to your doorstep.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Why Choose Gezana Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-orange-50/30 relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 right-10 w-32 h-32 bg-orange-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 left-10 w-40 h-40 bg-orange-300/20 rounded-full blur-3xl"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <section className="py-20 bg-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
           {/* Section Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-6">
@@ -383,85 +346,49 @@ const Home = () => {
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Why Choose <span className="text-orange-600">Gezana?</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Gezana Digital Solutions isn't just a platform — it's your trusted gateway to reliable, high-quality services tailored to your daily needs. We make booking easy, secure, and personalized, all in one seamless experience.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Experience the difference with our commitment to quality, convenience, and customer satisfaction.
             </p>
           </div>
           
           {/* Features Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Image */}
-            <div className="order-2 lg:order-1">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-200 to-orange-300 rounded-3xl transform rotate-3"></div>
-                <img
-                  src="logo 3.png"
-                  alt="Why Choose Gezana"
-                  className="relative rounded-3xl shadow-2xl w-full h-auto object-cover transform -rotate-1 hover:rotate-0 transition-transform duration-500"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="group text-center">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <ShieldCheck className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Verified Providers</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  All our service providers are thoroughly vetted, background-checked, and quality-assured for your peace of mind.
+                </p>
               </div>
             </div>
             
-            {/* Right Side - Features */}
-            <div className="order-1 lg:order-2 space-y-8">
-              <div className="group">
-                <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-300">
-                        <ShoppingCart className="w-7 h-7 text-orange-600" />
+            {/* Feature 2 */}
+            <div className="group text-center">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <ShoppingCart className="w-8 h-8 text-white" />
                       </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                        One-Stop Service Hub
-                      </h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Easy Booking</h3>
                       <p className="text-gray-600 leading-relaxed">
-                        Access a comprehensive range of services — from home repairs to professional help — all in one convenient platform. No more juggling multiple apps or websites.
+                  Book services in minutes with our intuitive platform. Real-time availability and instant confirmations.
                       </p>
-                    </div>
-                  </div>
                 </div>
               </div>
               
-              <div className="group">
-                <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-300">
-                        <ShieldCheck className="w-7 h-7 text-orange-600" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                        Secure & Seamless Booking
-                      </h3>
-                      <p className="text-gray-600 leading-relaxed">
-                        Enjoy hassle-free booking with real-time availability, secure online payments, and instant confirmations. Your peace of mind is our priority.
-                      </p>
-                    </div>
-                  </div>
+            {/* Feature 3 */}
+            <div className="group text-center">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Users className="w-8 h-8 text-white" />
                 </div>
-              </div>
-              
-              <div className="group">
-                <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-300">
-                        <Users className="w-7 h-7 text-orange-600" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                        Trusted Service Providers
-                      </h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">24/7 Support</h3>
                       <p className="text-gray-600 leading-relaxed">
-                        We partner only with verified, skilled, and experienced service professionals you can rely on. Every provider is background-checked and quality-assured.
+                  Our dedicated support team is available around the clock to assist you with any questions or concerns.
                       </p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -509,7 +436,7 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-orange-50/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-6">
@@ -519,70 +446,79 @@ const Home = () => {
               What Our <span className="text-orange-600">Customers</span> Say
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Don't just take our word for it. Here's what real customers have to say about their Gezana experience.
+              Join thousands of satisfied customers who trust Gezana for their service needs.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Testimonial 1 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="flex items-center mb-4">
+            <div className="group">
+              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
+                <div className="flex items-center mb-6">
                 <div className="flex text-orange-400">
                   {'★'.repeat(5)}
+                  </div>
+                  <span className="ml-2 text-sm text-gray-500">5.0</span>
                 </div>
-              </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 mb-6 leading-relaxed text-lg">
                 "Gezana made finding a reliable plumber so easy! The booking process was seamless and the service was excellent. Highly recommended!"
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-orange-600 font-bold">SM</span>
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-orange-600 font-bold text-lg">SM</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Sarah M.</div>
+                    <div className="font-semibold text-gray-900 text-lg">Sarah M.</div>
                   <div className="text-sm text-gray-500">Homeowner</div>
+                  </div>
                 </div>
               </div>
             </div>
             
             {/* Testimonial 2 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="flex items-center mb-4">
+            <div className="group">
+              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
+                <div className="flex items-center mb-6">
                 <div className="flex text-orange-400">
                   {'★'.repeat(5)}
+                  </div>
+                  <span className="ml-2 text-sm text-gray-500">5.0</span>
                 </div>
-              </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 mb-6 leading-relaxed text-lg">
                 "As a service provider, Gezana has helped me grow my business significantly. The platform is user-friendly and the support is outstanding."
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-orange-600 font-bold">MJ</span>
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-orange-600 font-bold text-lg">MJ</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Mike Johnson</div>
+                    <div className="font-semibold text-gray-900 text-lg">Mike Johnson</div>
                   <div className="text-sm text-gray-500">Electrician</div>
+                  </div>
                 </div>
               </div>
             </div>
             
             {/* Testimonial 3 */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="flex items-center mb-4">
+            <div className="group">
+              <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
+                <div className="flex items-center mb-6">
                 <div className="flex text-orange-400">
                   {'★'.repeat(5)}
+                  </div>
+                  <span className="ml-2 text-sm text-gray-500">5.0</span>
                 </div>
-              </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-gray-600 mb-6 leading-relaxed text-lg">
                 "The cleaning service I booked through Gezana exceeded my expectations. Professional, punctual, and thorough. Will definitely use again!"
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-orange-600 font-bold">AL</span>
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-orange-600 font-bold text-lg">AL</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Alex Lee</div>
+                    <div className="font-semibold text-gray-900 text-lg">Alex Lee</div>
                   <div className="text-sm text-gray-500">Business Owner</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -591,34 +527,33 @@ const Home = () => {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-20 bg-gradient-to-br from-orange-50 via-white to-orange-50 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-orange-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-orange-300/20 rounded-full blur-3xl"></div>
+      <section className="py-20 bg-gradient-to-r from-orange-600 to-orange-700 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
         </div>
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Ready to Get Started?
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Ready to Experience the Difference?
           </h2>
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-            Join thousands of satisfied customers and experience the convenience of professional services at your fingertips.
+          <p className="text-xl text-orange-100 mb-10 leading-relaxed">
+            Join thousands of satisfied customers and service providers who trust Gezana for their daily service needs.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <button className="bg-white hover:bg-orange-50 text-orange-600 px-10 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               Book a Service Now
             </button>
-            <button className="border-2 border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105">
+            <button className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-10 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105">
               Become a Provider
             </button>
           </div>
         </div>
       </section>
 
-      <section>
-        <About />
-      </section>
     </>
   );
 };

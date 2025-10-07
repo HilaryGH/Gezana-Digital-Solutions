@@ -38,6 +38,8 @@ app.use("/api/types", serviceTypeRoutes);
 const providerBookingsRouter = require("./routes/providerBookings");
 app.use("/api", providerBookingsRouter);
 
+const contactRoutes = require("./routes/contact");
+app.use("/api/contact", contactRoutes);
 
 app.use("/api/payments", require("./routes/payment"));
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
 import { MdConnectWithoutContact, MdVerified } from "react-icons/md";
 import { HiSparkles, HiMenuAlt3 } from "react-icons/hi";
@@ -147,7 +148,7 @@ const Navbar = () => {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center py-2">
             {/* Logo & Brand */}
-            <div className="flex items-center space-x-1 sm:space-x-2 group cursor-pointer -ml-2 sm:-ml-4 lg:-ml-6">
+            <Link to="/" className="flex items-center space-x-1 sm:space-x-2 group cursor-pointer -ml-2 sm:-ml-4 lg:-ml-6">
               <div className="relative">
                 <div className={`p-1.5 rounded-lg transition-all duration-300 border-2 ${
                   scrolled ? 'bg-orange-50 border-black' : 'bg-black/80 border-black'
@@ -170,7 +171,7 @@ const Navbar = () => {
                   Connect • Serve • Succeed
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
@@ -191,29 +192,29 @@ const Navbar = () => {
 
               {/* Navigation Links */}
               <div className="flex items-center space-x-6">
-                <a 
-                  href="#about" 
+                <Link 
+                  to="/about" 
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
                   <FaUsers className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span className="text-xs font-medium">About</span>
-                </a>
+                </Link>
                 
-                <a 
-                  href="#services" 
+                <Link 
+                  to="/services" 
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
                   <MdConnectWithoutContact className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span className="text-xs font-medium">Services</span>
-                </a>
+                </Link>
                 
-                <a 
-                  href="#contact" 
+                <Link 
+                  to="/contact" 
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
                   <FaHandshake className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   <span className="text-xs font-medium">Contact</span>
-                </a>
+                </Link>
               </div>
 
               {/* Join Button */}
@@ -298,32 +299,32 @@ const Navbar = () => {
             {/* Mobile Navigation */}
             <div className="flex-1 p-6 space-y-4">
               <div className="space-y-2">
-                <a
-                  href="#about"
+                <Link
+                  to="/about"
                   onClick={toggleMenu}
                   className="flex items-center space-x-3 p-4 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
                 >
                   <FaUsers className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
                   <span className="font-medium">About Us</span>
-                </a>
+                </Link>
                 
-                <a
-                  href="#services"
+                <Link
+                  to="/services"
                   onClick={toggleMenu}
                   className="flex items-center space-x-3 p-4 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
                 >
                   <MdConnectWithoutContact className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
                   <span className="font-medium">Our Services</span>
-                </a>
+                </Link>
                 
-                <a
-                  href="#contact"
+                <Link
+                  to="/contact"
                   onClick={toggleMenu}
                   className="flex items-center space-x-3 p-4 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
                 >
                   <FaHandshake className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
                   <span className="font-medium">Contact Us</span>
-                </a>
+                </Link>
               </div>
 
               {/* Mobile Features */}

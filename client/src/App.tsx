@@ -10,6 +10,9 @@ import Navbar from "./component/Navbar";
 import Footer from "./component/Footer";
 
 import Home from "./component/Home";
+import AboutPage from "./component/Pages/AboutPage";
+import ServicesPage from "./component/Pages/ServicesPage";
+import ContactPage from "./component/Pages/ContactPage";
 import LoginForm from "./component/LoginForm";
 import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
@@ -54,6 +57,9 @@ function AppContent() {
   );
 
   const isHomePage = location.pathname === "/";
+  const isAboutPage = location.pathname === "/about";
+  const isServicesPage = location.pathname === "/services";
+  const isContactPage = location.pathname === "/contact";
 
   return (
     <>
@@ -63,6 +69,9 @@ function AppContent() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />
@@ -100,8 +109,8 @@ function AppContent() {
         <Route path="*" element={<Home />} />
       </Routes>
 
-      {/* Show Footer only on the home page */}
-      {isHomePage && <Footer />}
+      {/* Show Footer on home page, about page, services page, and contact page */}
+      {(isHomePage || isAboutPage || isServicesPage || isContactPage) && <Footer />}
     </>
   );
 }
