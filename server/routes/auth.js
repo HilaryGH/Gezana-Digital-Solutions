@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const verifyToken = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
+const { sendWelcomeNotifications } = require("../utils/notificationService");
 
 const router = express.Router();
 
@@ -156,6 +157,21 @@ router.post("/register", upload.fields([
     const newUser = new User(userData);
     await newUser.save();
     console.log("User created successfully:", newUser._id);
+
+    // Send welcome notifications (Email + WhatsApp)
+    try {
+      const notificationResults = await sendWelcomeNotifications({
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        phone: newUser.phone,
+        whatsapp: newUser.whatsapp
+      });
+      console.log("Welcome notifications sent:", notificationResults);
+    } catch (notifError) {
+      console.error("Error sending welcome notifications:", notifError);
+      // Don't fail registration if notifications fail
+    }
 
     res.status(201).json({ 
       message: "User registered successfully",

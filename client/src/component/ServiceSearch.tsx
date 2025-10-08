@@ -45,7 +45,9 @@ const ServiceSearch: React.FC<ServiceSearchProps> = ({
     setLoading(true);
     try {
       const params = { ...filters, ...searchParams };
+      console.log('Fetching services with params:', params);
       const response = await getServices(params);
+      console.log('Services fetched successfully:', response);
       setServices(response.services || []);
       setPagination({
         total: response.total || 0,
@@ -297,6 +299,10 @@ const ServiceSearch: React.FC<ServiceSearchProps> = ({
               : 'No services available in this category.'
             }
           </p>
+          <div className="mt-4 text-sm text-gray-400">
+            <p>Debug info: {services.length} services loaded</p>
+            <p>Total available: {pagination.total}</p>
+          </div>
           {searchQuery && (
             <button
               onClick={() => {

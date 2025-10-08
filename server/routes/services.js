@@ -1,7 +1,9 @@
 const express = require("express");
 const verifyToken = require("../middleware/authMiddleware");
 const Service = require("../models/Service");
+const User = require("../models/User");
 const upload = require("../middleware/upload");
+const { sendServicePublishedNotifications } = require("../utils/notificationService");
 
 const router = express.Router();
 
@@ -59,6 +61,23 @@ router.post(
         priceType: priceType || 'fixed',
         location: location || '',
       });
+
+      // Send service published notifications
+      try {
+        const provider = await User.findById(req.user.id);
+        if (provider) {
+          const notificationResults = await sendServicePublishedNotifications({
+            email: provider.email,
+            name: provider.name,
+            phone: provider.phone,
+            whatsapp: provider.whatsapp
+          }, newService.name);
+          console.log("Service published notifications sent:", notificationResults);
+        }
+      } catch (notifError) {
+        console.error("Error sending service notifications:", notifError);
+        // Don't fail service creation if notifications fail
+      }
 
       res.status(201).json(newService);
     } catch (err) {

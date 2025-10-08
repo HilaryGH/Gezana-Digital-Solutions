@@ -52,10 +52,10 @@ const Home = () => {
     <>
       <section className="w-full flex flex-col bg-gradient-to-br from-orange-50 via-white to-orange-100 pt-20">
         {/* Hero Section - Split Left and Right */}
-        <div className="relative w-full h-screen flex flex-col lg:flex-row overflow-hidden">
+        <div className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden">
           
           {/* Left Side - Home Structure */}
-          <div className="relative w-full lg:w-1/2 h-1/2 lg:h-full bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full lg:w-1/2 min-h-[50vh] md:min-h-[60vh] lg:h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden py-8 md:py-12 lg:py-0">
             
             {/* Decorative Background */}
             <div className="absolute inset-0">
@@ -71,16 +71,16 @@ const Home = () => {
           </div>
           
              {/* House Container */}
-             <div className="relative mx-auto w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] h-[160px] sm:h-[190px] md:h-[220px] lg:h-[250px] flex flex-col items-center justify-end">
+             <div className="relative mx-auto w-[240px] sm:w-[320px] md:w-[400px] lg:w-[520px] h-[140px] sm:h-[170px] md:h-[200px] lg:h-[250px] flex flex-col items-center justify-end">
 
                {/* Roof */}
-               <div className="relative w-0 h-0 border-l-[140px] sm:border-l-[180px] md:border-l-[220px] lg:border-l-[260px] border-r-[140px] sm:border-r-[180px] md:border-r-[220px] lg:border-r-[260px] border-b-[40px] sm:border-b-[50px] md:border-b-[60px] lg:border-b-[70px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
+               <div className="relative w-0 h-0 border-l-[120px] sm:border-l-[160px] md:border-l-[200px] lg:border-l-[260px] border-r-[120px] sm:border-r-[160px] md:border-r-[200px] lg:border-r-[260px] border-b-[35px] sm:border-b-[45px] md:border-b-[55px] lg:border-b-[70px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
                   
                {/* Roof Overhang */}
-               <div className="w-full h-[5px] sm:h-[7px] md:h-[9px] lg:h-[11px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
+               <div className="w-full h-[4px] sm:h-[6px] md:h-[8px] lg:h-[11px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
 
                {/* Walls Section - Narrower than roof */}
-               <div className="relative w-[220px] sm:w-[280px] md:w-[340px] lg:w-[400px] h-[90px] sm:h-[110px] md:h-[130px] lg:h-[150px] flex mx-auto">
+               <div className="relative w-[190px] sm:w-[250px] md:w-[310px] lg:w-[400px] h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] flex mx-auto">
 
                  {/* Left Wall */}
                  <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-l-lg"></div>
@@ -93,20 +93,20 @@ const Home = () => {
                 </div>
                 
                {/* Heading centered in walls */}
-               <div className="absolute top-[70px] sm:top-[100px] md:top-[120px] lg:top-[140px] left-1/2 transform -translate-x-1/2 w-[220px] sm:w-[280px] md:w-[340px] lg:w-[400px] text-center px-4">
-                 <h1 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg animate-text-glow">
+               <div className="absolute top-[60px] sm:top-[85px] md:top-[105px] lg:top-[140px] left-1/2 transform -translate-x-1/2 w-[190px] sm:w-[250px] md:w-[310px] lg:w-[400px] text-center px-3">
+                 <h1 className="text-white text-base sm:text-lg md:text-xl lg:text-3xl font-bold drop-shadow-lg animate-text-glow">
                     Your Home, Our Priority
                   </h1>
                </div>
 
                {/* Beautiful Buttons inside walls */}
-               <div className="absolute top-[130px] sm:top-[155px] md:top-[180px] lg:top-[205px] left-1/2 transform -translate-x-1/2 w-[180px] sm:w-[240px] md:w-[300px] lg:w-[360px] px-2">
-                 <div className="flex flex-col sm:flex-row gap-1 sm:gap-1.5 md:gap-2 w-full">
+               <div className="absolute top-[110px] sm:top-[135px] md:top-[160px] lg:top-[205px] left-1/2 transform -translate-x-1/2 w-[170px] sm:w-[220px] md:w-[280px] lg:w-[360px] px-2">
+                 <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 md:gap-2.5 w-full">
                    {/* Find Services Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-1 sm:px-1.5 md:px-2 lg:px-3 py-0.5 sm:py-0.5 md:py-1 lg:py-1.5 rounded-full font-bold text-xs sm:text-xs md:text-xs lg:text-sm shadow-sm sm:shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 sm:hover:scale-110 hover:-translate-y-1 sm:hover:-translate-y-2 animate-button-bounce overflow-hidden">
+                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-2 sm:px-2.5 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2 rounded-full font-bold text-[10px] sm:text-xs md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden w-full">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                       <span className="relative z-10 flex items-center justify-center">
+                       <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
                       Find Services
                        </span>
                        <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-full"></div>
@@ -115,10 +115,10 @@ const Home = () => {
 
                    {/* Become a Provider Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-1 sm:px-1.5 md:px-2 lg:px-3 py-0.5 sm:py-0.5 md:py-1 lg:py-1.5 rounded-full font-bold text-xs sm:text-xs md:text-xs lg:text-sm shadow-sm sm:shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 sm:hover:scale-110 hover:-translate-y-1 sm:hover:-translate-y-2 animate-button-bounce overflow-hidden border-2 border-orange-500">
+                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-2 sm:px-2.5 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2 rounded-full font-bold text-[10px] sm:text-xs md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden border-2 border-orange-500 w-full">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
-                       <span className="relative z-10 flex items-center justify-center">
-                      Become a Provider
+                       <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
+                      Become Provider
                        </span>
                        <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-full"></div>
                     </button>
@@ -127,12 +127,12 @@ const Home = () => {
                </div>
 
                {/* Foundation */}
-               <div className="w-full h-[6px] sm:h-[8px] md:h-[10px] lg:h-[12px] bg-gradient-to-t from-orange-800 to-orange-700 shadow-lg"></div>
+               <div className="w-full h-[5px] sm:h-[7px] md:h-[9px] lg:h-[12px] bg-gradient-to-t from-orange-800 to-orange-700 shadow-lg"></div>
              </div>
           </div>
 
           {/* Right Side - Services */}
-          <div className="relative w-full lg:w-1/2 h-1/2 lg:h-full bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden min-h-[400px] sm:min-h-[500px]">
+          <div className="relative w-full lg:w-1/2 min-h-[60vh] md:min-h-[70vh] lg:h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden py-8 md:py-12 lg:py-0">
             
             {/* Beautiful Background Elements */}
             <div className="absolute inset-0">
@@ -142,18 +142,18 @@ const Home = () => {
             </div>
 
             {/* Services Content */}
-            <div className="relative z-10 w-full max-w-4xl mx-auto px-2 sm:px-4 lg:px-8 text-center">
+            <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               {/* Section Header */}
-              <div className="mb-4 sm:mb-6 lg:mb-8">
+              <div className="mb-6 sm:mb-8 lg:mb-10">
                 
-              <h3 className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
+              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-xl mx-auto leading-relaxed font-medium">
   Explore our services that simplify your life.
 </h3>
 
               </div>
               
               {/* Service Categories Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full max-h-[300px] sm:max-h-[400px] lg:max-h-none overflow-y-auto sm:overflow-y-visible">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-4 w-full max-h-[350px] sm:max-h-[450px] lg:max-h-none overflow-y-auto sm:overflow-y-visible px-1">
                 {serviceCategories.map((category, index) => (
                   <div
                     key={category.name}
@@ -162,8 +162,8 @@ const Home = () => {
                   >
                     {/* Service Card */}
                     <div
-                      className={`bg-white/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer border border-gray-100 hover:border-orange-200 overflow-hidden w-full ${
-                        expandedCategory === category.name ? 'ring-4 ring-orange-200 shadow-2xl scale-105' : ''
+                      className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-md hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 cursor-pointer border border-gray-100 hover:border-orange-200 overflow-hidden w-full ${
+                        expandedCategory === category.name ? 'ring-2 ring-orange-300 shadow-xl' : ''
                       }`}
                       onClick={() =>
                         setExpandedCategory(
@@ -172,19 +172,19 @@ const Home = () => {
                       }
                     >
                       {/* Card Header */}
-                      <div className="p-2 lg:p-3 text-center relative">
+                      <div className="p-3 sm:p-4 lg:p-4 text-center relative">
                         {/* Background Pattern */}
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         
                         {/* Icon */}
-                        <div className="relative z-10 mb-1 lg:mb-2">
-                          <div className="inline-flex items-center justify-center w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg lg:rounded-xl group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-500">
-                            <span className="text-sm lg:text-lg group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
+                        <div className="relative z-10 mb-2 lg:mb-3">
+                          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-500">
+                            <span className="text-lg sm:text-xl lg:text-2xl group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
                           </div>
                         </div>
                         
                         {/* Title */}
-                        <h3 className="relative z-10 text-xs lg:text-sm font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors duration-300">
+                        <h3 className="relative z-10 text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors duration-300">
                           {category.name}
                         </h3>
                         
@@ -192,13 +192,13 @@ const Home = () => {
                         <div className="relative z-10 flex items-center justify-center">
                           {expandedCategory === category.name ? (
                             <div className="flex items-center space-x-1 text-orange-600">
-                              <span className="text-xs font-medium">View Less</span>
-                              <ChevronUp className="w-2 h-2 animate-pulse" />
+                              <span className="text-xs sm:text-sm font-medium">View Less</span>
+                              <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
                             </div>
                           ) : (
                             <div className="flex items-center space-x-1 text-gray-500 group-hover:text-orange-500 transition-colors">
-                              <span className="text-xs font-medium">View Services</span>
-                              <ChevronDown className="w-2 h-2" />
+                              <span className="text-xs sm:text-sm font-medium">View Services</span>
+                              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                             </div>
                           )}
                         </div>
