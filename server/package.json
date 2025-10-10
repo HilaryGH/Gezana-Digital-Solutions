@@ -11,7 +11,8 @@
     "test:email": "node test-notifications.js email",
     "test:whatsapp": "node test-notifications.js whatsapp",
     "setup:email": "node add-email-password.js",
-    "debug:notifications": "node debug-notifications.js"
+    "debug:notifications": "node debug-notifications.js",
+    "seed:subscriptions": "node seedSubscriptionPlans.js"
   },
   "keywords": [],
   "author": "",

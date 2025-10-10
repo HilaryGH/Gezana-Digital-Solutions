@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Eye, Calendar, X } from 'lucide-react';
-import { getServicesByProvider, deleteService, type Service } from '../../api/services';
+import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Calendar, X } from 'lucide-react';
+import { getMyServices, deleteService, type Service } from '../../api/services';
+import { getProviderBookings } from '../../api/bookings';
 import AddService from './AddService';
-import ServiceCard from '../ServiceCard';
 
 const ProviderDashboard: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [addServiceOpen, setAddServiceOpen] = useState(false);
+  const [editServiceOpen, setEditServiceOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showBookings, setShowBookings] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [stats, setStats] = useState({
     totalServices: 0,
     activeServices: 0,
@@ -17,42 +22,70 @@ const ProviderDashboard: React.FC = () => {
     totalBookings: 0
   });
 
-  // Mock provider ID - in real app, this would come from auth context
-  const providerId = 'provider-123';
-
   useEffect(() => {
     let isMounted = true;
 
-    const fetchServices = async () => {
+    // Get user info from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        // For providers, use company name if available, otherwise use name
+        const displayName = user.companyName || user.name || 'Provider';
+        setCompanyName(displayName);
+        setUserEmail(user.email || '');
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+
+    const fetchData = async () => {
       if (!isMounted) return;
       
       setLoading(true);
       try {
-        const data = await getServicesByProvider(providerId);
+        // Fetch services
+        const servicesData = await getMyServices();
         
         if (!isMounted) return;
         
-        setServices(data);
+        setServices(servicesData);
+        
+        // Fetch bookings
+        let bookingsData: any[] = [];
+        try {
+          bookingsData = await getProviderBookings();
+          console.log('Fetched bookings:', bookingsData);
+          if (isMounted) {
+            setBookings(bookingsData);
+          }
+        } catch (bookingError) {
+          console.error('Error fetching bookings:', bookingError);
+          // Set empty array on error to show "No bookings" instead of loading forever
+          if (isMounted) {
+            setBookings([]);
+          }
+        }
         
         // Calculate stats
-        const activeServices = data.filter(service => service.isAvailable).length;
-        const totalEarnings = data.reduce((sum, service) => sum + service.price, 0);
-        const averageRating = data.length > 0 
-          ? data.reduce((sum, service) => sum + service.providerRating, 0) / data.length 
+        const activeServices = servicesData.filter(service => service.isAvailable).length;
+        const totalEarnings = servicesData.reduce((sum, service) => sum + service.price, 0);
+        const averageRating = servicesData.length > 0 
+          ? servicesData.reduce((sum, service) => sum + (service.providerRating || 4.5), 0) / servicesData.length 
           : 0;
         
         if (!isMounted) return;
         
         setStats({
-          totalServices: data.length,
+          totalServices: servicesData.length,
           activeServices,
           totalEarnings,
           averageRating,
-          totalBookings: Math.floor(Math.random() * 100) // Mock data
+          totalBookings: bookingsData.length
         });
       } catch (error) {
         if (isMounted) {
-          console.error('Error fetching services:', error);
+          console.error('Error fetching data:', error);
         }
       } finally {
         if (isMounted) {
@@ -61,7 +94,7 @@ const ProviderDashboard: React.FC = () => {
       }
     };
 
-    fetchServices();
+    fetchData();
 
     return () => {
       isMounted = false;
@@ -73,9 +106,76 @@ const ProviderDashboard: React.FC = () => {
       try {
         await deleteService(serviceId);
         setServices(prev => prev.filter(service => service.id !== serviceId));
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          totalServices: prev.totalServices - 1,
+          activeServices: Math.max(0, prev.activeServices - 1)
+        }));
       } catch (error) {
         console.error('Error deleting service:', error);
       }
+    }
+  };
+
+  const handleServiceAdded = async () => {
+    // Refresh services and stats
+    try {
+      const servicesData = await getMyServices();
+      setServices(servicesData);
+      
+      const activeServices = servicesData.filter(service => service.isAvailable).length;
+      const totalEarnings = servicesData.reduce((sum, service) => sum + service.price, 0);
+      const averageRating = servicesData.length > 0 
+        ? servicesData.reduce((sum, service) => sum + (service.providerRating || 4.5), 0) / servicesData.length 
+        : 0;
+      
+      setStats(prev => ({
+        ...prev,
+        totalServices: servicesData.length,
+        activeServices,
+        totalEarnings,
+        averageRating
+      }));
+      
+      setAddServiceOpen(false);
+    } catch (error) {
+      console.error('Error refreshing services:', error);
+    }
+  };
+
+  const handleEditService = (service: Service) => {
+    setSelectedService(service);
+    setEditServiceOpen(true);
+  };
+
+  const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled') => {
+    try {
+      const token = localStorage.getItem('token');
+      const booking = bookings.find(b => b._id === bookingId);
+      
+      if (!booking || !booking.service?._id) {
+        alert('Booking or service info missing.');
+        return;
+      }
+
+      await import('../../api/axios').then(module => 
+        module.default.put(
+          `/bookings/${bookingId}`,
+          { status: action, service: booking.service._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      );
+
+      // Refresh bookings
+      const updatedBookings = await getProviderBookings();
+      setBookings(updatedBookings);
+      setStats(prev => ({ ...prev, totalBookings: updatedBookings.length }));
+      
+      alert(`Booking ${action === 'confirmed' ? 'confirmed' : 'cancelled'} successfully!`);
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      alert('Failed to update booking');
     }
   };
 
@@ -85,18 +185,38 @@ const ProviderDashboard: React.FC = () => {
       {/* Header */}
       <div className="bg-white shadow-lg border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              {/* Avatar - Using first word of company name */}
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                {companyName.split(' ')[0].substring(0, 2).toUpperCase() || 'CO'}
+              </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Provider Dashboard</h1>
-              <p className="text-gray-600 mt-1">Manage your services and track your business</p>
+                <h1 className="text-3xl font-bold text-gray-900">{companyName}</h1>
+                <p className="text-gray-600 mt-1">{userEmail}</p>
+              </div>
             </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowBookings(false)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${!showBookings ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                My Services
+              </button>
+              <button
+                onClick={() => setShowBookings(true)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${showBookings ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                Bookings ({stats.totalBookings})
+              </button>
             <button
               onClick={() => setAddServiceOpen(true)}
               className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-semibold shadow-lg"
             >
               <Plus size={20} />
-              <span>Add New Service</span>
+                <span>Add Service</span>
             </button>
+            </div>
           </div>
         </div>
       </div>
@@ -169,7 +289,9 @@ const ProviderDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Services Section */}
+        {/* Services or Bookings Section */}
+        {!showBookings ? (
+          /* Services Section */
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -189,54 +311,86 @@ const ProviderDashboard: React.FC = () => {
 
           <div className="p-6">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, index) => (
-                  <div key={index} className="bg-gray-100 rounded-2xl p-4 animate-pulse">
-                    <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
-                    <div className="space-y-3">
+                <div className="grid grid-cols-1 gap-4">
+                  {[...Array(3)].map((_, index) => (
+                    <div key={index} className="bg-gray-100 rounded-xl p-4 animate-pulse">
+                      <div className="flex gap-4">
+                        <div className="w-32 h-32 bg-gray-200 rounded-lg"></div>
+                        <div className="flex-1 space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                       <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                        </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : services.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-4">
                 {services.map((service) => (
-                  <div key={service.id} className="relative group">
-                    <ServiceCard
-                      service={service}
-                      variant="default"
-                      onViewDetails={(service) => setSelectedService(service)}
-                    />
-                    
-                    {/* Action Buttons Overlay */}
-                    <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div key={service.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
+                      <div className="flex gap-4">
+                        {/* Service Image */}
+                        <div className="w-32 h-32 flex-shrink-0">
+                          {service.photos && service.photos.length > 0 ? (
+                            <img
+                              src={service.photos[0]}
+                              alt={service.title}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                              <Settings className="w-8 h-8 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Service Details */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900 mb-1">{service.title}</h3>
+                              <p className="text-sm text-gray-600 mb-2">{service.category} • {service.subcategory}</p>
+                              <p className="text-gray-700 line-clamp-2">{service.description}</p>
+                            </div>
+                            <div className="flex gap-2">
                       <button
-                        onClick={() => setSelectedService(service)}
-                        className="p-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors shadow-lg"
-                        title="View Details"
-                      >
-                        <Eye size={16} className="text-gray-600" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          // Handle edit - you can implement edit functionality
-                          console.log('Edit service:', service.id);
-                        }}
-                        className="p-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors shadow-lg"
+                                onClick={() => handleEditService(service)}
+                                className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                         title="Edit Service"
                       >
-                        <Edit size={16} className="text-blue-600" />
+                                <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDeleteService(service.id)}
-                        className="p-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-colors shadow-lg"
+                                className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
                         title="Delete Service"
                       >
-                        <Trash2 size={16} className="text-red-600" />
+                                <Trash2 size={18} />
                       </button>
+                            </div>
+                          </div>
+                          
+                          {/* Price and Status */}
+                          <div className="flex items-center gap-4 mt-3">
+                            <span className="text-xl font-bold text-orange-600">
+                              ${service.price}
+                              {service.priceType && service.priceType !== 'fixed' && (
+                                <span className="text-sm font-normal text-gray-500">/{service.priceType}</span>
+                              )}
+                            </span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              service.isAvailable 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {service.isAvailable ? 'Active' : 'Inactive'}
+                            </span>
+                            {service.location && (
+                              <span className="text-sm text-gray-500">📍 {service.location}</span>
+                            )}
+                          </div>
+                        </div>
                     </div>
                   </div>
                 ))}
@@ -259,32 +413,137 @@ const ProviderDashboard: React.FC = () => {
               </div>
             )}
           </div>
+          </div>
+        ) : (
+          /* Bookings Management Section */
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">Customer Bookings</h2>
+              <p className="text-gray-600 mt-1">Manage and respond to customer booking requests</p>
         </div>
 
-        {/* Recent Activity */}
-        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
+            <div className="p-6">
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, index) => (
+                    <div key={index} className="bg-gray-100 rounded-xl p-4 animate-pulse h-32"></div>
+                  ))}
+                </div>
+              ) : bookings.length > 0 ? (
           <div className="space-y-4">
-            {[
-              { action: 'Service created', service: 'House Cleaning', time: '2 hours ago', type: 'success' },
-              { action: 'Service updated', service: 'Plumbing Repair', time: '1 day ago', type: 'info' },
-              { action: 'New booking', service: 'Garden Maintenance', time: '2 days ago', type: 'success' },
-              { action: 'Service deactivated', service: 'Window Cleaning', time: '3 days ago', type: 'warning' },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-                <div className={`w-2 h-2 rounded-full ${
-                  activity.type === 'success' ? 'bg-green-500' :
-                  activity.type === 'info' ? 'bg-blue-500' :
-                  'bg-yellow-500'
-                }`}></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.action}: <span className="text-orange-600">{activity.service}</span>
+                  {bookings.map((booking) => (
+                    <div key={booking._id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
+                      <div className="grid md:grid-cols-4 gap-4">
+                        {/* Customer Info */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Customer</p>
+                          <p className="font-semibold text-gray-900">{booking.fullName || booking.user?.name || 'N/A'}</p>
+                          <p className="text-sm text-gray-600">{booking.email || booking.user?.email}</p>
+                          {booking.phone && <p className="text-sm text-gray-600">📞 {booking.phone}</p>}
+                        </div>
+                        
+                        {/* Service & Date */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Service</p>
+                          <p className="font-medium text-gray-900">{booking.service?.name || 'N/A'}</p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                          {booking.time && <p className="text-sm text-gray-600">🕐 {booking.time}</p>}
+                        </div>
+                        
+                        {/* Note & Price */}
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Details</p>
+                          {booking.note && <p className="text-sm text-gray-700 italic line-clamp-2">"{booking.note}"</p>}
+                          {booking.service?.price && (
+                            <p className="text-lg font-bold text-orange-600 mt-1">${booking.service.price}</p>
+                          )}
+                        </div>
+                        
+                        {/* Status & Actions */}
+                        <div className="flex flex-col gap-2">
+                          <span className={`px-3 py-1.5 rounded-full text-sm font-semibold text-center ${
+                            booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                            booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          </span>
+                          
+                          {booking.status === 'pending' && (
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => handleBookingAction(booking._id, 'confirmed')}
+                                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                              >
+                                ✓ Confirm
+                              </button>
+                              <button
+                                onClick={() => handleBookingAction(booking._id, 'cancelled')}
+                                className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                              >
+                                ✗ Cancel
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Bookings Yet</h3>
+                  <p className="text-gray-600">
+                    When customers book your services, they'll appear here
                   </p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Stats Summary */}
+        <div className="mt-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg border border-orange-200 p-8 text-white">
+          <h3 className="text-2xl font-bold mb-4">Your Performance Summary</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Settings className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-orange-100 text-sm">Services Published</p>
+                  <p className="text-3xl font-bold">{stats.totalServices}</p>
                 </div>
               </div>
-            ))}
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-orange-100 text-sm">Total Bookings</p>
+                  <p className="text-3xl font-bold">{stats.totalBookings}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Star className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-orange-100 text-sm">Average Rating</p>
+                  <p className="text-3xl font-bold">{stats.averageRating.toFixed(1)} ⭐</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -303,33 +562,42 @@ const ProviderDashboard: React.FC = () => {
                   <X size={24} />
                 </button>
               </div>
-              <AddService />
+              <AddService onServiceAdded={handleServiceAdded} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Service Details Modal */}
-      {selectedService && (
+      {/* Edit Service Modal */}
+      {editServiceOpen && selectedService && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-900">Service Details</h3>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Service</h2>
                 <button
-                  onClick={() => setSelectedService(null)}
+                  onClick={() => {
+                    setEditServiceOpen(false);
+                    setSelectedService(null);
+                  }}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <X size={24} />
                 </button>
               </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-blue-800 text-sm">
+                  <strong>Editing:</strong> {selectedService.title}
+                </p>
             </div>
-            <div className="p-6">
-              <ServiceCard
-                service={selectedService}
-                variant="detailed"
-                onViewDetails={() => {}}
-                onBookService={() => {}}
+              <AddService 
+                onServiceAdded={async () => {
+                  await handleServiceAdded();
+                  setEditServiceOpen(false);
+                  setSelectedService(null);
+                }}
+                editMode={true}
+                existingService={selectedService}
               />
             </div>
           </div>

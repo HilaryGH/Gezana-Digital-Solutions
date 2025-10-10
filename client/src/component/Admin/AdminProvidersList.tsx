@@ -17,7 +17,7 @@ const AdminProvidersList = () => {
     const fetchProviders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get<Provider[]>("/admin/providers", {
+        const res = await axios.get<Provider[]>("/user/admin/providers", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProviders(res.data);

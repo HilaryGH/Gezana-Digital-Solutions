@@ -1,5 +1,5 @@
 const express = require("express");
-const verifyToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/isAdmin");
 const Category = require("../models/Category");
 
@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST create a new category (admin only)
-router.post("/", verifyToken, isAdmin, async (req, res) => {
+router.post("/", authMiddleware, isAdmin, async (req, res) => {
   const { name } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ message: "Name is required" });
 
@@ -33,7 +33,7 @@ router.post("/", verifyToken, isAdmin, async (req, res) => {
 });
 
 // DELETE category by id (admin only)
-router.delete("/:id", verifyToken, isAdmin, async (req, res) => {
+router.delete("/:id", authMiddleware, isAdmin, async (req, res) => {
   try {
     await Category.findByIdAndDelete(req.params.id);
     res.json({ message: "Category deleted" });

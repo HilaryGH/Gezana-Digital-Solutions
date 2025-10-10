@@ -90,7 +90,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
     <input
       type="email"
       placeholder="Email address"
-      className="w-full pl-10 pr-3 py-2.5 border rounded-md text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
+      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md text-sm sm:text-base bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
       value={email}
       onChange={(e) => setEmail(e.target.value)}
       required
@@ -103,7 +103,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
     <input
       type="password"
       placeholder="Password"
-      className="w-full pl-10 pr-3 py-2.5 border rounded-md text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-orange-500"
+      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md text-sm sm:text-base bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
       value={password}
       onChange={(e) => setPassword(e.target.value)}
       required

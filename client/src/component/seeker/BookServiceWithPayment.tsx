@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "../../api/axios";
 
 interface Category {
@@ -36,6 +36,9 @@ interface CheckoutData {
 }
 
 const BookServiceWithPayment: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [types, setTypes] = useState<Type[]>([]);
   const [filteredTypes, setFilteredTypes] = useState<Type[]>([]);
@@ -54,6 +57,14 @@ const BookServiceWithPayment: React.FC = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+
+  // Redirect to service details if serviceId is in URL
+  useEffect(() => {
+    const serviceIdFromUrl = searchParams.get('serviceId');
+    if (serviceIdFromUrl) {
+      navigate(`/service/${serviceIdFromUrl}`);
+    }
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     (async () => {

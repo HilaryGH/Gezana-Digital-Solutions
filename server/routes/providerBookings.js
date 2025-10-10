@@ -1,29 +1,42 @@
 const express = require("express");
 const router = express.Router();
 const Booking = require("../models/Booking");
-const auth = require("../middleware/auth"); // your auth middleware
+const Service = require("../models/Service");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 // GET /provider/bookings - get bookings for services provider owns
-router.get("/provider/bookings", auth, async (req, res) => {
+router.get("/provider/bookings", authMiddleware, async (req, res) => {
+  if (req.user.role !== "provider") {
+    return res.status(403).json({ message: "Only providers can access this" });
+  }
   try {
-    const providerId = req.user.id; // set by your auth middleware
+    const providerId = req.user.userId;
+    console.log('Fetching bookings for provider:', providerId);
 
-    // Find bookings where the booked service belongs to the provider
-    const bookings = await Booking.find()
-      .populate({
-        path: "service",
-        match: { provider: providerId },  // only services that belong to this provider
-      })
-      .populate("user", "name email phone") // fetch user (seeker) info (adjust fields)
-      .exec();
+    // Get all services for this provider first
+    const providerServices = await Service.find({ provider: providerId }).select("_id");
+    console.log('Provider has services:', providerServices.length);
 
-    // Remove bookings where service is null (not belonging to provider)
-    const filteredBookings = bookings.filter((b) => b.service !== null);
+    // Get bookings that match these services, populate user and service info
+    const bookings = await Booking.find({ 
+      service: { $in: providerServices.map(s => s._id) } 
+    })
+      .populate("user", "name email phone")
+      .populate("service", "name price")
+      .sort("-createdAt")
+      .lean(); // Convert to plain JavaScript objects
 
-    res.json(filteredBookings);
+    console.log('Found bookings:', bookings.length);
+    
+    // Log first booking for debugging
+    if (bookings.length > 0) {
+      console.log('Sample booking:', JSON.stringify(bookings[0], null, 2));
+    }
+    
+    res.json(bookings);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch bookings for provider" });
+    console.error('Error fetching provider bookings:', error);
+    res.status(500).json({ message: "Failed to fetch bookings for provider", error: error.message });
   }
 });
 

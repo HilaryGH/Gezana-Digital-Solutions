@@ -285,6 +285,40 @@ export const getServicesByProvider = async (providerId: string): Promise<Service
   }
 };
 
+// Get current provider's own services
+export const getMyServices = async (): Promise<Service[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get('/services/mine', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    // Transform the response to match the Service interface
+    const services = response.data.map((service: any) => ({
+      id: service._id,
+      title: service.name,
+      description: service.description,
+      category: service.category?.name || service.category,
+      subcategory: service.type?.name || service.type,
+      price: service.price,
+      priceType: service.priceType || 'fixed',
+      photos: service.photos || [],
+      providerId: service.provider,
+      providerName: '',
+      providerRating: 4.5,
+      isAvailable: service.isActive !== false,
+      location: service.location || '',
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    }));
+    
+    return services;
+  } catch (error) {
+    console.error('Error fetching my services:', error);
+    throw error;
+  }
+};
+
 // Update service
 export const updateService = async (id: string, serviceData: Partial<CreateServiceData>): Promise<Service> => {
   try {

@@ -1,43 +1,57 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ServiceSearch from "./ServiceSearch";
-import { ShieldCheck, ShoppingCart, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { ShieldCheck, ShoppingCart, Users, ChevronDown } from "lucide-react";
 
 const serviceCategories = [
   {
     name: "Home Maintenance",
     icon: "🔧",
     services: ["Plumbing", "Electrical", "Carpentry", "General Repairs", "Door & Window Repair", "Furniture Assembly", "TV Mounting", "Roofing", "Flooring", "HVAC Services", "Handyman Services", "Lock Installation", "Shelf Installation", "Cabinet Installation", "Light Fixture Installation"],
+    gradient: "from-gray-600 via-gray-500 to-gray-400",
+    shadow: "shadow-gray-500/50"
   },
   {
     name: "Cleaning Services",
     icon: "🧹",
     services: ["Residential Cleaning", "Carpet Washing", "Pest Control", "Deep Cleaning", "Move-in/Move-out Cleaning", "Post-Construction Cleaning", "Window Cleaning", "Office Cleaning", "Upholstery Cleaning", "Appliance Cleaning", "Gutter Cleaning", "Pressure Washing", "Green Cleaning", "Sanitization Services", "Event Cleanup", "Regular Maintenance"],
+    gradient: "from-slate-600 via-slate-500 to-gray-500",
+    shadow: "shadow-slate-500/50"
   },
   {
     name: "Appliance Repair",
     icon: "⚙️",
     services: ["Refrigerator Repair", "AC Repair", "Washing Machine Repair", "Dryer Repair", "Dishwasher Repair", "Oven Repair", "Microwave Repair", "Water Heater Repair", "Garbage Disposal Repair", "Ice Maker Repair", "Stove Repair", "Freezer Repair", "Appliance Installation", "Appliance Maintenance", "Emergency Repair", "Warranty Service"],
+    gradient: "from-zinc-600 via-zinc-500 to-gray-500",
+    shadow: "shadow-zinc-500/50"
   },
   {
     name: "Personal Care",
     icon: "💄",
     services: ["Haircut", "Hairstyle", "Facial", "Manicure & Pedicure", "Makeup Services", "Eyebrow Shaping", "Hair Coloring", "Spa Treatments", "Massage Therapy", "Beauty Consultation", "Hair Styling", "Nail Art", "Bridal Makeup", "Skincare Treatment", "Hair Treatment", "Beauty Therapy"],
+    gradient: "from-gray-500 via-gray-400 to-gray-300",
+    shadow: "shadow-gray-400/50"
   },
   {
     name: "Housemaid Services",
     icon: "👩‍💼",
     services: ["Daily Housekeeping", "Cooking Services", "Laundry Services", "Ironing Services", "Grocery Shopping", "Child Care Assistance", "Elderly Care", "Pet Care", "Meal Preparation", "Home Organization", "Personal Assistant", "Companion Care", "Special Needs Care", "Overnight Care", "Tutoring Services", "After School Care"],
+    gradient: "from-slate-500 via-gray-400 to-zinc-400",
+    shadow: "shadow-slate-400/50"
   },
   {
     name: "Hotel/Lounge Services",
     icon: "🏨",
     services: ["Room Service", "Concierge", "Housekeeping", "Event Planning", "Catering", "Spa Services", "Front Desk", "Guest Services", "Bartending", "Waitressing", "VIP Services", "Reception Services", "Security Services", "Valet Services", "Bell Services", "Guest Relations"],
+    gradient: "from-zinc-500 via-slate-400 to-gray-400",
+    shadow: "shadow-zinc-400/50"
   },
 ];
 
 const Home = () => {
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -48,6 +62,19 @@ const Home = () => {
     }
   }, []);
 
+  // Auto-rotate service categories
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentCategoryIndex((prev) => (prev + 1) % serviceCategories.length);
+    }, 4000); // Change every 4 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCategoryChange = (index: number) => {
+    setCurrentCategoryIndex(index);
+  };
+
   return (
     <>
       <section className="w-full flex flex-col bg-gradient-to-br from-orange-50 via-white to-orange-100 pt-20">
@@ -55,7 +82,7 @@ const Home = () => {
         <div className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden">
           
           {/* Left Side - Home Structure */}
-          <div className="relative w-full lg:w-1/2 min-h-[50vh] md:min-h-[60vh] lg:h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden py-8 md:py-12 lg:py-0">
+          <div className="relative w-full lg:w-[58.33%] min-h-[65vh] md:min-h-[70vh] lg:h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden py-8 md:py-10 lg:py-0">
             
             {/* Decorative Background */}
             <div className="absolute inset-0">
@@ -69,18 +96,36 @@ const Home = () => {
                 style={{ animationDelay: "4s" }}
               ></div>
           </div>
+
+          {/* Rain Effect */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Rain drops */}
+            {[...Array(25)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-0.5 bg-gradient-to-b from-blue-300/40 via-blue-400/30 to-transparent"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  height: `${20 + Math.random() * 30}px`,
+                  animation: `rainFall ${2 + Math.random() * 3}s linear infinite`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  opacity: 0.6,
+                }}
+              ></div>
+            ))}
+          </div>
           
              {/* House Container */}
-             <div className="relative mx-auto w-[240px] sm:w-[320px] md:w-[400px] lg:w-[520px] h-[140px] sm:h-[170px] md:h-[200px] lg:h-[250px] flex flex-col items-center justify-end">
+             <div className="relative mx-auto w-[380px] sm:w-[460px] md:w-[560px] lg:w-[800px] h-[220px] sm:h-[260px] md:h-[300px] lg:h-[400px] flex flex-col items-center justify-end">
 
                {/* Roof */}
-               <div className="relative w-0 h-0 border-l-[120px] sm:border-l-[160px] md:border-l-[200px] lg:border-l-[260px] border-r-[120px] sm:border-r-[160px] md:border-r-[200px] lg:border-r-[260px] border-b-[35px] sm:border-b-[45px] md:border-b-[55px] lg:border-b-[70px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
+               <div className="relative w-0 h-0 border-l-[190px] sm:border-l-[230px] md:border-l-[280px] lg:border-l-[400px] border-r-[190px] sm:border-r-[230px] md:border-r-[280px] lg:border-r-[400px] border-b-[60px] sm:border-b-[70px] md:border-b-[85px] lg:border-b-[115px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
                   
                {/* Roof Overhang */}
-               <div className="w-full h-[4px] sm:h-[6px] md:h-[8px] lg:h-[11px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
+               <div className="w-full h-[8px] sm:h-[9px] md:h-[12px] lg:h-[17px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
 
                {/* Walls Section - Narrower than roof */}
-               <div className="relative w-[190px] sm:w-[250px] md:w-[310px] lg:w-[400px] h-[80px] sm:h-[100px] md:h-[120px] lg:h-[150px] flex mx-auto">
+               <div className="relative w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] h-[125px] sm:h-[150px] md:h-[175px] lg:h-[235px] flex mx-auto">
 
                  {/* Left Wall */}
                  <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-l-lg"></div>
@@ -93,18 +138,18 @@ const Home = () => {
                 </div>
                 
                {/* Heading centered in walls */}
-               <div className="absolute top-[60px] sm:top-[85px] md:top-[105px] lg:top-[140px] left-1/2 transform -translate-x-1/2 w-[190px] sm:w-[250px] md:w-[310px] lg:w-[400px] text-center px-3">
-                 <h1 className="text-white text-base sm:text-lg md:text-xl lg:text-3xl font-bold drop-shadow-lg animate-text-glow">
+               <div className="absolute top-[100px] sm:top-[125px] md:top-[150px] lg:top-[220px] left-1/2 transform -translate-x-1/2 w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] text-center px-3">
+                 <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold drop-shadow-lg animate-text-glow leading-tight">
                     Your Home, Our Priority
                   </h1>
                </div>
 
                {/* Beautiful Buttons inside walls */}
-               <div className="absolute top-[110px] sm:top-[135px] md:top-[160px] lg:top-[205px] left-1/2 transform -translate-x-1/2 w-[170px] sm:w-[220px] md:w-[280px] lg:w-[360px] px-2">
-                 <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2 md:gap-2.5 w-full">
+               <div className="absolute top-[175px] sm:top-[210px] md:top-[245px] lg:top-[330px] left-1/2 transform -translate-x-1/2 w-[275px] sm:w-[335px] md:w-[400px] lg:w-[565px] px-2">
+                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-3 w-full">
                    {/* Find Services Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-2 sm:px-2.5 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2 rounded-full font-bold text-[10px] sm:text-xs md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden w-full">
+                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-4 sm:px-5 md:px-5 lg:px-6 py-2 sm:py-2.5 md:py-3 lg:py-3 rounded-full font-bold text-sm sm:text-base md:text-base lg:text-lg shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden w-full">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                        <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
                       Find Services
@@ -115,7 +160,7 @@ const Home = () => {
 
                    {/* Become a Provider Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-2 sm:px-2.5 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2 rounded-full font-bold text-[10px] sm:text-xs md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden border-2 border-orange-500 w-full">
+                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-4 sm:px-5 md:px-5 lg:px-6 py-2 sm:py-2.5 md:py-3 lg:py-3 rounded-full font-bold text-sm sm:text-base md:text-base lg:text-lg shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden border-2 border-orange-500 w-full">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
                        <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
                       Become Provider
@@ -127,110 +172,142 @@ const Home = () => {
                </div>
 
                {/* Foundation */}
-               <div className="w-full h-[5px] sm:h-[7px] md:h-[9px] lg:h-[12px] bg-gradient-to-t from-orange-800 to-orange-700 shadow-lg"></div>
+               <div className="w-full h-[8px] sm:h-[10px] md:h-[13px] lg:h-[16px] bg-gradient-to-t from-orange-800 to-orange-700 shadow-lg"></div>
              </div>
           </div>
 
-          {/* Right Side - Services */}
-          <div className="relative w-full lg:w-1/2 min-h-[60vh] md:min-h-[70vh] lg:h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center overflow-hidden py-8 md:py-12 lg:py-0">
+          {/* Right Side - Services Navigation */}
+          <div className="relative w-full lg:w-[41.67%] min-h-[75vh] md:min-h-[80vh] lg:h-screen bg-black flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-0">
             
-            {/* Beautiful Background Elements */}
-            <div className="absolute inset-0">
-              <div className="absolute top-10 right-10 w-24 h-24 bg-orange-200/20 rounded-full blur-2xl animate-float"></div>
-              <div className="absolute bottom-10 left-10 w-32 h-32 bg-orange-300/20 rounded-full blur-2xl animate-float" style={{animationDelay: '3s'}}></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-orange-100/30 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}}></div>
+            {/* Animated Grid Background */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                backgroundSize: '50px 50px',
+              }}></div>
             </div>
 
-            {/* Services Content */}
-            <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              {/* Section Header */}
-              <div className="mb-6 sm:mb-8 lg:mb-10">
-                
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-xl mx-auto leading-relaxed font-medium">
-  Explore our services that simplify your life.
-</h3>
+            {/* Floating Orbs */}
+            <div className="absolute inset-0">
+              <div className="absolute top-20 right-10 w-32 h-32 bg-gray-500/20 rounded-full blur-3xl animate-float"></div>
+              <div className="absolute bottom-20 left-10 w-40 h-40 bg-slate-500/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+              <div className="absolute top-1/2 left-1/4 w-36 h-36 bg-zinc-500/15 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+            </div>
 
+            {/* Services Menu */}
+            <div className="relative z-10 w-full h-full flex flex-col justify-center px-6 lg:px-8">
+              {/* Header */}
+              <div className="mb-8 text-center lg:text-left">
+                <h2 className="text-3xl lg:text-4xl font-bold text-white mb-3 tracking-tight">
+                  Our Services
+                </h2>
+                <p className="text-zinc-400 text-sm lg:text-base">
+                  Choose a category to explore
+                </p>
               </div>
               
-              {/* Service Categories Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-4 w-full max-h-[350px] sm:max-h-[450px] lg:max-h-none overflow-y-auto sm:overflow-y-visible px-1">
+              {/* Category List */}
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar-dark">
                 {serviceCategories.map((category, index) => (
                   <div
                     key={category.name}
-                    className="group relative"
-                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => handleCategoryChange(index)}
+                    className={`group relative cursor-pointer transition-all duration-500 ${
+                      currentCategoryIndex === index
+                        ? 'scale-105'
+                        : 'hover:scale-102'
+                    }`}
                   >
-                    {/* Service Card */}
-                    <div
-                      className={`bg-white/90 backdrop-blur-sm rounded-xl shadow-md hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 cursor-pointer border border-gray-100 hover:border-orange-200 overflow-hidden w-full ${
-                        expandedCategory === category.name ? 'ring-2 ring-orange-300 shadow-xl' : ''
-                      }`}
-                      onClick={() =>
-                        setExpandedCategory(
-                          expandedCategory === category.name ? null : category.name
-                        )
-                      }
-                    >
-                      {/* Card Header */}
-                      <div className="p-3 sm:p-4 lg:p-4 text-center relative">
-                        {/* Background Pattern */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        
+                    {/* Category Card */}
+                    <div className={`relative overflow-hidden rounded-xl transition-all duration-500 ${
+                      currentCategoryIndex === index
+                        ? `bg-gradient-to-r ${category.gradient} shadow-2xl ${category.shadow}`
+                        : 'bg-zinc-900/80 hover:bg-zinc-800/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700'
+                    }`}>
+                      {/* Shine Effect on Active */}
+                      {currentCategoryIndex === index && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer-slide"></div>
+                      )}
+
+                      <div className="relative p-4 flex items-center gap-4">
                         {/* Icon */}
-                        <div className="relative z-10 mb-2 lg:mb-3">
-                          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-500">
-                            <span className="text-lg sm:text-xl lg:text-2xl group-hover:scale-110 transition-transform duration-300">{category.icon}</span>
-                          </div>
+                        <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                          currentCategoryIndex === index
+                            ? 'bg-white/20 backdrop-blur-sm'
+                            : 'bg-zinc-800 group-hover:bg-zinc-700'
+                        }`}>
+                          <span className="text-2xl">{category.icon}</span>
                         </div>
                         
-                        {/* Title */}
-                        <h3 className="relative z-10 text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors duration-300">
+                        {/* Text */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`font-bold text-sm lg:text-base transition-colors ${
+                            currentCategoryIndex === index
+                              ? 'text-white'
+                              : 'text-zinc-300 group-hover:text-white'
+                          }`}>
                           {category.name}
                         </h3>
-                        
-                        {/* Expand Button */}
-                        <div className="relative z-10 flex items-center justify-center">
-                          {expandedCategory === category.name ? (
-                            <div className="flex items-center space-x-1 text-orange-600">
-                              <span className="text-xs sm:text-sm font-medium">View Less</span>
-                              <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1 text-gray-500 group-hover:text-orange-500 transition-colors">
-                              <span className="text-xs sm:text-sm font-medium">View Services</span>
-                              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </div>
-                          )}
+                          <p className={`text-xs mt-0.5 transition-colors ${
+                            currentCategoryIndex === index
+                              ? 'text-white/80'
+                              : 'text-zinc-500 group-hover:text-zinc-400'
+                          }`}>
+                            {category.services.length} services
+                          </p>
+                        </div>
+
+                        {/* Arrow */}
+                        <div className={`flex-shrink-0 transition-all duration-300 ${
+                          currentCategoryIndex === index
+                            ? 'text-white translate-x-1'
+                            : 'text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-1'
+                        }`}>
+                          <ChevronDown className={`w-5 h-5 transition-transform ${
+                            currentCategoryIndex === index ? '-rotate-90' : ''
+                          }`} />
                         </div>
                       </div>
                       
-                      {/* Expanded Services */}
+                      {/* Expanded Services Preview */}
                       <div className={`overflow-hidden transition-all duration-500 ${
-                        expandedCategory === category.name ? 'max-h-40 lg:max-h-60 opacity-100' : 'max-h-0 opacity-0'
+                        currentCategoryIndex === index ? 'max-h-48' : 'max-h-0'
                       }`}>
-                        <div className="px-2 lg:px-3 pb-2 lg:pb-3">
-                          <div className="border-t border-gray-100 pt-1 lg:pt-2">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">Available Services</h4>
-                            <div className="grid grid-cols-1 gap-1">
-                              {category.services.map((service, serviceIndex) => (
+                        <div className="px-4 pb-4 pt-2 border-t border-white/10">
+                            <div className="grid grid-cols-1 gap-1.5">
+                            {category.services.slice(0, 5).map((service, i) => (
                                 <div
                                   key={service}
-                                  className="flex items-center space-x-2 p-1 lg:p-1.5 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer group/service"
-                                  style={{ animationDelay: `${serviceIndex * 0.05}s` }}
-                                >
-                                  <div className="w-1 h-1 bg-orange-400 rounded-full group-hover/service:bg-orange-600 transition-colors"></div>
-                                  <span className="text-xs text-gray-600 group-hover/service:text-orange-600 transition-colors font-medium">
-                                    {service}
-                                  </span>
+                                className="text-xs text-white/90 py-1.5 px-2 bg-white/10 rounded hover:bg-white/20 transition-colors"
+                                style={{
+                                  animation: currentCategoryIndex === index ? `fadeInUp 0.4s ease-out ${i * 0.05}s both` : 'none'
+                                }}
+                              >
+                                • {service}
                                 </div>
                               ))}
+                            {category.services.length > 5 && (
+                              <div className="text-xs text-white/70 py-1 px-2">
+                                +{category.services.length - 5} more services
                             </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* View All Services Button */}
+              <div className="mt-8">
+                <button
+                  onClick={() => navigate('/services')}
+                  className="w-full bg-white hover:bg-gray-100 text-black font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-gray-500/30 flex items-center justify-center gap-2 group"
+                >
+                  <span>View All Services</span>
+                  <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                </button>
               </div>
             </div>
           </div>
@@ -257,7 +334,8 @@ const Home = () => {
               initialQuery={searchQuery}
               onServiceSelect={(service) => {
                 console.log('Service selected:', service);
-                // Handle service selection (e.g., navigate to service details)
+                // Navigate to service details page
+                navigate(`/service/${service.id}`);
               }}
               showFilters={true}
               layout="grid"

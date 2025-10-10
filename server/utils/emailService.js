@@ -224,9 +224,175 @@ const sendServicePublishedEmail = async (userEmail, userName, providerName) => {
   }
 };
 
+// Booking confirmation email template
+const getBookingConfirmationEmailTemplate = (userName, bookingDetails) => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #fff 0%, #fff5f0 100%);
+    }
+    .header {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      padding: 30px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+    .content {
+      padding: 30px;
+      background: white;
+    }
+    .booking-card {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      border-left: 4px solid #f97316;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #fed7aa;
+    }
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      padding: 15px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .footer {
+      background: #1f2937;
+      color: #9ca3af;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Booking Confirmed!</h1>
+      <p style="color: #fed7aa; margin: 10px 0 0 0; font-size: 16px;">Your service has been successfully booked</p>
+    </div>
+    
+    <div class="content">
+      <p style="font-size: 16px; color: #374151;">Hi <strong>${userName}</strong>,</p>
+      
+      <p style="font-size: 16px; color: #374151;">
+        Great news! Your booking has been confirmed. Here are your booking details:
+      </p>
+
+      <div class="booking-card">
+        <h3 style="color: #ea580c; margin-top: 0;">📋 Booking Details</h3>
+        <div class="detail-row">
+          <span><strong>Service:</strong></span>
+          <span>${bookingDetails.serviceName}</span>
+        </div>
+        <div class="detail-row">
+          <span><strong>Provider:</strong></span>
+          <span>${bookingDetails.providerName}</span>
+        </div>
+        <div class="detail-row">
+          <span><strong>Date:</strong></span>
+          <span>${bookingDetails.date}</span>
+        </div>
+        <div class="detail-row">
+          <span><strong>Time:</strong></span>
+          <span>${bookingDetails.time}</span>
+        </div>
+        <div class="detail-row">
+          <span><strong>Location:</strong></span>
+          <span>${bookingDetails.location}</span>
+        </div>
+        <div class="detail-row" style="border-bottom: none;">
+          <span><strong>Total Amount:</strong></span>
+          <span style="color: #f97316; font-size: 18px; font-weight: bold;">${bookingDetails.price} ETB</span>
+        </div>
+      </div>
+
+      <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin: 20px 0; border-radius: 8px;">
+        <p style="margin: 0; color: #166534;">
+          ✅ <strong>What's Next?</strong><br>
+          • You will receive a reminder before your appointment<br>
+          • The provider will contact you if needed<br>
+          • You can manage your booking from your dashboard
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/my-bookings" class="button">
+          View My Bookings
+        </a>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
+        If you have any questions or need to make changes, please contact us at 
+        <a href="tel:+251911508734" style="color: #f97316;">+251 911 508 734</a>
+      </p>
+
+      <p style="font-size: 16px; color: #374151; margin-top: 20px;">
+        Thank you for choosing Gezana!<br>
+        <span style="color: #9ca3af;">The Gezana Team</span>
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p style="margin: 0;">
+        Gezana Digital Solutions - Connecting Services, Building Trust 🤝
+      </p>
+      <p style="margin: 10px 0 0 0;">
+        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}" style="color: #f97316;">Visit our website</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+};
+
+// Send booking confirmation email
+const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: `"Gezana Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      subject: '🎉 Booking Confirmed - Your Service is Scheduled!',
+      html: getBookingConfirmationEmailTemplate(userName, bookingDetails),
+      text: `Hi ${userName}, Your booking has been confirmed! Service: ${bookingDetails.serviceName}, Date: ${bookingDetails.date}, Time: ${bookingDetails.time}, Total: ${bookingDetails.price} ETB`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Booking confirmation email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Error sending booking confirmation email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendServicePublishedEmail,
+  sendBookingConfirmationEmail,
   createTransporter
 };
 

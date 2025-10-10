@@ -81,6 +81,21 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending"
     },
+    
+    // Subscription fields
+    currentSubscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ["none", "trial", "active", "expired", "cancelled"],
+      default: "none",
+    },
+    subscriptionHistory: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subscription",
+    }],
   },
   { timestamps: true }
 );

@@ -1,16 +1,16 @@
 const express = require("express");
-const verifyToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // GET /api/loyalty/balance
-router.get("/balance", verifyToken, async (req, res) => {
+router.get("/balance", authMiddleware, async (req, res) => {
   // TODO: fetch real balance for req.user.id
   res.json({ balance: 120 });
 });
 
 // GET /api/loyalty/history
-router.get("/history", verifyToken, async (req, res) => {
+router.get("/history", authMiddleware, async (req, res) => {
   // TODO: fetch real history for req.user.id
   res.json([
     { id: "1", date: "2025-06-01T10:00:00.000Z", description: "Signup bonus", points: 50 },

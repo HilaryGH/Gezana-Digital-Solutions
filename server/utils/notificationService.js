@@ -1,4 +1,4 @@
-const { sendWelcomeEmail, sendServicePublishedEmail } = require('./emailService');
+const { sendWelcomeEmail, sendServicePublishedEmail, sendBookingConfirmationEmail } = require('./emailService');
 const { 
   sendWelcomeWhatsApp, 
   sendServicePublishedWhatsApp,
@@ -61,14 +61,16 @@ const sendBookingConfirmationNotifications = async (userData, bookingDetails) =>
     whatsapp: null
   };
 
+  // Send booking confirmation email
+  if (email) {
+    results.email = await sendBookingConfirmationEmail(email, name, bookingDetails);
+  }
+
   // Send WhatsApp notification (primary for bookings)
   const whatsappNumber = whatsapp || phone;
   if (whatsappNumber) {
     results.whatsapp = await sendBookingConfirmationWhatsApp(whatsappNumber, name, bookingDetails);
   }
-
-  // You can also send email here if needed
-  // results.email = await sendBookingConfirmationEmail(email, name, bookingDetails);
 
   return results;
 };

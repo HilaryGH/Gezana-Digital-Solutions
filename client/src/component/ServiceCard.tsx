@@ -187,31 +187,17 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
         {/* Action Buttons */}
         <div className="flex space-x-2 pt-2">
-          {onViewDetails && (
-            <button
-              onClick={() => onViewDetails(service)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            >
-              <Eye size={16} />
-              <span>View Details</span>
-            </button>
-          )}
-          
-          {(onBookService || service.isAvailable !== false) && (
-            <button
-              onClick={() => {
-                if (onBookService) {
-                  onBookService(service);
-                } else {
-                  setShowBookingModal(true);
-                }
-              }}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium"
-            >
-              <Calendar size={16} />
-              <span>Book Now</span>
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (onViewDetails) {
+                onViewDetails(service);
+              }
+            }}
+            className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium"
+          >
+            <Eye size={16} />
+            <span>View Details</span>
+          </button>
         </div>
       </div>
 

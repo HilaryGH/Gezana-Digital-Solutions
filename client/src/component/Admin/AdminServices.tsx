@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Trash2, Eye, Search, Filter, RefreshCw, AlertTriangle } from 'lucide-react';
+import axios from '../../api/axios';
 
 interface Provider {
   _id: string;
@@ -39,12 +40,13 @@ const AdminServices = () => {
     setLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.get<AdminService[]>("/admin/services", {
+      const res = await axios.get<AdminService[]>("/services/admin/services", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(res.data);
       setError(null);
     } catch (err: any) {
+      console.error("Error fetching admin services:", err);
       setError(err.response?.data?.message || "Failed to fetch services");
     } finally {
       setLoading(false);
@@ -55,7 +57,7 @@ const AdminServices = () => {
     setActionLoading(serviceId);
     const token = localStorage.getItem("token");
     try {
-      await axios.put(`/admin/services/${serviceId}/approve`, {}, {
+      await axios.put(`/services/admin/services/${serviceId}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(services.map(service => 
@@ -72,7 +74,7 @@ const AdminServices = () => {
     setActionLoading(serviceId);
     const token = localStorage.getItem("token");
     try {
-      await axios.put(`/admin/services/${serviceId}/reject`, {}, {
+      await axios.put(`/services/admin/services/${serviceId}/reject`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(services.map(service => 
@@ -93,7 +95,7 @@ const AdminServices = () => {
     setActionLoading(serviceId);
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`/admin/services/${serviceId}`, {
+      await axios.delete(`/services/admin/services/${serviceId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(services.filter(service => service._id !== serviceId));

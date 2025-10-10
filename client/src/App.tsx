@@ -33,6 +33,8 @@ import PaymentSuccess from "./component/PaymentSuccess";
 import BookServiceWithPayment from "./component/seeker/BookServiceWithPayment";
 import ServiceList from "./component/Provider/ServiceList";
 import AdminProvidersList from "./component/Admin/AdminProvidersList";
+import ServiceDetails from "./component/ServiceDetails";
+import PaymentPage from "./component/PaymentPage";
 
 function AppContent() {
   const location = useLocation();
@@ -71,10 +73,12 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />
+        <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
 
         {/* Seeker Routes */}

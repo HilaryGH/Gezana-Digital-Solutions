@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const verifyToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 const { sendWelcomeNotifications } = require("../utils/notificationService");
 
@@ -151,6 +151,10 @@ router.post("/register", upload.fields([
           userData.priceList = req.files.priceList[0].filename;
         }
       }
+    } else if (role === "admin") {
+      // Admin registration
+      userData.name = fullName || "Admin User";
+      userData.isVerified = true; // Auto-verify admin accounts
     }
 
     console.log("Creating user with data:", userData);
@@ -158,19 +162,23 @@ router.post("/register", upload.fields([
     await newUser.save();
     console.log("User created successfully:", newUser._id);
 
-    // Send welcome notifications (Email + WhatsApp)
-    try {
-      const notificationResults = await sendWelcomeNotifications({
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-        phone: newUser.phone,
-        whatsapp: newUser.whatsapp
-      });
-      console.log("Welcome notifications sent:", notificationResults);
-    } catch (notifError) {
-      console.error("Error sending welcome notifications:", notifError);
-      // Don't fail registration if notifications fail
+    // Send welcome notifications (Email + WhatsApp) - skip for admin users
+    if (role !== "admin") {
+      try {
+        const notificationResults = await sendWelcomeNotifications({
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          phone: newUser.phone,
+          whatsapp: newUser.whatsapp
+        });
+        console.log("Welcome notifications sent:", notificationResults);
+      } catch (notifError) {
+        console.error("Error sending welcome notifications:", notifError);
+        // Don't fail registration if notifications fail
+      }
+    } else {
+      console.log("Skipping welcome notifications for admin user");
     }
 
     res.status(201).json({ 
@@ -224,9 +232,9 @@ router.post("/login", async (req, res) => {
 
 
 // GET /api/user/me
-router.get("/me", verifyToken, async (req, res) => {
+router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("name email role seekerType");
+    const user = await User.findById(req.user.userId).select("name email role seekerType");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({

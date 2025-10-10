@@ -49,18 +49,46 @@ const serviceCategories: Category[] = [
   }
 ];
 
-const AddService: React.FC = () => {
-  const [title, setTitle] = useState("");
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  subcategory: string;
+  price: number;
+  priceType?: 'fixed' | 'hourly' | 'per_sqft' | 'custom';
+  location?: string;
+  photos?: string[];
+}
+
+interface AddServiceProps {
+  onServiceAdded?: () => void;
+  editMode?: boolean;
+  existingService?: Service;
+}
+
+const AddService: React.FC<AddServiceProps> = ({ onServiceAdded, editMode = false, existingService }) => {
+  const [title, setTitle] = useState(existingService?.title || "");
   const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState<number | "">("");
-  const [priceType, setPriceType] = useState<'fixed' | 'hourly' | 'per_sqft' | 'custom'>('fixed');
-  const [location, setLocation] = useState("");
+  const [subcategory, setSubcategory] = useState(existingService?.subcategory || "");
+  const [description, setDescription] = useState(existingService?.description || "");
+  const [price, setPrice] = useState<number | "">(existingService?.price || "");
+  const [priceType, setPriceType] = useState<'fixed' | 'hourly' | 'per_sqft' | 'custom'>(existingService?.priceType || 'fixed');
+  const [location, setLocation] = useState(existingService?.location || "");
   const [servicePhoto, setServicePhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(existingService?.photos?.[0] || null);
   const [message, setMessage] = useState("");
   const [filteredSubcategories, setFilteredSubcategories] = useState<string[]>([]);
+  
+  // Initialize category from existing service
+  useEffect(() => {
+    if (existingService?.category) {
+      const matchingCategory = serviceCategories.find(cat => cat.name === existingService.category);
+      if (matchingCategory) {
+        setCategory(matchingCategory.id);
+      }
+    }
+  }, [existingService]);
 
   // Filter subcategories by selected category
   useEffect(() => {
@@ -121,8 +149,16 @@ const AddService: React.FC = () => {
         photos: servicePhoto ? [servicePhoto] : []
       };
 
-      const res = await createService(serviceData);
-      setMessage(`Service "${res.title}" created successfully!`);
+      if (editMode && existingService) {
+        // Update existing service
+        const { updateService } = await import('../../api/services');
+        await updateService(existingService.id, serviceData);
+        setMessage(`Service "${title}" updated successfully!`);
+      } else {
+        // Create new service
+        await createService(serviceData);
+        setMessage(`Service "${title}" created successfully!`);
+      }
 
       // Reset form
       setTitle("");
@@ -135,6 +171,13 @@ const AddService: React.FC = () => {
       setServicePhoto(null);
       setPhotoPreview(null);
       setFilteredSubcategories([]);
+
+      // Call the callback to refresh parent component
+      if (onServiceAdded) {
+        setTimeout(() => {
+          onServiceAdded();
+        }, 1500); // Give user time to see success message
+      }
     } catch (err: any) {
       console.error('Service creation error:', err);
       setMessage(err.response?.data?.message || err.message || "Failed to add service");
@@ -334,7 +377,7 @@ const AddService: React.FC = () => {
           type="submit"
           className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
-          Create Service
+          {editMode ? 'Update Service' : 'Create Service'}
         </button>
       </form>
     </div>

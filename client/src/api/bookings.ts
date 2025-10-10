@@ -85,11 +85,25 @@ export const getUserBookings = async (): Promise<BookingWithDetails[]> => {
 // Get provider's bookings
 export const getProviderBookings = async (): Promise<BookingWithDetails[]> => {
   try {
-    const response = await axios.get('/provider/bookings');
+    const token = localStorage.getItem('token');
+    const response = await axios.get('/provider/bookings', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('Provider bookings response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching provider bookings:', error);
-    throw error;
+    // Try the alternative endpoint
+    try {
+      const response2 = await axios.get('/bookings/provider/bookings', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('Provider bookings response (alternative):', response2.data);
+      return response2.data;
+    } catch (error2) {
+      console.error('Error fetching provider bookings (alternative):', error2);
+      throw error;
+    }
   }
 };
 

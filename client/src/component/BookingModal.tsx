@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Calendar, Clock, User, MessageSquare, CreditCard, CheckCircle } from 'lucide-react';
 import { type Service } from '../api/services';
 import axios from '../api/axios';
@@ -28,6 +29,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   onClose,
   onBookingSuccess
 }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<BookingFormData>({
     date: '',
     time: '',
@@ -129,28 +131,42 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
       const response = await axios.post('/bookings', bookingData, { headers });
 
-      setSuccess(true);
-      if (onBookingSuccess) {
-        onBookingSuccess(response.data);
-      }
-
-      // Reset form
-      setFormData({
-        date: '',
-        time: '',
-        note: '',
-        paymentMethod: 'cash',
-        fullName: isLoggedIn ? (userInfo?.name || '') : '',
-        email: isLoggedIn ? (userInfo?.email || '') : '',
-        phone: isLoggedIn ? (userInfo?.phone || '') : '',
-        address: isLoggedIn ? (userInfo?.address || '') : ''
-      });
-
-      // Close modal after 2 seconds
-      setTimeout(() => {
+      // If online payment is selected, navigate to payment page
+      if (formData.paymentMethod === 'online') {
         onClose();
-        setSuccess(false);
-      }, 2000);
+        // Navigate to payment page with booking details
+        navigate('/payment', { 
+          state: { 
+            booking: response.data,
+            service: service,
+            amount: service.price
+          } 
+        });
+      } else {
+        // For cash payment, show success message
+        setSuccess(true);
+        if (onBookingSuccess) {
+          onBookingSuccess(response.data);
+        }
+
+        // Reset form
+        setFormData({
+          date: '',
+          time: '',
+          note: '',
+          paymentMethod: 'cash',
+          fullName: isLoggedIn ? (userInfo?.name || '') : '',
+          email: isLoggedIn ? (userInfo?.email || '') : '',
+          phone: isLoggedIn ? (userInfo?.phone || '') : '',
+          address: isLoggedIn ? (userInfo?.address || '') : ''
+        });
+
+        // Close modal after 2 seconds
+        setTimeout(() => {
+          onClose();
+          setSuccess(false);
+        }, 2000);
+      }
 
     } catch (err: any) {
       console.error('Booking error:', err);

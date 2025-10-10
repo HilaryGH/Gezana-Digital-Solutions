@@ -2,14 +2,14 @@
 const express = require("express");
 const User = require("../models/User");
 const upload = require("../middleware/upload");
-const verifyToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Upload provider credentials
-router.post("/upload-credentials", verifyToken, upload.array("files", 5), async (req, res) => {
+router.post("/upload-credentials", authMiddleware, upload.array("files", 5), async (req, res) => {
   try {
-    const provider = await User.findById(req.user.id);
+    const provider = await User.findById(req.user.userId);
     const filenames = req.files.map((file) => `/uploads/credentials/${file.filename}`);
 
     provider.credentials.push(...filenames);
@@ -22,7 +22,7 @@ router.post("/upload-credentials", verifyToken, upload.array("files", 5), async 
   }
 });
 // routes/admin.js
-router.get("/providers", verifyToken, async (req, res) => {
+router.get("/providers", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "admin") return res.status(403).json({ message: "Unauthorized" });
 

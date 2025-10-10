@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
+import { FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt, FaSignInAlt, FaUserPlus } from "react-icons/fa";
 import { MdConnectWithoutContact, MdVerified } from "react-icons/md";
 import { HiSparkles, HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
@@ -137,9 +137,10 @@ const Navbar = () => {
                 </div>
                 <button 
                   onClick={() => setAuthModalOpen(true)}
-                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105"
+                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
                 >
-                  Join Now
+                  <FaSignInAlt className="w-3 h-3" />
+                  <span>Login</span>
                 </button>
               </div>
             </div>
@@ -217,14 +218,14 @@ const Navbar = () => {
                 </Link>
               </div>
 
-              {/* Join Button */}
+              {/* Join Community Button */}
               <button
                 onClick={() => setAuthModalOpen(true)}
                 className={`relative overflow-hidden px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500`}
               >
                 <span className="relative z-10 flex items-center space-x-1.5">
-                  <MdVerified className="w-3.5 h-3.5" />
-                  <span>Join</span>
+                  <FaUserPlus className="w-3.5 h-3.5" />
+                  <span>Join Community</span>
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
@@ -356,8 +357,8 @@ const Navbar = () => {
                 }}
                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center space-x-2"
               >
-                <MdVerified className="w-5 h-5" />
-                <span>Join Gezana Today</span>
+                <FaUserPlus className="w-5 h-5" />
+                <span>Join Community</span>
               </button>
             </div>
           </div>

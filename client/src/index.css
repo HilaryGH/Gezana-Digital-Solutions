@@ -37,6 +37,63 @@ body {
   background: linear-gradient(45deg, #ea580c, #dc2626);
 }
 
+/* Custom thin scrollbar for service list */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #fed7aa;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f97316, #ea580c);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ea580c, #c2410c);
+}
+
+/* Gray scrollbar for subtle service list */
+.custom-scrollbar-gray::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar-gray::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.custom-scrollbar-gray::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9ca3af, #6b7280);
+  border-radius: 10px;
+}
+
+.custom-scrollbar-gray::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6b7280, #4b5563);
+}
+
+/* Dark scrollbar for services navigation */
+.custom-scrollbar-dark::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 10px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #71717a, #52525b, #3f3f46);
+  border-radius: 10px;
+}
+
+.custom-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a1a1aa, #71717a, #52525b);
+}
+
 /* =========================
    Backdrop Blur Classes
 ========================= */
@@ -113,7 +170,7 @@ body {
 ========================= */
 @keyframes slideInRight {
   from {
-    transform: translateX(100%);
+    transform: translateX(30px);
     opacity: 0;
   }
 
@@ -268,6 +325,19 @@ body {
   animation: shimmer 1.5s linear infinite;
 }
 
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer-slide {
+  animation: shimmer-slide 2s ease-in-out infinite;
+}
+
 /* =========================
    Mobile Menu
 ========================= */
@@ -355,6 +425,27 @@ body {
   animation: smoke 3s ease-out infinite;
 }
 
+@keyframes rainFall {
+  0% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+.animate-rain {
+  animation: rainFall 3s linear infinite;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -376,6 +467,21 @@ body {
 
 .animate-fade-in-delay-2 {
   animation: fade-in 1s ease-out 0.6s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
 }
 
 @keyframes bounce-slow {

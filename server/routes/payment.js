@@ -1,9 +1,9 @@
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
-const verifyToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
-router.post("/initialize", verifyToken, async (req, res) => {
+router.post("/initialize", authMiddleware, async (req, res) => {
   const { amount, email, first_name, last_name, tx_ref, return_url } = req.body;
 
   try {

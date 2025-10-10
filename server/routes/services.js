@@ -1,5 +1,5 @@
 const express = require("express");
-const verifyToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 const Service = require("../models/Service");
 const User = require("../models/User");
 const upload = require("../middleware/upload");
@@ -10,12 +10,23 @@ const router = express.Router();
 /**
  * GET /api/services/mine
  */
-router.get("/mine", verifyToken, async (req, res) => {
+router.get("/mine", authMiddleware, async (req, res) => {
   try {
-    const services = await Service.find({ provider: req.user.id })
-      .populate("category", "name"); // 👈 This is important
+    const services = await Service.find({ provider: req.user.userId })
+      .populate("category", "name");
 
-    res.json(services);
+    // Transform services to include full photo URLs
+    const transformedServices = services.map(service => ({
+      ...service.toObject(),
+      photos: service.photos.map(photo => {
+        if (photo.startsWith('http')) return photo;
+        // Handle different photo path formats
+        const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
+        return `${req.protocol}://${req.get('host')}/uploads/${cleanPhoto}`;
+      })
+    }));
+
+    res.json(transformedServices);
   } catch (err) {
     console.error("Error fetching services:", err);
     res.status(500).json({ message: "Server error" });
@@ -27,7 +38,7 @@ router.get("/mine", verifyToken, async (req, res) => {
  */
 router.post(
   "/",
-  verifyToken,
+  authMiddleware,
   upload.fields([
     { name: "photos", maxCount: 5 }, // Allow multiple photos
   ]),
@@ -54,7 +65,7 @@ router.post(
         type: subcategory, // Map subcategory to type
         description,
         price: parseFloat(price),
-        provider: req.user.id,
+        provider: req.user.userId,
         // Handle photo uploads
         photos: req.files?.photos?.map(file => file.path) || [],
         // Optional fields
@@ -64,7 +75,7 @@ router.post(
 
       // Send service published notifications
       try {
-        const provider = await User.findById(req.user.id);
+        const provider = await User.findById(req.user.userId);
         if (provider) {
           const notificationResults = await sendServicePublishedNotifications({
             email: provider.email,
@@ -104,7 +115,7 @@ router.get("/categories", async (req, res) => {
 });
 
 /**
- * GET /api/services
+ * GET /api/services - Get all services
  */
 router.get("/", async (req, res) => {
   const filter = { isActive: true };
@@ -154,11 +165,56 @@ router.get("/", async (req, res) => {
 
 
 /**
+ * GET /api/services/:id - Get service by ID
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id)
+      .populate({
+        path: "provider",
+        select: "name email rating phone whatsapp",
+      });
+
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    // Transform the data to match client expectations
+    const transformedService = {
+      id: service._id,
+      title: service.name,
+      description: service.description,
+      category: service.category?.name || service.category,
+      subcategory: service.type?.name || service.type,
+      price: service.price,
+      priceType: service.priceType,
+      photos: service.photos.map(photo => {
+        if (photo.startsWith('http')) return photo;
+        const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
+        return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
+      }),
+      providerId: service.provider._id,
+      providerName: service.provider.name,
+      providerRating: service.provider.rating || 4.5,
+      isAvailable: service.isActive,
+      location: service.location,
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    };
+
+    res.json(transformedService);
+  } catch (err) {
+    console.error("Error fetching service:", err);
+    res.status(500).json({ message: "Failed to fetch service", error: err.message });
+  }
+});
+
+/**
  * PUT /api/services/:id
  */
-router.put("/:id", verifyToken, async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
-    const svc = await Service.findOne({ _id: req.params.id, provider: req.user.id });
+    const svc = await Service.findOne({ _id: req.params.id, provider: req.user.userId });
     if (!svc) return res.status(404).json({ message: "Service not found" });
 
     const { name, category, type, description, price, isActive } = req.body;
@@ -180,11 +236,11 @@ router.put("/:id", verifyToken, async (req, res) => {
 /**
  * DELETE /api/services/:id
  */
-router.delete("/:id", verifyToken, async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const service = await Service.findOneAndDelete({
       _id: req.params.id,
-      provider: req.user.id,
+      provider: req.user.userId,
     });
 
     if (!service) return res.status(404).json({ message: "Service not found" });
@@ -253,7 +309,7 @@ router.get("/by-filter", async (req, res) => {
 /**
  * GET /api/admin/services - Get all services for admin
  */
-router.get("/admin/services", verifyToken, async (req, res) => {
+router.get("/admin/services", authMiddleware, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access required" });
@@ -274,7 +330,7 @@ router.get("/admin/services", verifyToken, async (req, res) => {
 /**
  * PUT /api/admin/services/:id/approve - Approve a service
  */
-router.put("/admin/services/:id/approve", verifyToken, async (req, res) => {
+router.put("/admin/services/:id/approve", authMiddleware, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access required" });
@@ -301,7 +357,7 @@ router.put("/admin/services/:id/approve", verifyToken, async (req, res) => {
 /**
  * PUT /api/admin/services/:id/reject - Reject a service
  */
-router.put("/admin/services/:id/reject", verifyToken, async (req, res) => {
+router.put("/admin/services/:id/reject", authMiddleware, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access required" });
@@ -328,7 +384,7 @@ router.put("/admin/services/:id/reject", verifyToken, async (req, res) => {
 /**
  * DELETE /api/admin/services/:id - Delete a service (admin only)
  */
-router.delete("/admin/services/:id", verifyToken, async (req, res) => {
+router.delete("/admin/services/:id", authMiddleware, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access required" });

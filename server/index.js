@@ -43,8 +43,12 @@ app.use("/api/contact", contactRoutes);
 
 app.use("/api/payments", require("./routes/payment"));
 
+// Subscription routes
+const subscriptionRoutes = require("./routes/subscription");
+app.use("/api/subscriptions", subscriptionRoutes);
 
-
+const subscriptionPlanRoutes = require("./routes/subscriptionPlans");
+app.use("/api/subscription-plans", subscriptionPlanRoutes);
 
 
 // Root route
@@ -57,6 +61,11 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
+    
+    // Start subscription maintenance scheduler
+    const { scheduleSubscriptionMaintenance } = require("./utils/subscriptionManager");
+    scheduleSubscriptionMaintenance();
+    
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
