@@ -124,18 +124,18 @@ const Home = () => {
                {/* Roof Overhang */}
                <div className="w-full h-[8px] sm:h-[9px] md:h-[12px] lg:h-[17px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
 
-               {/* Walls Section - Narrower than roof */}
-               <div className="relative w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] h-[125px] sm:h-[150px] md:h-[175px] lg:h-[235px] flex mx-auto">
+              {/* Walls Section - Narrower than roof */}
+              <div className="relative w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] h-[125px] sm:h-[150px] md:h-[175px] lg:h-[235px] flex mx-auto">
 
-                 {/* Left Wall */}
-                 <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-l-lg"></div>
+                {/* Left Wall */}
+                <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-l-lg"></div>
 
-                 {/* Center Wall */}
-                 <div className="flex-[1.5] bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl"></div>
+                {/* Center Wall */}
+                <div className="flex-[1.5] bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl"></div>
 
-                 {/* Right Wall */}
-                 <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-r-lg"></div>
-                </div>
+                {/* Right Wall */}
+                <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-r-lg"></div>
+               </div>
                 
                {/* Heading centered in walls */}
                <div className="absolute top-[100px] sm:top-[125px] md:top-[150px] lg:top-[220px] left-1/2 transform -translate-x-1/2 w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] text-center px-3">
@@ -177,31 +177,31 @@ const Home = () => {
           </div>
 
           {/* Right Side - Services Navigation */}
-          <div className="relative w-full lg:w-[41.67%] min-h-[75vh] md:min-h-[80vh] lg:h-screen bg-black flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-0">
+          <div className="relative w-full lg:w-[41.67%] min-h-[75vh] md:min-h-[80vh] lg:h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-white flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-0">
             
             {/* Animated Grid Background */}
-            <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0" style={{
-                backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                backgroundImage: `linear-gradient(rgba(249, 115, 22, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 115, 22, 0.1) 1px, transparent 1px)`,
                 backgroundSize: '50px 50px',
               }}></div>
             </div>
 
             {/* Floating Orbs */}
             <div className="absolute inset-0">
-              <div className="absolute top-20 right-10 w-32 h-32 bg-gray-500/20 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute bottom-20 left-10 w-40 h-40 bg-slate-500/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-              <div className="absolute top-1/2 left-1/4 w-36 h-36 bg-zinc-500/15 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+              <div className="absolute top-20 right-10 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl animate-float"></div>
+              <div className="absolute bottom-20 left-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+              <div className="absolute top-1/2 left-1/4 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
             </div>
 
             {/* Services Menu */}
             <div className="relative z-10 w-full h-full flex flex-col justify-center px-6 lg:px-8">
               {/* Header */}
               <div className="mb-8 text-center lg:text-left">
-                <h2 className="text-3xl lg:text-4xl font-bold text-white mb-3 tracking-tight">
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
                   Our Services
                 </h2>
-                <p className="text-zinc-400 text-sm lg:text-base">
+                <p className="text-gray-600 text-sm lg:text-base">
                   Choose a category to explore
                 </p>
               </div>
@@ -222,7 +222,7 @@ const Home = () => {
                     <div className={`relative overflow-hidden rounded-xl transition-all duration-500 ${
                       currentCategoryIndex === index
                         ? `bg-gradient-to-r ${category.gradient} shadow-2xl ${category.shadow}`
-                        : 'bg-zinc-900/80 hover:bg-zinc-800/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700'
+                        : 'bg-white hover:bg-gray-50 backdrop-blur-sm border border-gray-200 hover:border-orange-300 shadow-sm hover:shadow-md'
                     }`}>
                       {/* Shine Effect on Active */}
                       {currentCategoryIndex === index && (
@@ -234,7 +234,7 @@ const Home = () => {
                         <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${
                           currentCategoryIndex === index
                             ? 'bg-white/20 backdrop-blur-sm'
-                            : 'bg-zinc-800 group-hover:bg-zinc-700'
+                            : 'bg-gray-100 group-hover:bg-orange-100'
                         }`}>
                           <span className="text-2xl">{category.icon}</span>
                         </div>
@@ -244,14 +244,14 @@ const Home = () => {
                           <h3 className={`font-bold text-sm lg:text-base transition-colors ${
                             currentCategoryIndex === index
                               ? 'text-white'
-                              : 'text-zinc-300 group-hover:text-white'
+                              : 'text-gray-800 group-hover:text-gray-900'
                           }`}>
                           {category.name}
                         </h3>
                           <p className={`text-xs mt-0.5 transition-colors ${
                             currentCategoryIndex === index
                               ? 'text-white/80'
-                              : 'text-zinc-500 group-hover:text-zinc-400'
+                              : 'text-gray-500 group-hover:text-gray-600'
                           }`}>
                             {category.services.length} services
                           </p>
@@ -261,7 +261,7 @@ const Home = () => {
                         <div className={`flex-shrink-0 transition-all duration-300 ${
                           currentCategoryIndex === index
                             ? 'text-white translate-x-1'
-                            : 'text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-1'
+                            : 'text-gray-400 group-hover:text-orange-500 group-hover:translate-x-1'
                         }`}>
                           <ChevronDown className={`w-5 h-5 transition-transform ${
                             currentCategoryIndex === index ? '-rotate-90' : ''
