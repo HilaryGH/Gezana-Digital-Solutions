@@ -310,8 +310,8 @@ router.get("/by-filter", async (req, res) => {
  * GET /api/admin/services - Get all services for admin
  */
 router.get("/admin/services", authMiddleware, async (req, res) => {
-  // Check if user is admin
-  if (req.user.role !== "admin") {
+  // Check if user is admin or superadmin
+  if (!["admin", "superadmin"].includes(req.user.role)) {
     return res.status(403).json({ message: "Admin access required" });
   }
 
@@ -331,8 +331,8 @@ router.get("/admin/services", authMiddleware, async (req, res) => {
  * PUT /api/admin/services/:id/approve - Approve a service
  */
 router.put("/admin/services/:id/approve", authMiddleware, async (req, res) => {
-  // Check if user is admin
-  if (req.user.role !== "admin") {
+  // Check if user is admin or superadmin
+  if (!["admin", "superadmin"].includes(req.user.role)) {
     return res.status(403).json({ message: "Admin access required" });
   }
 
@@ -358,8 +358,8 @@ router.put("/admin/services/:id/approve", authMiddleware, async (req, res) => {
  * PUT /api/admin/services/:id/reject - Reject a service
  */
 router.put("/admin/services/:id/reject", authMiddleware, async (req, res) => {
-  // Check if user is admin
-  if (req.user.role !== "admin") {
+  // Check if user is admin or superadmin
+  if (!["admin", "superadmin"].includes(req.user.role)) {
     return res.status(403).json({ message: "Admin access required" });
   }
 
@@ -385,8 +385,8 @@ router.put("/admin/services/:id/reject", authMiddleware, async (req, res) => {
  * DELETE /api/admin/services/:id - Delete a service (admin only)
  */
 router.delete("/admin/services/:id", authMiddleware, async (req, res) => {
-  // Check if user is admin
-  if (req.user.role !== "admin") {
+  // Check if user is admin or superadmin
+  if (!["admin", "superadmin"].includes(req.user.role)) {
     return res.status(403).json({ message: "Admin access required" });
   }
 

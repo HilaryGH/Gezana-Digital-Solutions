@@ -33,6 +33,9 @@ import PaymentSuccess from "./component/PaymentSuccess";
 import BookServiceWithPayment from "./component/seeker/BookServiceWithPayment";
 import ServiceList from "./component/Provider/ServiceList";
 import AdminProvidersList from "./component/Admin/AdminProvidersList";
+import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
+import AdminTestimonials from "./component/Admin/AdminTestimonials";
+import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
 
@@ -50,6 +53,8 @@ function AppContent() {
     "/admin/user",
     "/admin/bookings",
     "/admin/services",
+    "/admin/team-members",
+    "/admin/testimonials",
     "/provider/bookings",
     "/provider/service-lists",
   ];
@@ -80,6 +85,7 @@ function AppContent() {
         <Route path="/providers" element={<ProvidersDirectory />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
 
         {/* Seeker Routes */}
         <Route path="/book-service" element={<BookServiceWithPayment />} />
@@ -108,6 +114,8 @@ function AppContent() {
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/services" element={<AdminServices />} />
         <Route path="/admin/providers-list" element={<AdminProvidersList />} />
+        <Route path="/admin/team-members" element={<AdminTeamMembers />} />
+        <Route path="/admin/testimonials" element={<AdminTestimonials />} />
 
         {/* Fallback */}
         <Route path="*" element={<Home />} />

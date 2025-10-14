@@ -155,6 +155,16 @@ router.post("/register", upload.fields([
       // Admin registration
       userData.name = fullName || "Admin User";
       userData.isVerified = true; // Auto-verify admin accounts
+    } else if (role === "superadmin") {
+      // Super Admin registration
+      userData.name = fullName || "Super Admin";
+      userData.isVerified = true; // Auto-verify super admin accounts
+      userData.phone = phone;
+    } else if (role === "support") {
+      // Customer Support registration
+      userData.name = fullName || "Support User";
+      userData.isVerified = true; // Auto-verify support accounts
+      userData.phone = phone;
     }
 
     console.log("Creating user with data:", userData);
@@ -162,8 +172,8 @@ router.post("/register", upload.fields([
     await newUser.save();
     console.log("User created successfully:", newUser._id);
 
-    // Send welcome notifications (Email + WhatsApp) - skip for admin users
-    if (role !== "admin") {
+    // Send welcome notifications (Email + WhatsApp) - skip for admin/superadmin/support users
+    if (!["admin", "superadmin", "support"].includes(role)) {
       try {
         const notificationResults = await sendWelcomeNotifications({
           email: newUser.email,
@@ -178,7 +188,7 @@ router.post("/register", upload.fields([
         // Don't fail registration if notifications fail
       }
     } else {
-      console.log("Skipping welcome notifications for admin user");
+      console.log("Skipping welcome notifications for admin/superadmin/support user");
     }
 
     res.status(201).json({ 

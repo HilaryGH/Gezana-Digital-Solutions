@@ -12,7 +12,7 @@ const router = express.Router();
 
 // Admin: Get ALL bookings with populated user info
 router.get("/all", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") {
+  if (!["admin", "superadmin", "support"].includes(req.user.role)) {
     return res.status(403).json({ message: "Permission denied" });
   }
 
@@ -278,7 +278,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    const isOwner = booking.user.toString() === req.user.userId || req.user.role === "provider" || req.user.role === "admin";
+    const isOwner = booking.user.toString() === req.user.userId || req.user.role === "provider" || ["admin", "superadmin", "support"].includes(req.user.role);
     if (!isOwner) return res.status(403).json({ message: "Not authorized to update this booking" });
 
     // Only update provided fields

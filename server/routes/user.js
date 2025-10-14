@@ -46,8 +46,8 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
 
 // GET all providers (admin only)
 router.get("/admin/providers", authMiddleware, async (req, res) => {
-  // Check if user is admin
-  if (req.user.role !== "admin") {
+  // Check if user is admin or superadmin
+  if (!["admin", "superadmin"].includes(req.user.role)) {
     return res.status(403).json({ message: "Admin access required" });
   }
 

@@ -1,52 +1,60 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "../../api/axios";
 
-const teamMembers = [
-  {
-    name: "Hilary Gebremedhin",
-    role: "Founder & CEO",
-    photo: "https://randomuser.me/api/portraits/women/44.jpg",
-    bio: "Passionate about digital transformation and connecting people with trusted services.",
-  },
-  {
-    name: "Mekdes Tadesse",
-    role: "Head of Operations",
-    photo: "https://randomuser.me/api/portraits/women/68.jpg",
-    bio: "Ensuring smooth and efficient service delivery across all platforms.",
-  },
-  {
-    name: "Abel Tesfaye",
-    role: "Lead Developer",
-    photo: "https://randomuser.me/api/portraits/men/32.jpg",
-    bio: "Building innovative and scalable digital solutions.",
-  },
-  {
-    name: "Sara Desta",
-    role: "Customer Success Manager",
-    photo: "https://randomuser.me/api/portraits/women/55.jpg",
-    bio: "Dedicated to delivering exceptional customer experiences.",
-  },
-];
+type TeamMember = {
+  _id: string;
+  name: string;
+  role: string;
+  photo: string;
+  bio: string;
+  order: number;
+  isActive: boolean;
+};
 
-const testimonials = [
-  {
-    name: "Tesfaye Gebremedhin",
-    photo: "https://randomuser.me/api/portraits/men/12.jpg",
-    text: "Gezana Digital Solutions changed how I find reliable services. Booking is super easy!",
-  },
-  {
-    name: "Helen Amanuel",
-    photo: "https://randomuser.me/api/portraits/women/21.jpg",
-    text: "The platform connects me to verified professionals, making life hassle-free.",
-  },
-  {
-    name: "Daniel Kifle",
-    photo: "https://randomuser.me/api/portraits/men/45.jpg",
-    text: "Highly recommend Gezana! The service gifting feature is a game-changer.",
-  },
-];
+type Testimonial = {
+  _id: string;
+  name: string;
+  email?: string;
+  photo: string;
+  text: string;
+  rating: number;
+  isApproved: boolean;
+  isActive: boolean;
+};
 
 const AboutPage: React.FC = () => {
   const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const res = await axios.get<TeamMember[]>("/team-members");
+        setTeamMembers(res.data);
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchTestimonials = async () => {
+      try {
+        const res = await axios.get<Testimonial[]>("/testimonials");
+        setTestimonials(res.data);
+      } catch (error) {
+        console.error("Error fetching testimonials:", error);
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+
+    fetchTeamMembers();
+    fetchTestimonials();
+  }, []);
 
   const prevTestimonial = () =>
     setTestimonialIndex((prev) =>
@@ -133,27 +141,33 @@ const AboutPage: React.FC = () => {
               Meet Our Team
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-              {teamMembers.map((member) => (
-                <div
-                  key={member.name}
-                  className="bg-orange-50 rounded-xl shadow-md p-6 flex flex-col items-center text-center hover:shadow-lg transition"
-                >
-                  <img
-                    src={member.photo}
-                    alt={member.name}
-                    className="w-28 h-28 rounded-full mb-4 object-cover border-4 border-orange-300"
-                  />
-                  <h3 className="text-xl font-semibold text-orange-700">
-                    {member.name}
-                  </h3>
-                  <p className="text-sm font-medium text-orange-500 mb-2">
-                    {member.role}
-                  </p>
-                  <p className="text-gray-700 text-sm">{member.bio}</p>
-                </div>
-              ))}
-            </div>
+            {loading ? (
+              <p className="text-center text-gray-600">Loading team members...</p>
+            ) : teamMembers.length === 0 ? (
+              <p className="text-center text-gray-600">No team members to display yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                {teamMembers.map((member) => (
+                  <div
+                    key={member._id}
+                    className="bg-orange-50 rounded-xl shadow-md p-6 flex flex-col items-center text-center hover:shadow-lg transition"
+                  >
+                    <img
+                      src={member.photo}
+                      alt={member.name}
+                      className="w-28 h-28 rounded-full mb-4 object-cover border-4 border-orange-300"
+                    />
+                    <h3 className="text-xl font-semibold text-orange-700">
+                      {member.name}
+                    </h3>
+                    <p className="text-sm font-medium text-orange-500 mb-2">
+                      {member.role}
+                    </p>
+                    <p className="text-gray-700 text-sm">{member.bio}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Testimonials Slider */}
@@ -162,37 +176,64 @@ const AboutPage: React.FC = () => {
               What Our Clients Say
             </h2>
 
-            <div className="max-w-xl mx-auto bg-orange-50 rounded-xl shadow-md p-8 relative">
-              <p className="text-gray-800 italic text-sm text-base mb-6 text-center">
-                "{testimonials[testimonialIndex].text}"
-              </p>
-              <div className="flex justify-center items-center space-x-4">
-                <button
-                  onClick={prevTestimonial}
-                  className="text-orange-600 hover:text-orange-800 focus:outline-none"
-                  aria-label="Previous testimonial"
+            {testimonialsLoading ? (
+              <p className="text-center text-gray-600">Loading testimonials...</p>
+            ) : testimonials.length === 0 ? (
+              <div className="max-w-xl mx-auto bg-orange-50 rounded-xl shadow-md p-8 text-center">
+                <p className="text-gray-600 mb-4">No testimonials yet. Be the first to share your experience!</p>
+                <a
+                  href="/submit-testimonial"
+                  className="inline-block bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-semibold"
                 >
-                  ←
-                </button>
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={testimonials[testimonialIndex].photo}
-                    alt={testimonials[testimonialIndex].name}
-                    className="w-12 h-12 rounded-full border-2 border-orange-600 object-cover"
-                  />
-                  <span className="font-semibold text-orange-700">
-                    {testimonials[testimonialIndex].name}
-                  </span>
-                </div>
-                <button
-                  onClick={nextTestimonial}
-                  className="text-orange-600 hover:text-orange-800 focus:outline-none"
-                  aria-label="Next testimonial"
-                >
-                  →
-                </button>
+                  Submit Your Testimonial
+                </a>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="max-w-xl mx-auto bg-orange-50 rounded-xl shadow-md p-8 relative">
+                  <p className="text-gray-800 italic text-sm text-base mb-6 text-center">
+                    "{testimonials[testimonialIndex].text}"
+                  </p>
+                  <div className="flex justify-center items-center space-x-4">
+                    <button
+                      onClick={prevTestimonial}
+                      className="text-orange-600 hover:text-orange-800 focus:outline-none text-2xl"
+                      aria-label="Previous testimonial"
+                    >
+                      ←
+                    </button>
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={testimonials[testimonialIndex].photo}
+                        alt={testimonials[testimonialIndex].name}
+                        className="w-12 h-12 rounded-full border-2 border-orange-600 object-cover"
+                      />
+                      <span className="font-semibold text-orange-700">
+                        {testimonials[testimonialIndex].name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={nextTestimonial}
+                      className="text-orange-600 hover:text-orange-800 focus:outline-none text-2xl"
+                      aria-label="Next testimonial"
+                    >
+                      →
+                    </button>
+                  </div>
+                  <div className="text-center mt-4 text-sm text-gray-500">
+                    {testimonialIndex + 1} / {testimonials.length}
+                  </div>
+                </div>
+                <div className="text-center mt-6">
+                  <a
+                    href="/submit-testimonial"
+                    className="inline-block bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-semibold"
+                  >
+                    Share Your Experience
+                  </a>
+                </div>
+              </>
+            )}
           </section>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, X, Shield, ChevronRight } from "lucide-react";
-import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt } from "react-icons/fa";
+import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { HiSparkles } from "react-icons/hi";
 
@@ -40,6 +40,18 @@ const AdminNavbar = () => {
       label: "Providers", 
       icon: FaUserShield,
       description: "Provider Directory"
+    },
+    { 
+      to: "/admin/team-members", 
+      label: "Team Members", 
+      icon: FaUserFriends,
+      description: "Manage Team"
+    },
+    { 
+      to: "/admin/testimonials", 
+      label: "Testimonials", 
+      icon: FaQuoteLeft,
+      description: "Manage Reviews"
     },
   ];
 

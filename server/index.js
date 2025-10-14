@@ -50,6 +50,12 @@ app.use("/api/subscriptions", subscriptionRoutes);
 const subscriptionPlanRoutes = require("./routes/subscriptionPlans");
 app.use("/api/subscription-plans", subscriptionPlanRoutes);
 
+const teamMembersRoutes = require("./routes/teamMembers");
+app.use("/api/team-members", teamMembersRoutes);
+
+const testimonialsRoutes = require("./routes/testimonials");
+app.use("/api/testimonials", testimonialsRoutes);
+
 
 // Root route
 app.get("/", (req, res) => {

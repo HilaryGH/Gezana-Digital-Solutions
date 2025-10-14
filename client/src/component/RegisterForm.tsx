@@ -528,16 +528,18 @@ const RegisterForm = () => {
                 <div className="space-y-6">
                   {/* Company Information */}
                   <div className="bg-gradient-to-r from-orange-50 to-orange-25 p-4 rounded-xl border border-orange-100">
-                    <h3 className="text-lg font-semibold text-orange-800 mb-4 font-poppins">Company Information</h3>
+                    <h3 className="text-lg font-semibold text-orange-800 mb-4 font-poppins">
+                      {providerSubRole === "freelancer" ? "Personal Information" : "Company Information"}
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Company Name *
+                          {providerSubRole === "freelancer" ? "Full Name *" : "Company Name *"}
                         </label>
                         <input 
                           type="text" 
                           name="companyName" 
-                          placeholder="Enter company name" 
+                          placeholder={providerSubRole === "freelancer" ? "Enter your full name" : "Enter company name"}
                           required 
                           onChange={handleProviderChange} 
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
@@ -607,18 +609,20 @@ const RegisterForm = () => {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Office Phone
-                        </label>
-                        <input 
-                          type="tel" 
-                          name="officePhone" 
-                          placeholder="+251 1X XXX XXXX" 
-                          onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
-                        />
-                      </div>
+                      {(providerSubRole === "smallBusiness" || providerSubRole === "specializedBusiness") && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-gray-700 font-inter">
+                            Office Phone
+                          </label>
+                          <input 
+                            type="tel" 
+                            name="officePhone" 
+                            placeholder="+251 1X XXX XXXX" 
+                            onChange={handleProviderChange} 
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          />
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
                           WhatsApp
@@ -676,18 +680,20 @@ const RegisterForm = () => {
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          TIN Number
-                        </label>
-                        <input 
-                          type="text" 
-                          name="tin" 
-                          placeholder="1234567890" 
-                          onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
-                        />
-                      </div>
+                      {(providerSubRole === "smallBusiness" || providerSubRole === "specializedBusiness") && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-gray-700 font-inter">
+                            TIN Number
+                          </label>
+                          <input 
+                            type="text" 
+                            name="tin" 
+                            placeholder="1234567890" 
+                            onChange={handleProviderChange} 
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -695,35 +701,73 @@ const RegisterForm = () => {
                   <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
                     <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">Required Documents</h3>
                     <div className="space-y-4">
+                      {/* For Freelancers: Professional Certificate */}
+                      {providerSubRole === "freelancer" && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-gray-700 font-inter">
+                            Professional Certificate *
+                          </label>
+                          <input 
+                            type="file" 
+                            name="professionalCertificate" 
+                            accept="application/pdf,image/*" 
+                            required
+                            onChange={handleProviderChange} 
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                          />
+                          <p className="text-xs text-gray-500">Upload your professional certificate or credentials</p>
+                        </div>
+                      )}
+
+                      {/* For Small/Specialized Business: Business License and Trade Registration */}
+                      {(providerSubRole === "smallBusiness" || providerSubRole === "specializedBusiness") && (
+                        <>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              Business License *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="license" 
+                              accept="application/pdf,image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload your business license document</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              Trade Registration *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="tradeRegistration" 
+                              accept="application/pdf,image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload your trade registration certificate</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              Professional Certificate (Optional)
+                            </label>
+                            <input 
+                              type="file" 
+                              name="professionalCertificate" 
+                              accept="application/pdf,image/*" 
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload professional certificates if applicable</p>
+                          </div>
+                        </>
+                      )}
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Business License
-                        </label>
-                        <input 
-                          type="file" 
-                          name="license" 
-                          accept="application/pdf,image/*" 
-                          onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
-                        />
-                        <p className="text-xs text-gray-500">Upload your business license document</p>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Trade Registration
-                        </label>
-                        <input 
-                          type="file" 
-                          name="tradeRegistration" 
-                          accept="application/pdf,image/*" 
-                          onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
-                        />
-                        <p className="text-xs text-gray-500">Upload your trade registration certificate</p>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Service Center Photos (up to 5)
+                          {providerSubRole === "freelancer" ? "Work/Portfolio Photos (up to 5)" : "Service Center Photos (up to 5)"}
                         </label>
                         <input 
                           type="file" 
@@ -733,7 +777,9 @@ const RegisterForm = () => {
                           onChange={handleProviderChange} 
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
                         />
-                        <p className="text-xs text-gray-500">Upload photos of your service center/facility</p>
+                        <p className="text-xs text-gray-500">
+                          {providerSubRole === "freelancer" ? "Upload photos of your previous work or portfolio" : "Upload photos of your service center/facility"}
+                        </p>
               </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">

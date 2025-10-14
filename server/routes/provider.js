@@ -24,7 +24,7 @@ router.post("/upload-credentials", authMiddleware, upload.array("files", 5), asy
 // routes/admin.js
 router.get("/providers", authMiddleware, async (req, res) => {
   try {
-    if (req.user.role !== "admin") return res.status(403).json({ message: "Unauthorized" });
+    if (!["admin", "superadmin"].includes(req.user.role)) return res.status(403).json({ message: "Unauthorized" });
 
     const providers = await User.find({ role: "provider" });
 

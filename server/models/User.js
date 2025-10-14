@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["seeker", "provider", "admin"],
+      enum: ["seeker", "provider", "admin", "superadmin", "support"],
       default: "seeker",
     },
     loyaltyPoints: {
