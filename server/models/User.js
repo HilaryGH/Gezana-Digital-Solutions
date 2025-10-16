@@ -14,7 +14,20 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function() {
+        return !this.googleId && !this.facebookId;
+      },
+    },
+    // Social authentication fields
+    googleId: { type: String, sparse: true },
+    facebookId: { type: String, sparse: true },
+    avatar: { type: String }, // Profile picture from social providers
+    
+    // Language preference
+    language: { 
+      type: String, 
+      enum: ["en", "am"], 
+      default: "en" 
     },
     role: {
       type: String,

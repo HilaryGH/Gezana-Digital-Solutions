@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const passport = require("passport");
 const User = require("../models/User");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
@@ -24,19 +25,19 @@ router.post("/register", upload.fields([
     console.log("Registration request received");
     console.log("Request body:", req.body);
     console.log("Request files:", req.files);
-    
-    const { 
-      fullName, 
-      companyName, 
-      email, 
-      password, 
-      confirmPassword, 
-      role, 
+
+    const {
+      fullName,
+      companyName,
+      email,
+      password,
+      confirmPassword,
+      role,
       subRole,
-      phone, 
-      alternativePhone, 
-      officePhone, 
-      whatsapp, 
+      phone,
+      alternativePhone,
+      officePhone,
+      whatsapp,
       telegram,
       address,
       city,
@@ -85,7 +86,7 @@ router.post("/register", upload.fields([
       userData.whatsapp = whatsapp;
       userData.telegram = telegram;
       userData.seekerType = "individual";
-      
+
       // Handle seeker file upload
       if (req.files && req.files.idFile) {
         userData.idFile = req.files.idFile[0].filename;
@@ -101,7 +102,7 @@ router.post("/register", upload.fields([
       userData.city = city;
       userData.location = location;
       userData.tin = tin;
-      
+
       // Parse JSON fields
       if (branches) {
         try {
@@ -110,7 +111,7 @@ router.post("/register", upload.fields([
           userData.branches = [];
         }
       }
-      
+
       if (banks) {
         try {
           userData.banks = JSON.parse(banks);
@@ -118,7 +119,7 @@ router.post("/register", upload.fields([
           userData.banks = [];
         }
       }
-      
+
       if (businessStatus) {
         try {
           userData.businessStatus = JSON.parse(businessStatus);
@@ -126,7 +127,7 @@ router.post("/register", upload.fields([
           userData.businessStatus = [];
         }
       }
-      
+
       // Handle provider file uploads
       if (req.files) {
         if (req.files.license) {
@@ -191,7 +192,7 @@ router.post("/register", upload.fields([
       console.log("Skipping welcome notifications for admin/superadmin/support user");
     }
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: "User registered successfully",
       user: {
         id: newUser._id,
@@ -259,13 +260,102 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// Update user language preference
+router.put("/language", authMiddleware, async (req, res) => {
+  try {
+    const { language } = req.body;
+
+    if (!language || !["en", "am"].includes(language)) {
+      return res.status(400).json({
+        message: "Invalid language. Must be 'en' or 'am'"
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.language = language;
+    await user.save();
+
+    res.json({
+      message: "Language preference updated successfully",
+      language: user.language
+    });
+  } catch (err) {
+    console.error("Language update error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 // Health check endpoint
 router.get("/health", (req, res) => {
-  res.status(200).json({ 
-    message: "Server is healthy", 
+  res.status(200).json({
+    message: "Server is healthy",
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
 });
+
+// Social Authentication Routes
+
+// Google OAuth routes
+router.get("/google", passport.authenticate("google", {
+  scope: ["profile", "email"]
+}));
+
+router.get("/google/callback",
+  passport.authenticate("google", { session: false }),
+  (req, res) => {
+    try {
+      const user = req.user;
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      // Redirect to frontend with token
+      const redirectUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/success?token=${token}`;
+      res.redirect(redirectUrl);
+    } catch (error) {
+      console.error("Google OAuth callback error:", error);
+      const errorUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/error?message=${encodeURIComponent("Authentication failed")}`;
+      res.redirect(errorUrl);
+    }
+  }
+);
+
+// Facebook OAuth routes
+router.get("/facebook", passport.authenticate("facebook", {
+  scope: ["email"]
+}));
+
+router.get("/facebook/callback",
+  passport.authenticate("facebook", { session: false }),
+  (req, res) => {
+    try {
+      const user = req.user;
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      // Redirect to frontend with token
+      const redirectUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/success?token=${token}`;
+      res.redirect(redirectUrl);
+    } catch (error) {
+      console.error("Facebook OAuth callback error:", error);
+      const errorUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/error?message=${encodeURIComponent("Authentication failed")}`;
+      res.redirect(errorUrl);
+    }
+  }
+);
 
 module.exports = router;

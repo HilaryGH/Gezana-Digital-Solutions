@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaPaperPlane, FaCheckCircle } from "react-icons/fa";
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaPaperPlane, FaCheckCircle, FaQuestionCircle, FaHeadset, FaComments, FaBook, FaSearch, FaTicketAlt } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import axios from "../../api/axios";
 
 interface ContactFormData {
@@ -12,6 +13,7 @@ interface ContactFormData {
 }
 
 const ContactPage: React.FC = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -26,13 +28,16 @@ const ContactPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const serviceTypes = [
-    "Home Maintenance",
-    "Cleaning Services", 
-    "Appliance Repair",
-    "Personal Care",
-    "Housemaid Services",
-    "Hotel/Lounge Services",
-    "General Inquiry"
+    t('services.categories.cleaning'),
+    t('services.categories.maintenance'), 
+    t('services.categories.moving'),
+    t('services.categories.babysitting'),
+    t('services.categories.cooking'),
+    t('services.categories.gardening'),
+    t('services.categories.petcare'),
+    t('services.categories.eldercare'),
+    t('common.support'),
+    t('common.help')
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -73,30 +78,59 @@ const ContactPage: React.FC = () => {
     }
   };
 
-  const contactInfo = [
+  const supportChannels = [
     {
-      icon: FaPhone,
-      title: "Phone",
+      icon: FaHeadset,
+      title: t('common.support'),
       details: "+251 911 234 567",
-      description: "Call us for immediate assistance"
+      description: t('contact.support.phoneDesc'),
+      action: "Call Now",
+      color: "bg-green-100 text-green-600"
+    },
+    {
+      icon: FaComments,
+      title: t('contact.support.liveChat'),
+      details: "Live Chat Available",
+      description: t('contact.support.chatDesc'),
+      action: "Start Chat",
+      color: "bg-blue-100 text-blue-600"
     },
     {
       icon: FaEnvelope,
-      title: "Email",
-      details: "info@gezana.com",
-      description: "Send us an email anytime"
+      title: t('contact.support.email'),
+      details: "support@gezana.com",
+      description: t('contact.support.emailDesc'),
+      action: "Send Email",
+      color: "bg-purple-100 text-purple-600"
     },
     {
-      icon: FaMapMarkerAlt,
-      title: "Address",
-      details: "Addis Ababa, Ethiopia",
-      description: "Visit our main office"
+      icon: FaTicketAlt,
+      title: t('contact.support.ticket'),
+      details: "Support Ticket",
+      description: t('contact.support.ticketDesc'),
+      action: "Create Ticket",
+      color: "bg-orange-100 text-orange-600"
+    }
+  ];
+
+  const helpCenterSections = [
+    {
+      icon: FaQuestionCircle,
+      title: t('contact.help.faq'),
+      description: t('contact.help.faqDesc'),
+      link: "/faq"
     },
     {
-      icon: FaClock,
-      title: "Business Hours",
-      details: "24/7 Available",
-      description: "We're always here to help"
+      icon: FaBook,
+      title: t('contact.help.guides'),
+      description: t('contact.help.guidesDesc'),
+      link: "/guides"
+    },
+    {
+      icon: FaSearch,
+      title: t('contact.help.search'),
+      description: t('contact.help.searchDesc'),
+      link: "/search"
     }
   ];
 
@@ -105,14 +139,14 @@ const ContactPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-16">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-6">
-            <span className="text-2xl">📞</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-orange-100 to-orange-200 rounded-full mb-6">
+            <FaHeadset className="text-3xl text-orange-600" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-            Contact <span className="text-orange-600">Us</span>
+            {t('contact.title')} <span className="text-orange-600">{t('contact.subtitle')}</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Get in touch with us for any questions, service requests, or support. We're here to help you 24/7.
+            {t('contact.description')}
           </p>
         </div>
 

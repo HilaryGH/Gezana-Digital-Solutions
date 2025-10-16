@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt, FaSignInAlt, FaUserPlus } from "react-icons/fa";
-import { MdConnectWithoutContact, MdVerified } from "react-icons/md";
+import { MdConnectWithoutContact } from "react-icons/md";
 import { HiSparkles, HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
 import { getServices, type Service } from "../api/services";
 import AuthModal from "./AuthModal";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -129,18 +132,18 @@ const Navbar = () => {
               <div className="hidden md:flex items-center space-x-6">
                 <div className="flex items-center space-x-2 text-orange-100">
                   <span className="text-xs">⚡</span>
-                  <span className="text-xs">Instant bookings</span>
+                  <span className="text-xs">{t('home.stats.bookings')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-orange-100">
                   <span className="text-xs">🛡️</span>
-                  <span className="text-xs">Verified providers</span>
+                  <span className="text-xs">{t('services.rating')}</span>
                 </div>
                 <button 
                   onClick={() => setAuthModalOpen(true)}
                   className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
                 >
                   <FaSignInAlt className="w-3 h-3" />
-                  <span>Login</span>
+                  <span>{t('common.login')}</span>
                 </button>
               </div>
             </div>
@@ -187,7 +190,7 @@ const Navbar = () => {
                   }`}
                 >
                   <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">Search services, providers, or categories...</span>
+                  <span className="text-xs font-medium">{t('common.search')}...</span>
                 </button>
               </div>
 
@@ -198,7 +201,7 @@ const Navbar = () => {
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
                   <FaUsers className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">About</span>
+                  <span className="text-xs font-medium">{t('navigation.about')}</span>
                 </Link>
                 
                 <Link 
@@ -206,7 +209,7 @@ const Navbar = () => {
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
                   <MdConnectWithoutContact className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">Services</span>
+                  <span className="text-xs font-medium">{t('navigation.services')}</span>
                 </Link>
                 
                 <Link 
@@ -214,8 +217,13 @@ const Navbar = () => {
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
                 >
                   <FaHandshake className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">Contact</span>
+                  <span className="text-xs font-medium">{t('navigation.contact')}</span>
                 </Link>
+              </div>
+
+              {/* Language Switcher */}
+              <div className="language-switcher">
+                <LanguageSwitcher />
               </div>
 
               {/* Join Community Button */}
@@ -233,6 +241,10 @@ const Navbar = () => {
 
             {/* Mobile Actions */}
             <div className="flex items-center space-x-2 lg:hidden">
+              <div className="language-switcher">
+                <LanguageSwitcher />
+              </div>
+              
               <button
                 onClick={toggleSearch}
                 className={`p-1.5 rounded-lg transition-all duration-300 ${
@@ -345,6 +357,14 @@ const Navbar = () => {
                     <span>Seamless Connection</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile Language Switcher */}
+            <div className="px-6 py-4 border-t border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Language / ቋንቋ</h3>
+              <div className="flex justify-center">
+                <LanguageSwitcher />
               </div>
             </div>
 

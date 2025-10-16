@@ -38,6 +38,9 @@ import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
+import AuthSuccess from "./component/AuthSuccess";
+import AuthError from "./component/AuthError";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 function AppContent() {
   const location = useLocation();
@@ -46,6 +49,8 @@ function AppContent() {
   const noNavbarRoutes = [
     "/signup",
     "/login",
+    "/auth/success",
+    "/auth/error",
     "/seeker-dashboard",
     "/provider-dashboard",
     "/admin-dashboard",
@@ -86,6 +91,8 @@ function AppContent() {
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
+        <Route path="/auth/success" element={<AuthSuccess />} />
+        <Route path="/auth/error" element={<AuthError />} />
 
         {/* Seeker Routes */}
         <Route path="/book-service" element={<BookServiceWithPayment />} />
@@ -129,9 +136,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </LanguageProvider>
   );
 }
 
