@@ -88,7 +88,7 @@ const SubmitTestimonial = () => {
               Share Your Experience
             </h1>
             <p className="text-gray-600">
-              We'd love to hear about your experience with Gezana Digital Solutions
+              We'd love to hear about your experience with HomeHub Digital Solution
             </p>
             <div className="w-24 h-1 bg-orange-500 mx-auto mt-4 rounded-full" />
           </div>

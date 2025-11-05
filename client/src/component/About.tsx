@@ -31,7 +31,7 @@ const testimonials = [
   {
     name: "Tesfaye Gebremedhin",
     photo: "https://randomuser.me/api/portraits/men/12.jpg",
-    text: "Gezana Digital Solutions changed how I find reliable services. Booking is super easy!",
+    text: "HomeHub Digital Solution changed how I find reliable services. Booking is super easy!",
   },
   {
     name: "Helen Amanuel",
@@ -41,7 +41,7 @@ const testimonials = [
   {
     name: "Daniel Kifle",
     photo: "https://randomuser.me/api/portraits/men/45.jpg",
-    text: "Highly recommend Gezana! The service gifting feature is a game-changer.",
+    text: "Highly recommend HomeHub! The service gifting feature is a game-changer.",
   },
 ];
 
@@ -63,7 +63,7 @@ const About: React.FC = () => {
         {/* Title */}
         <div className="text-center mb-12">
           <h1 className="text-2xl md:text-4xl font-extrabold text-orange-600 mb-3">
-            About Gezana Digital Solutions
+            About HomeHub Digital Solution
           </h1>
           <p className="text-gray-600 text-sm text-base">
             Connecting People with Trusted Services – Seamlessly.
@@ -77,7 +77,7 @@ const About: React.FC = () => {
             Overview
           </h2>
           <p className="text-gray-700 text-sm text-base leading-relaxed text-justify">
-            <strong>Gezana Digital Solutions</strong> is an innovative digital
+            <strong>HomeHub Digital Solution</strong> is an innovative digital
             platform designed to transform how customers access and purchase
             services. It empowers users to easily search, discover, and book a
             wide range of services — from everyday essentials to professional
@@ -86,7 +86,7 @@ const About: React.FC = () => {
             <br />
             Features include seamless booking, secure payments, service gifting,
             and digital gift card generation. By connecting customers with
-            trusted service providers, Gezana streamlines the entire service
+            trusted service providers, HomeHub streamlines the entire service
             experience, making it efficient, secure, and user-friendly.
           </p>
         </div>

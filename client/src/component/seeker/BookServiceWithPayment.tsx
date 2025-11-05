@@ -224,7 +224,7 @@ const BookServiceWithPayment: React.FC = () => {
             <input
               type="hidden"
               name="customization[title]"
-              value="Gezana Pay"
+              value="HomeHub Pay"
             />
             <input
               type="hidden"

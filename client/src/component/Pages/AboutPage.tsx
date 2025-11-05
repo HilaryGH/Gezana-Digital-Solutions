@@ -72,7 +72,7 @@ const AboutPage: React.FC = () => {
           {/* Title */}
           <div className="text-center mb-12">
             <h1 className="text-2xl md:text-4xl font-extrabold text-orange-600 mb-3">
-              About Gezana Digital Solutions
+              Company Profile: HomeHub Digital Solutions
             </h1>
             <p className="text-gray-600 text-sm text-base">
               Connecting People with Trusted Services – Seamlessly.
@@ -80,23 +80,13 @@ const AboutPage: React.FC = () => {
             <div className="w-24 h-1 bg-orange-500 mx-auto mt-4 rounded-full" />
           </div>
 
-          {/* Overview */}
+          {/* Company Overview */}
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              Overview
+              Company Overview
             </h2>
             <p className="text-gray-700 text-sm text-base leading-relaxed text-justify">
-              <strong>Gezana Digital Solutions</strong> is an innovative digital
-              platform designed to transform how customers access and purchase
-              services. It empowers users to easily search, discover, and book a
-              wide range of services — from everyday essentials to professional
-              needs — all in one place.
-              <br />
-              <br />
-              Features include seamless booking, secure payments, service gifting,
-              and digital gift card generation. By connecting customers with
-              trusted service providers, Gezana streamlines the entire service
-              experience, making it efficient, secure, and user-friendly.
+              <strong>HomeHub Digital Solutions</strong> is a pioneering multi-vendor digital platform based in Addis Ababa, Ethiopia. Established to connect service seekers with certified, verified and reliable service providers, HomeHub offers real-time booking, secure payment processing, and location-based service matching for various home needs. By digitizing a traditionally fragmented market, the platform enhances convenience, accessibility, and operational efficiency, benefiting both customers and service providers while generating sustainable income opportunities, particularly for women and youth.
             </p>
           </div>
 
@@ -104,14 +94,11 @@ const AboutPage: React.FC = () => {
 
           {/* Mission */}
           <div className="mb-12">
-            <h2 className="text-lg  md:text-2xl font-semibold text-gray-800 mb-4">
+            <h2 className="text-lg md:text-2xl font-semibold text-gray-800 mb-4">
               Mission
             </h2>
             <p className="text-gray-700 text-sm text-base leading-relaxed text-justify">
-              To deliver a seamless and user-friendly platform that connects
-              customers with trusted, high-quality service providers and
-              professionals. Our mission is to ensure convenience, reliability,
-              and exceptional satisfaction throughout every service interaction.
+              To empower Ethiopian households by providing seamless, trustworthy, and affordable home services while fostering dignified livelihoods for local artisans and entrepreneurs.
             </p>
           </div>
 
@@ -122,17 +109,9 @@ const AboutPage: React.FC = () => {
             <h2 className="text-lg md:text-2xl font-semibold text-gray-800 mb-4">
               Vision
             </h2>
-            <ul className="list-disc pl-6 text-gray-700 leading-relaxed space-y-2 text-justify">
-              <li>
-                To become the leading digital services platform by 2030,
-                revolutionizing how people access services across diverse sectors.
-              </li>
-              <li>
-                To build a thriving ecosystem of skilled professionals and loyal
-                customers through innovation, trust, and community-centered
-                solutions.
-              </li>
-            </ul>
+            <p className="text-gray-700 text-sm text-base leading-relaxed text-justify">
+              To establish the leading digital home-services ecosystem in Ethiopia and East Africa by 2030, promoting inclusive economic growth, gender equity, and sustainable urban development.
+            </p>
           </div>
 
           {/* Team Profiles */}

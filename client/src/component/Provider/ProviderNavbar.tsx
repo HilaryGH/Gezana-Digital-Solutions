@@ -84,8 +84,8 @@ const ProviderNavbar = () => {
           {/* Logo */}
           <div className="relative">
           <img
-            src="/logo 3.png"
-              alt="Gezana Logo"
+            src="/home hub logo.jpg"
+              alt="HomeHub Logo"
               className="w-auto h-10 object-contain"
             />
             <div className="absolute -top-1 -right-1">
@@ -95,7 +95,7 @@ const ProviderNavbar = () => {
           <div className="hidden sm:block">
             <div className="flex items-center space-x-2">
               <FaTools className="w-5 h-5 text-yellow-400" />
-              <h1 className="text-xl font-bold">Gezana Providers</h1>
+              <h1 className="text-xl font-bold">HomeHub Providers</h1>
             </div>
             <p className="text-xs text-blue-200 font-medium">Your Service Hub</p>
           </div>

@@ -252,50 +252,53 @@ const RegisterForm = () => {
 
   // ---------------- JSX ----------------
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center p-4 sm:p-6 overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden -z-10">
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-blue-500/10"></div>
+    <div className="relative min-h-screen w-full bg-gradient-to-br from-gray-50 via-white to-gray-100 flex flex-col items-center p-4 sm:p-6 overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Animated circles */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-400/5 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
         
-        {/* Floating bubbles */}
-        {[...Array(15)].map((_, i) => (
-          <span
-            key={i}
-            className="bubble"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDuration: `${8 + Math.random() * 12}s`,
-              animationDelay: `${Math.random() * 8}s`,
-            }}
-          />
-        ))}
-        
-        {/* Floating geometric shapes */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-orange-500/20 rounded-full blur-xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-32 h-32 bg-blue-500/20 rounded-full blur-xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-40 left-20 w-24 h-24 bg-orange-500/15 rounded-full blur-xl animate-float" style={{animationDelay: '4s'}}></div>
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px',
+          }}></div>
+        </div>
       </div>
 
+      {/* Back to home button */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors z-10 group"
+      >
+        <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span className="font-medium">Back to Home</span>
+      </Link>
+
       {/* Logo Header */}
-      <div className="my-8 animate-float">
+      <div className="my-6 sm:my-8 z-10">
         <img
-          src="/Gezana-logo.PNG"
-          alt="Gezana Logo"
-          className="h-20 sm:h-24 object-contain drop-shadow-2xl filter brightness-110"
+          src="/home hub logo.jpg"
+          alt="HomeHub Logo"
+          className="h-16 sm:h-20 object-contain"
         />
       </div>
 
       {/* Form Card */}
-      <div className="relative w-full max-w-2xl z-10">
-        {/* Glass morphism card */}
-        <div className="backdrop-blur-md bg-white/95 border border-white/20 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-2xl z-10 mb-8">
+        {/* Main card */}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-center">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 sm:p-8 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-white font-poppins">
           {role === "seeker" ? "Create Your Account" : "Register as Service Provider"}
         </h2>
-            <p className="text-orange-100 mt-2 text-sm sm:text-base">
+            <p className="text-blue-100 mt-2 text-sm sm:text-base">
               {role === "seeker" 
                 ? "Join thousands of satisfied customers" 
                 : "Start your service business journey with us"
@@ -325,8 +328,8 @@ const RegisterForm = () => {
                   onClick={() => setRole("seeker")}
                   className={`p-4 rounded-xl border-2 transition-all duration-300 font-medium ${
                     role === "seeker"
-                      ? "border-orange-500 bg-orange-50 text-orange-700 shadow-lg"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-orange-300 hover:bg-orange-25"
+                      ? "border-blue-600 bg-blue-50 text-blue-700 shadow-lg"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-25"
                   }`}
                 >
                   <div className="text-center">
@@ -340,8 +343,8 @@ const RegisterForm = () => {
                   onClick={() => setRole("provider")}
                   className={`p-4 rounded-xl border-2 transition-all duration-300 font-medium ${
                     role === "provider"
-                      ? "border-orange-500 bg-orange-50 text-orange-700 shadow-lg"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-orange-300 hover:bg-orange-25"
+                      ? "border-blue-600 bg-blue-50 text-blue-700 shadow-lg"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-25"
                   }`}
                 >
                   <div className="text-center">
@@ -371,8 +374,8 @@ const RegisterForm = () => {
                       onClick={() => setProviderSubRole(type.value)}
                       className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                         providerSubRole === type.value
-                          ? "border-orange-500 bg-orange-50 text-orange-700 shadow-lg"
-                          : "border-gray-200 bg-white text-gray-600 hover:border-orange-300 hover:bg-orange-25"
+                          ? "border-blue-600 bg-blue-50 text-blue-700 shadow-lg"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-25"
                       }`}
                     >
                       <div className="text-center">
@@ -402,7 +405,7 @@ const RegisterForm = () => {
                         placeholder="Enter your full name" 
                         required 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -415,7 +418,7 @@ const RegisterForm = () => {
                         placeholder="your.email@example.com" 
                         required 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                   </div>
@@ -430,7 +433,7 @@ const RegisterForm = () => {
                       placeholder="Enter your complete address" 
                       required 
                       onChange={handleSeekerChange} 
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
                     />
                   </div>
 
@@ -445,7 +448,7 @@ const RegisterForm = () => {
                         placeholder="+251 9X XXX XXXX" 
                         required 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -457,7 +460,7 @@ const RegisterForm = () => {
                         name="whatsapp" 
                         placeholder="+251 9X XXX XXXX" 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -469,7 +472,7 @@ const RegisterForm = () => {
                         name="telegram" 
                         placeholder="@username" 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                   </div>
@@ -486,7 +489,7 @@ const RegisterForm = () => {
                         accept="application/pdf,image/*" 
                         required 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                       />
                     </div>
                     <p className="text-xs text-gray-500">Accepted formats: PDF, JPG, PNG (Max 5MB)</p>
@@ -503,7 +506,7 @@ const RegisterForm = () => {
                         placeholder="Create a strong password" 
                         required 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                     <div className="space-y-2">
@@ -516,7 +519,7 @@ const RegisterForm = () => {
                         placeholder="Confirm your password" 
                         required 
                         onChange={handleSeekerChange} 
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                       />
                     </div>
                   </div>
@@ -527,8 +530,8 @@ const RegisterForm = () => {
           {role === "provider" && (
                 <div className="space-y-6">
                   {/* Company Information */}
-                  <div className="bg-gradient-to-r from-orange-50 to-orange-25 p-4 rounded-xl border border-orange-100">
-                    <h3 className="text-lg font-semibold text-orange-800 mb-4 font-poppins">
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-4 font-poppins">
                       {providerSubRole === "freelancer" ? "Personal Information" : "Company Information"}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -542,7 +545,7 @@ const RegisterForm = () => {
                           placeholder={providerSubRole === "freelancer" ? "Enter your full name" : "Enter company name"}
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       <div className="space-y-2">
@@ -554,7 +557,7 @@ const RegisterForm = () => {
                           required 
                           value={providerForm.serviceType} 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
                         >
                 <option value="" disabled>Select Service Type</option>
                 <option value="Home Maintenance">Home Maintenance</option>
@@ -581,7 +584,7 @@ const RegisterForm = () => {
                           placeholder="company@example.com" 
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       <div className="space-y-2">
@@ -594,7 +597,7 @@ const RegisterForm = () => {
                           placeholder="+251 9X XXX XXXX" 
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       <div className="space-y-2">
@@ -606,7 +609,7 @@ const RegisterForm = () => {
                           name="alternativePhone" 
                           placeholder="+251 9X XXX XXXX" 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       {(providerSubRole === "smallBusiness" || providerSubRole === "specializedBusiness") && (
@@ -619,7 +622,7 @@ const RegisterForm = () => {
                             name="officePhone" 
                             placeholder="+251 1X XXX XXXX" 
                             onChange={handleProviderChange} 
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                           />
                         </div>
                       )}
@@ -632,7 +635,7 @@ const RegisterForm = () => {
                           name="whatsapp" 
                           placeholder="+251 9X XXX XXXX" 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       <div className="space-y-2">
@@ -644,7 +647,7 @@ const RegisterForm = () => {
                           name="telegram" 
                           placeholder="@company_username" 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                     </div>
@@ -664,7 +667,7 @@ const RegisterForm = () => {
                           placeholder="Addis Ababa" 
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       <div className="space-y-2">
@@ -677,7 +680,7 @@ const RegisterForm = () => {
                           placeholder="Bole, Kazanchis" 
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       {(providerSubRole === "smallBusiness" || providerSubRole === "specializedBusiness") && (
@@ -690,7 +693,7 @@ const RegisterForm = () => {
                             name="tin" 
                             placeholder="1234567890" 
                             onChange={handleProviderChange} 
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                           />
                         </div>
                       )}
@@ -713,7 +716,7 @@ const RegisterForm = () => {
                             accept="application/pdf,image/*" 
                             required
                             onChange={handleProviderChange} 
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                           />
                           <p className="text-xs text-gray-500">Upload your professional certificate or credentials</p>
                         </div>
@@ -732,7 +735,7 @@ const RegisterForm = () => {
                               accept="application/pdf,image/*" 
                               required
                               onChange={handleProviderChange} 
-                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
                             <p className="text-xs text-gray-500">Upload your business license document</p>
                           </div>
@@ -746,7 +749,7 @@ const RegisterForm = () => {
                               accept="application/pdf,image/*" 
                               required
                               onChange={handleProviderChange} 
-                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
                             <p className="text-xs text-gray-500">Upload your trade registration certificate</p>
                           </div>
@@ -759,7 +762,7 @@ const RegisterForm = () => {
                               name="professionalCertificate" 
                               accept="application/pdf,image/*" 
                               onChange={handleProviderChange} 
-                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
                             <p className="text-xs text-gray-500">Upload professional certificates if applicable</p>
                           </div>
@@ -775,7 +778,7 @@ const RegisterForm = () => {
                           multiple 
                           accept="image/*" 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                         />
                         <p className="text-xs text-gray-500">
                           {providerSubRole === "freelancer" ? "Upload photos of your previous work or portfolio" : "Upload photos of your service center/facility"}
@@ -790,7 +793,7 @@ const RegisterForm = () => {
                           name="video" 
                           accept="video/*" 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                         />
                         <p className="text-xs text-gray-500">Upload a short video introducing your services</p>
               </div>
@@ -803,7 +806,7 @@ const RegisterForm = () => {
                           name="priceList" 
                           accept="application/pdf,image/*" 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                         />
                         <p className="text-xs text-gray-500">Upload your service pricing document (PDF preferred)</p>
               </div>
@@ -824,7 +827,7 @@ const RegisterForm = () => {
                           placeholder="Create a strong password" 
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                       <div className="space-y-2">
@@ -837,7 +840,7 @@ const RegisterForm = () => {
                           placeholder="Confirm your password" 
                           required 
                           onChange={handleProviderChange} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm font-inter" 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter" 
                         />
                       </div>
                     </div>
@@ -846,18 +849,18 @@ const RegisterForm = () => {
           )}
 
           {/* Consent */}
-              <div className="bg-gradient-to-r from-yellow-50 to-yellow-25 p-4 rounded-xl border border-yellow-100">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
                 <div className="flex items-start space-x-3">
             <input
               type="checkbox"
               checked={consent}
               onChange={() => setConsent(!consent)}
-                    className="mt-1 w-5 h-5 text-orange-600 bg-white border-2 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 accent-orange-600"
+                    className="mt-1 w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 accent-blue-600"
             />
                   <label className="text-sm text-gray-700 leading-relaxed font-inter">
               I consent to the collection and processing of my personal data in line with data regulations as described in the{" "}
-                    <span className="text-orange-600 underline cursor-pointer hover:text-orange-700 font-semibold">Privacy Policy</span> &{" "}
-                    <span className="text-orange-600 underline cursor-pointer hover:text-orange-700 font-semibold">Merchant Service Agreement</span>.
+                    <span className="text-blue-600 underline cursor-pointer hover:text-blue-700 font-semibold">Privacy Policy</span> &{" "}
+                    <span className="text-blue-600 underline cursor-pointer hover:text-blue-700 font-semibold">Merchant Service Agreement</span>.
             </label>
                 </div>
           </div>
@@ -870,7 +873,7 @@ const RegisterForm = () => {
                   className={`w-full font-semibold py-4 px-6 rounded-xl transform transition-all duration-300 shadow-lg font-poppins text-lg ${
                     isLoading
                       ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                      : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 hover:scale-[1.02] hover:shadow-xl"
+                      : "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:scale-[1.02] hover:shadow-xl"
                   }`}
                 >
                   {isLoading ? (
@@ -890,7 +893,7 @@ const RegisterForm = () => {
             Already have an account?{" "}
                   <Link 
                     to="/login" 
-                    className="text-orange-600 font-semibold hover:text-orange-700 hover:underline transition-colors duration-200"
+                    className="text-blue-600 font-semibold hover:text-blue-700 hover:underline transition-colors duration-200"
                   >
                     Sign In
             </Link>

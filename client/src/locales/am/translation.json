@@ -72,13 +72,13 @@
     "logout": "ውጣ"
   },
   "home": {
-    "title": "ወደ ገዛና እንኳን ደህና መጡ",
+    "title": "ወደ HomeHub እንኳን ደህና መጡ",
     "subtitle": "ለተሻለ አገልግሎት የታመነ መድረክ",
     "description": "ከተረጋገጡ አገልግሎት ሰጪዎች ጋር ተገናኝ እና በሚያስፈልጉት ጊዜ እርዳታ ያግኙ።",
     "getStarted": "ጀምር",
     "learnMore": "ተጨማሪ ይማሩ",
     "featuredServices": "የሚመረጡ አገልግሎቶች",
-    "whyChooseUs": "ለምን ገዛናን ይመርጣሉ?",
+    "whyChooseUs": "ለምን HomeHubን ይመርጣሉ?",
     "testimonials": "ደንበኞቻችን ምን ይላሉ",
     "stats": {
       "providers": "አገልግሎት ሰጪዎች",
@@ -179,7 +179,7 @@
     "unverified": "ያልተረጋገጠ አካውንት"
   },
   "footer": {
-    "description": "ገዛና - ለተሻለ አገልግሎት የታመነ መድረክ",
+    "description": "HomeHub - ለተሻለ አገልግሎት የታመነ መድረክ",
     "quickLinks": "ፈጣን አገናኞች",
     "services": "አገልግሎቶች",
     "support": "ድጋፍ",
@@ -190,7 +190,7 @@
     "followUs": "ተከተሉን",
     "newsletter": "ዜና ደብዳቤ",
     "subscribe": "ይመዝገቡ",
-    "copyright": "© 2024 ገዛና። ሁሉም መብቶች የተጠበቁ ናቸው።"
+    "copyright": "© 2024 HomeHub። ሁሉም መብቶች የተጠበቁ ናቸው።"
   },
   "errors": {
     "pageNotFound": "ገጽ አልተገኘም",

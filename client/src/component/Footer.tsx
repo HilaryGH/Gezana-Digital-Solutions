@@ -86,9 +86,13 @@ const Footer = () => {
         />
       </div>
 
+      {/* Decorative gradient orbs */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl"></div>
+
       {/* Main Footer Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
             {/* Mobile Collapsible Header */}
@@ -96,60 +100,56 @@ const Footer = () => {
               className="md:hidden flex items-center justify-between cursor-pointer mb-3"
               onClick={() => setExpandedSection(expandedSection === "company" ? null : "company")}
             >
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                  <img src="/Gezana-logo.PNG" alt="Gezana Logo" className="w-6 h-6 object-contain" />
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                  <img src="/home hub logo.jpg" alt="HomeHub Logo" className="w-8 h-8 object-contain" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Gezana</h2>
-                  <p className="text-xs text-orange-400 font-medium">Digital Solutions</p>
+                  <h2 className="text-lg font-bold text-white">HomeHub</h2>
+                  <p className="text-xs text-blue-400 font-medium">Digital Solution</p>
                 </div>
               </div>
               {expandedSection === "company" ? (
-                <FaChevronUp className="w-4 h-4 text-orange-400" />
+                <FaChevronUp className="w-4 h-4 text-blue-400" />
               ) : (
                 <FaChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </div>
 
             {/* Desktop Header (always visible) */}
-            <div className="hidden md:flex items-center space-x-2 mb-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <img src="/Gezana-logo.PNG" alt="Gezana Logo" className="w-6 h-6 object-contain" />
+            <div className="hidden md:flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                <img src="/home hub logo.jpg" alt="HomeHub Logo" className="w-10 h-10 object-contain" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">Gezana</h2>
-                <p className="text-xs text-orange-400 font-medium">Digital Solutions</p>
+                <h2 className="text-xl font-bold text-white">HomeHub</h2>
+                <p className="text-sm text-blue-400 font-medium">Digital Solution</p>
               </div>
             </div>
 
             {/* Collapsible Content */}
             <div className={`${expandedSection === "company" ? "block" : "hidden"} md:block transition-all duration-300`}>
-            <p className="text-xs text-gray-300 leading-relaxed mb-3">
+            <p className="text-sm text-gray-300 leading-relaxed mb-6">
               Connecting people with trusted services. Your reliable partner for all home and personal service needs.
             </p>
             
             {/* Contact Info */}
-            <div className="space-y-1.5">
-              <div className="flex items-center space-x-2 text-xs text-gray-300 hover:text-orange-400 transition-colors group cursor-pointer">
-                <div className="w-5 h-5 bg-orange-500/20 rounded-md flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-                  <FaPhone className="w-2.5 h-2.5 text-orange-400" />
+            <div className="space-y-3">
+              <a href="tel:+251911508734" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                  <FaPhone className="w-3.5 h-3.5 text-blue-400" />
                 </div>
-                <a href="tel:+251911508734" className="hover:text-orange-400 transition-colors">
-                  +251 911 508 734
-                </a>
-              </div>
-              <div className="flex items-center space-x-2 text-xs text-gray-300 hover:text-orange-400 transition-colors group cursor-pointer">
-                <div className="w-5 h-5 bg-orange-500/20 rounded-md flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-                  <FaEnvelope className="w-2.5 h-2.5 text-orange-400" />
+                <span className="group-hover:translate-x-1 transition-transform">+251 911 508 734</span>
+              </a>
+              <a href="mailto:g.fikre2@gmail.com" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
+                  <FaEnvelope className="w-3.5 h-3.5 text-blue-400" />
                 </div>
-                <a href="mailto:g.fikre2@gmail.com" className="hover:text-orange-400 transition-colors">
-                  g.fikre2@gmail.com
-                </a>
-              </div>
-              <div className="flex items-center space-x-2 text-xs text-gray-300 hover:text-orange-400 transition-colors group cursor-pointer">
-                <div className="w-5 h-5 bg-orange-500/20 rounded-md flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-                  <FaMapMarkerAlt className="w-2.5 h-2.5 text-orange-400" />
+                <span className="group-hover:translate-x-1 transition-transform">g.fikre2@gmail.com</span>
+              </a>
+              <div className="flex items-center space-x-3 text-sm text-gray-300">
+                <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                  <FaMapMarkerAlt className="w-3.5 h-3.5 text-blue-400" />
                 </div>
                 <span>Addis Ababa, Ethiopia</span>
               </div>
@@ -168,27 +168,27 @@ const Footer = () => {
                 Quick Links
               </h3>
               {expandedSection === "links" ? (
-                <FaChevronUp className="w-4 h-4 text-orange-400" />
+                <FaChevronUp className="w-4 h-4 text-blue-400" />
               ) : (
                 <FaChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </div>
 
             {/* Desktop Header */}
-            <h3 className="hidden md:block text-base font-bold text-white mb-3 relative">
+            <h3 className="hidden md:block text-lg font-bold text-white mb-4 relative">
               Quick Links
-              <div className="absolute bottom-0 left-0 w-8 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
             </h3>
 
             {/* Collapsible Content */}
-            <ul className={`${expandedSection === "links" ? "block" : "hidden"} md:block space-y-1.5 transition-all duration-300`}>
+            <ul className={`${expandedSection === "links" ? "block" : "hidden"} md:block space-y-2.5 transition-all duration-300`}>
               {quickLinks.map((link, index) => (
                 <li key={index}>
                   <Link
                     to={link.href}
-                    className="flex items-center space-x-2 text-xs text-gray-300 hover:text-orange-400 transition-all duration-300 group"
+                    className="flex items-center space-x-2 text-sm text-gray-300 hover:text-blue-400 transition-all duration-300 group"
                   >
-                    <FaArrowRight className="w-2 h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <FaArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{link.name}</span>
                   </Link>
                 </li>
@@ -207,27 +207,27 @@ const Footer = () => {
                 Our Services
               </h3>
               {expandedSection === "services" ? (
-                <FaChevronUp className="w-4 h-4 text-orange-400" />
+                <FaChevronUp className="w-4 h-4 text-blue-400" />
               ) : (
                 <FaChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </div>
 
             {/* Desktop Header */}
-            <h3 className="hidden md:block text-base font-bold text-white mb-3 relative">
+            <h3 className="hidden md:block text-lg font-bold text-white mb-4 relative">
               Our Services
-              <div className="absolute bottom-0 left-0 w-8 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
             </h3>
 
             {/* Collapsible Content */}
-            <ul className={`${expandedSection === "services" ? "block" : "hidden"} md:block space-y-1.5 transition-all duration-300`}>
+            <ul className={`${expandedSection === "services" ? "block" : "hidden"} md:block space-y-2.5 transition-all duration-300`}>
               {serviceCategories.map((service, index) => (
                 <li key={index}>
                   <a
                     href={service.href}
-                    className="flex items-center space-x-2 text-xs text-gray-300 hover:text-orange-400 transition-all duration-300 group"
+                    className="flex items-center space-x-2 text-sm text-gray-300 hover:text-blue-400 transition-all duration-300 group"
                   >
-                    <FaArrowRight className="w-2 h-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <FaArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
                     <span className="group-hover:translate-x-1 transition-transform">{service.name}</span>
                   </a>
                 </li>
@@ -246,39 +246,39 @@ const Footer = () => {
                 Stay Connected
               </h3>
               {expandedSection === "social" ? (
-                <FaChevronUp className="w-4 h-4 text-orange-400" />
+                <FaChevronUp className="w-4 h-4 text-blue-400" />
               ) : (
                 <FaChevronDown className="w-4 h-4 text-gray-400" />
               )}
             </div>
 
             {/* Desktop Header */}
-            <h3 className="hidden md:block text-base font-bold text-white mb-3 relative">
+            <h3 className="hidden md:block text-lg font-bold text-white mb-4 relative">
               Stay Connected
-              <div className="absolute bottom-0 left-0 w-8 h-0.5 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
             </h3>
             
             {/* Collapsible Content */}
             <div className={`${expandedSection === "social" ? "block" : "hidden"} md:block transition-all duration-300`}>
             {/* Newsletter */}
-            <div className="mb-4">
-              <p className="text-xs text-gray-300 mb-2">Subscribe to our newsletter for updates</p>
+            <div className="mb-6">
+              <p className="text-sm text-gray-300 mb-3">Subscribe to our newsletter for updates</p>
               <div className="flex">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-white placeholder-gray-400 text-xs"
+                  className="flex-1 px-4 py-2.5 bg-gray-800/50 border-2 border-gray-700 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400 text-sm transition-all"
                 />
-                <button className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-r-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105">
-                  <FaArrowRight className="w-2.5 h-2.5" />
+                <button className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-r-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                  <FaArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
             {/* Social Media */}
             <div>
-              <p className="text-xs text-gray-300 mb-2">Follow us on social media</p>
-              <div className="flex space-x-1.5">
+              <p className="text-sm text-gray-300 mb-3">Follow us on social media</p>
+              <div className="flex space-x-2">
                 {socialLinks.map((social, index) => {
                   const IconComponent = social.icon;
                   return (
@@ -287,10 +287,10 @@ const Footer = () => {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`group w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 transition-all duration-300 transform hover:scale-110 hover:shadow-lg ${social.color} ${social.bgColor}`}
+                      className={`group w-10 h-10 bg-gray-800/50 rounded-xl flex items-center justify-center text-gray-400 transition-all duration-300 transform hover:scale-110 hover:shadow-lg border-2 border-gray-700 hover:border-blue-500 ${social.color}`}
                       aria-label={social.name}
                     >
-                      <IconComponent className="w-3 h-3" />
+                      <IconComponent className="w-4 h-4" />
                     </a>
                   );
                 })}
@@ -302,35 +302,33 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="relative z-10 border-t border-gray-800 bg-black/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
-            <div className="text-gray-400 text-xs">
-              © {currentYear} Gezana Digital Solutions. All rights reserved.
+      <div className="relative z-10 border-t border-gray-800/50 bg-black/30 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="text-gray-400 text-sm">
+              © {currentYear} <span className="text-white font-semibold">HomeHub Digital Solution</span>. All rights reserved.
             </div>
-            <div className="flex items-center space-x-3 text-xs">
-              <a href="/privacy" className="text-gray-400 hover:text-orange-400 transition-colors">
+            <div className="flex items-center space-x-4 text-sm">
+              <a href="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors font-medium">
                 Privacy Policy
               </a>
-              <a href="/terms" className="text-gray-400 hover:text-orange-400 transition-colors">
+              <span className="text-gray-600">•</span>
+              <a href="/terms" className="text-gray-400 hover:text-blue-400 transition-colors font-medium">
                 Terms of Service
               </a>
-              <a href="/cookies" className="text-gray-400 hover:text-orange-400 transition-colors">
+              <span className="text-gray-600">•</span>
+              <a href="/cookies" className="text-gray-400 hover:text-blue-400 transition-colors font-medium">
                 Cookie Policy
               </a>
             </div>
-            <div className="flex items-center space-x-1 text-gray-400 text-xs">
+            <div className="flex items-center space-x-2 text-gray-400 text-sm">
               <span>Made with</span>
-              <FaHeart className="w-2.5 h-2.5 text-red-500 animate-pulse" />
-              <span>in Ethiopia</span>
+              <FaHeart className="w-4 h-4 text-red-500 animate-pulse" />
+              <span>in Ethiopia 🇪🇹</span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-full blur-3xl"></div>
     </footer>
   );
 };

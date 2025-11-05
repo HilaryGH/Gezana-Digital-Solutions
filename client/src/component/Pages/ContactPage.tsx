@@ -188,7 +188,7 @@ const ContactPage: React.FC = () => {
 
             {/* Why Contact Us */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4">Why Contact Gezana?</h3>
+              <h3 className="text-2xl font-bold mb-4">Why Contact HomeHub?</h3>
               <ul className="space-y-3">
                 <li className="flex items-center space-x-3">
                   <FaCheckCircle className="w-5 h-5 text-orange-200" />

@@ -72,13 +72,13 @@
     "logout": "Logout"
   },
   "home": {
-    "title": "Welcome to Gezana",
+    "title": "Welcome to HomeHub",
     "subtitle": "Your trusted platform for quality services",
     "description": "Connect with verified service providers and get the help you need, when you need it.",
     "getStarted": "Get Started",
     "learnMore": "Learn More",
     "featuredServices": "Featured Services",
-    "whyChooseUs": "Why Choose Gezana?",
+    "whyChooseUs": "Why Choose HomeHub?",
     "testimonials": "What Our Customers Say",
     "stats": {
       "providers": "Service Providers",
@@ -179,7 +179,7 @@
     "unverified": "Unverified Account"
   },
   "footer": {
-    "description": "Gezana - Your trusted platform for quality services",
+    "description": "HomeHub - Your trusted platform for quality services",
     "quickLinks": "Quick Links",
     "services": "Services",
     "support": "Support",
@@ -190,7 +190,7 @@
     "followUs": "Follow Us",
     "newsletter": "Newsletter",
     "subscribe": "Subscribe",
-    "copyright": "© 2024 Gezana. All rights reserved."
+    "copyright": "© 2024 HomeHub. All rights reserved."
   },
   "errors": {
     "pageNotFound": "Page Not Found",

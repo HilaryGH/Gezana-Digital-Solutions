@@ -76,8 +76,8 @@ const AdminNavbar = () => {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <img
-                src="/logo 3.png"
-                alt="Gezana Logo"
+                src="/home hub logo.jpg"
+                alt="HomeHub Logo"
                 className="h-10 w-auto object-contain"
               />
               <div className="absolute -top-1 -right-1">
@@ -89,7 +89,7 @@ const AdminNavbar = () => {
                 <Shield className="w-5 h-5 text-orange-400" />
                 <h1 className="text-xl font-bold text-white">Admin Panel</h1>
               </div>
-              <p className="text-xs text-orange-300 font-medium">Gezana Digital Solutions</p>
+              <p className="text-xs text-orange-300 font-medium">HomeHub Digital Solution</p>
             </div>
           </div>
 

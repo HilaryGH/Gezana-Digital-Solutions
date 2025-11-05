@@ -1,57 +1,77 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceSearch from "./ServiceSearch";
-import { ShieldCheck, ShoppingCart, Users, ChevronDown } from "lucide-react";
+import { ShieldCheck, ShoppingCart, Users, ChevronDown, X } from "lucide-react";
+import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
 
 const serviceCategories = [
   {
     name: "Home Maintenance",
-    icon: "🔧",
+    icon: FaWrench,
+    iconColor: "text-blue-600",
+    bgColor: "bg-blue-50",
+    hoverBg: "hover:bg-blue-100",
     services: ["Plumbing", "Electrical", "Carpentry", "General Repairs", "Door & Window Repair", "Furniture Assembly", "TV Mounting", "Roofing", "Flooring", "HVAC Services", "Handyman Services", "Lock Installation", "Shelf Installation", "Cabinet Installation", "Light Fixture Installation"],
-    gradient: "from-gray-600 via-gray-500 to-gray-400",
-    shadow: "shadow-gray-500/50"
+    gradient: "from-blue-600 to-blue-700",
+    shadow: "shadow-blue-500/50"
   },
   {
     name: "Cleaning Services",
-    icon: "🧹",
+    icon: FaBroom,
+    iconColor: "text-green-600",
+    bgColor: "bg-green-50",
+    hoverBg: "hover:bg-green-100",
     services: ["Residential Cleaning", "Carpet Washing", "Pest Control", "Deep Cleaning", "Move-in/Move-out Cleaning", "Post-Construction Cleaning", "Window Cleaning", "Office Cleaning", "Upholstery Cleaning", "Appliance Cleaning", "Gutter Cleaning", "Pressure Washing", "Green Cleaning", "Sanitization Services", "Event Cleanup", "Regular Maintenance"],
-    gradient: "from-slate-600 via-slate-500 to-gray-500",
-    shadow: "shadow-slate-500/50"
+    gradient: "from-green-600 to-green-700",
+    shadow: "shadow-green-500/50"
   },
   {
     name: "Appliance Repair",
-    icon: "⚙️",
+    icon: FaTools,
+    iconColor: "text-purple-600",
+    bgColor: "bg-purple-50",
+    hoverBg: "hover:bg-purple-100",
     services: ["Refrigerator Repair", "AC Repair", "Washing Machine Repair", "Dryer Repair", "Dishwasher Repair", "Oven Repair", "Microwave Repair", "Water Heater Repair", "Garbage Disposal Repair", "Ice Maker Repair", "Stove Repair", "Freezer Repair", "Appliance Installation", "Appliance Maintenance", "Emergency Repair", "Warranty Service"],
-    gradient: "from-zinc-600 via-zinc-500 to-gray-500",
-    shadow: "shadow-zinc-500/50"
+    gradient: "from-purple-600 to-purple-700",
+    shadow: "shadow-purple-500/50"
   },
   {
     name: "Personal Care",
-    icon: "💄",
-    services: ["Haircut", "Hairstyle", "Facial", "Manicure & Pedicure", "Makeup Services", "Eyebrow Shaping", "Hair Coloring", "Spa Treatments", "Massage Therapy", "Beauty Consultation", "Hair Styling", "Nail Art", "Bridal Makeup", "Skincare Treatment", "Hair Treatment", "Beauty Therapy"],
-    gradient: "from-gray-500 via-gray-400 to-gray-300",
-    shadow: "shadow-gray-400/50"
+    icon: FaBaby,
+    iconColor: "text-pink-600",
+    bgColor: "bg-pink-50",
+    hoverBg: "hover:bg-pink-100",
+    services: ["Babysitting", "Nanny Services", "Elderly Care", "Pet Care", "Personal Assistant", "Companion Care", "Special Needs Care", "Overnight Care", "Tutoring Services", "After School Care", "Weekend Care", "Holiday Care", "Travel Companion", "Medical Appointment Assistance", "Meal Preparation", "Medication Reminders"],
+    gradient: "from-pink-600 to-pink-700",
+    shadow: "shadow-pink-500/50"
   },
   {
     name: "Housemaid Services",
-    icon: "👩‍💼",
-    services: ["Daily Housekeeping", "Cooking Services", "Laundry Services", "Ironing Services", "Grocery Shopping", "Child Care Assistance", "Elderly Care", "Pet Care", "Meal Preparation", "Home Organization", "Personal Assistant", "Companion Care", "Special Needs Care", "Overnight Care", "Tutoring Services", "After School Care"],
-    gradient: "from-slate-500 via-gray-400 to-zinc-400",
-    shadow: "shadow-slate-400/50"
+    icon: FaHome,
+    iconColor: "text-orange-600",
+    bgColor: "bg-orange-50",
+    hoverBg: "hover:bg-orange-100",
+    services: ["Regular Housekeeping", "Deep Cleaning", "Laundry Services", "Cooking Services", "Meal Preparation", "Grocery Shopping", "Organizing Services", "Window Cleaning", "Ironing Services", "Dishwashing", "Vacuuming", "Mopping", "Dusting", "Bathroom Cleaning", "Kitchen Cleaning", "Daily Maintenance"],
+    gradient: "from-orange-600 to-orange-700",
+    shadow: "shadow-orange-500/50"
   },
   {
     name: "Hotel/Lounge Services",
-    icon: "🏨",
+    icon: FaHotel,
+    iconColor: "text-indigo-600",
+    bgColor: "bg-indigo-50",
+    hoverBg: "hover:bg-indigo-100",
     services: ["Room Service", "Concierge", "Housekeeping", "Event Planning", "Catering", "Spa Services", "Front Desk", "Guest Services", "Bartending", "Waitressing", "VIP Services", "Reception Services", "Security Services", "Valet Services", "Bell Services", "Guest Relations"],
-    gradient: "from-zinc-500 via-slate-400 to-gray-400",
-    shadow: "shadow-zinc-400/50"
+    gradient: "from-indigo-600 to-indigo-700",
+    shadow: "shadow-indigo-500/50"
   },
 ];
 
 const Home = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
+  const [currentCategoryIndex, setCurrentCategoryIndex] = useState<number | null>(null);
+  const [showServicesModal, setShowServicesModal] = useState(false);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -62,17 +82,13 @@ const Home = () => {
     }
   }, []);
 
-  // Auto-rotate service categories
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentCategoryIndex((prev) => (prev + 1) % serviceCategories.length);
-    }, 4000); // Change every 4 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleCategoryChange = (index: number) => {
+  const handleCategoryClick = (index: number) => {
     setCurrentCategoryIndex(index);
+    setShowServicesModal(true);
+  };
+
+  const handleViewServices = (categoryName: string) => {
+    navigate(`/services?category=${encodeURIComponent(categoryName)}`);
   };
 
   return (
@@ -97,70 +113,49 @@ const Home = () => {
               ></div>
           </div>
 
-          {/* Rain Effect */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Rain drops */}
-            {[...Array(25)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-0.5 bg-gradient-to-b from-blue-300/40 via-blue-400/30 to-transparent"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  height: `${20 + Math.random() * 30}px`,
-                  animation: `rainFall ${2 + Math.random() * 3}s linear infinite`,
-                  animationDelay: `${Math.random() * 5}s`,
-                  opacity: 0.6,
-                }}
-              ></div>
-            ))}
-          </div>
-          
              {/* House Container */}
-             <div className="relative mx-auto w-[380px] sm:w-[460px] md:w-[560px] lg:w-[800px] h-[220px] sm:h-[260px] md:h-[300px] lg:h-[400px] flex flex-col items-center justify-end">
+             <div className="relative mx-auto w-[280px] sm:w-[340px] md:w-[400px] lg:w-[560px] h-[160px] sm:h-[190px] md:h-[220px] lg:h-[280px] flex flex-col items-center justify-end">
 
-               {/* Roof */}
-               <div className="relative w-0 h-0 border-l-[190px] sm:border-l-[230px] md:border-l-[280px] lg:border-l-[400px] border-r-[190px] sm:border-r-[230px] md:border-r-[280px] lg:border-r-[400px] border-b-[60px] sm:border-b-[70px] md:border-b-[85px] lg:border-b-[115px] border-l-transparent border-r-transparent border-b-orange-700 drop-shadow-2xl"></div>
+               {/* Roof - Outer orange border frame */}
+               <div className="relative w-0 h-0 border-l-[140px] sm:border-l-[170px] md:border-l-[200px] lg:border-l-[280px] border-r-[140px] sm:border-r-[170px] md:border-r-[200px] lg:border-r-[280px] border-b-[45px] sm:border-b-[52px] md:border-b-[60px] lg:border-b-[80px] border-l-transparent border-r-transparent border-b-orange-600 drop-shadow-2xl">
+                 {/* Roof - Inner white/transparent center */}
+                 <div className="absolute top-[2px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[130px] sm:border-l-[158px] md:border-l-[186px] lg:border-l-[266px] border-r-[130px] sm:border-r-[158px] md:border-r-[186px] lg:border-r-[266px] border-b-[39px] sm:border-b-[46px] md:border-b-[54px] lg:border-b-[72px] border-l-transparent border-r-transparent border-b-white/95"></div>
+               </div>
                   
-               {/* Roof Overhang */}
-               <div className="w-full h-[8px] sm:h-[9px] md:h-[12px] lg:h-[17px] bg-gradient-to-b from-orange-800 to-orange-700 shadow-lg"></div>
+               {/* Roof Overhang - White center with orange borders */}
+               <div className="w-full h-[6px] sm:h-[7px] md:h-[8px] lg:h-[12px] bg-white/95 backdrop-blur-sm border-t-2 border-orange-600 border-b-2 border-orange-700 shadow-lg"></div>
 
               {/* Walls Section - Narrower than roof */}
-              <div className="relative w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] h-[125px] sm:h-[150px] md:h-[175px] lg:h-[235px] flex mx-auto">
+              <div className="relative w-[220px] sm:w-[268px] md:w-[315px] lg:w-[440px] h-[90px] sm:h-[110px] md:h-[130px] lg:h-[170px] flex mx-auto">
 
-                {/* Left Wall */}
-                <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-l-lg"></div>
-
-                {/* Center Wall */}
-                <div className="flex-[1.5] bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl"></div>
-
-                {/* Right Wall */}
-                <div className="flex-1 bg-gradient-to-t from-orange-500 to-orange-400 shadow-xl rounded-r-lg"></div>
+                {/* Walls Frame - Single unified frame without partitions */}
+                <div className="w-full bg-white/90 backdrop-blur-sm border-4 border-orange-600 shadow-xl rounded-lg"></div>
                </div>
                 
                {/* Heading centered in walls */}
-               <div className="absolute top-[100px] sm:top-[125px] md:top-[150px] lg:top-[220px] left-1/2 transform -translate-x-1/2 w-[300px] sm:w-[365px] md:w-[435px] lg:w-[620px] text-center px-3">
-                 <h1 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold drop-shadow-lg animate-text-glow leading-tight">
+               <div className="absolute top-[70px] sm:top-[85px] md:top-[100px] lg:top-[130px] left-1/2 transform -translate-x-1/2 w-[220px] sm:w-[268px] md:w-[315px] lg:w-[440px] text-center px-3">
+                 <h1 className="text-orange-700 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg animate-text-glow leading-tight">
                     Your Home, Our Priority
                   </h1>
                </div>
 
                {/* Beautiful Buttons inside walls */}
-               <div className="absolute top-[175px] sm:top-[210px] md:top-[245px] lg:top-[330px] left-1/2 transform -translate-x-1/2 w-[275px] sm:w-[335px] md:w-[400px] lg:w-[565px] px-2">
+               <div className="absolute top-[120px] sm:top-[145px] md:top-[170px] lg:top-[220px] left-1/2 transform -translate-x-1/2 w-[200px] sm:w-[245px] md:w-[290px] lg:w-[405px] px-2">
                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-3 w-full">
                    {/* Find Services Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-white to-orange-50 text-orange-600 hover:from-orange-50 hover:to-white px-4 sm:px-5 md:px-5 lg:px-6 py-2 sm:py-2.5 md:py-3 lg:py-3 rounded-full font-bold text-sm sm:text-base md:text-base lg:text-lg shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden w-full">
-                       <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                     <button className="group relative bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-3 sm:px-4 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 lg:py-3 rounded-full font-bold text-xs sm:text-sm md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden w-full">
+                       <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
                        <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
                       Find Services
                        </span>
-                       <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-full"></div>
+                       <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-full"></div>
                     </button>
                    </div>
 
                    {/* Become a Provider Button */}
                    <div className="flex-1 flex justify-center">
-                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-4 sm:px-5 md:px-5 lg:px-6 py-2 sm:py-2.5 md:py-3 lg:py-3 rounded-full font-bold text-sm sm:text-base md:text-base lg:text-lg shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden border-2 border-orange-500 w-full">
+                     <button className="group relative bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 px-3 sm:px-4 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 lg:py-3 rounded-full font-bold text-xs sm:text-sm md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden border-2 border-orange-500 w-full">
                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
                        <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
                       Become Provider
@@ -172,7 +167,7 @@ const Home = () => {
                </div>
 
                {/* Foundation */}
-               <div className="w-full h-[8px] sm:h-[10px] md:h-[13px] lg:h-[16px] bg-gradient-to-t from-orange-800 to-orange-700 shadow-lg"></div>
+               <div className="w-full h-[6px] sm:h-[7px] md:h-[9px] lg:h-[12px] bg-gradient-to-t from-orange-800 to-orange-700 shadow-lg"></div>
              </div>
           </div>
 
@@ -197,121 +192,125 @@ const Home = () => {
             {/* Services Menu */}
             <div className="relative z-10 w-full h-full flex flex-col justify-center px-6 lg:px-8">
               {/* Header */}
-              <div className="mb-8 text-center lg:text-left">
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
+              <div className="mb-5 text-center lg:text-left">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 tracking-tight">
                   Our Services
                 </h2>
-                <p className="text-gray-600 text-sm lg:text-base">
+                <p className="text-gray-600 text-xs lg:text-sm">
                   Choose a category to explore
                 </p>
               </div>
               
-              {/* Category List */}
-              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar-dark">
-                {serviceCategories.map((category, index) => (
-                  <div
-                    key={category.name}
-                    onClick={() => handleCategoryChange(index)}
-                    className={`group relative cursor-pointer transition-all duration-500 ${
-                      currentCategoryIndex === index
-                        ? 'scale-105'
-                        : 'hover:scale-102'
-                    }`}
-                  >
-                    {/* Category Card */}
-                    <div className={`relative overflow-hidden rounded-xl transition-all duration-500 ${
-                      currentCategoryIndex === index
-                        ? `bg-gradient-to-r ${category.gradient} shadow-2xl ${category.shadow}`
-                        : 'bg-white hover:bg-gray-50 backdrop-blur-sm border border-gray-200 hover:border-orange-300 shadow-sm hover:shadow-md'
-                    }`}>
-                      {/* Shine Effect on Active */}
-                      {currentCategoryIndex === index && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer-slide"></div>
-                      )}
-
-                      <div className="relative p-4 flex items-center gap-4">
+              {/* Category Grid */}
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-6">
+                {serviceCategories.map((category, index) => {
+                  const IconComponent = category.icon;
+                  return (
+                    <div
+                      key={category.name}
+                      onClick={() => handleCategoryClick(index)}
+                      className="group relative cursor-pointer transition-all duration-300 transform hover:scale-105"
+                    >
+                      {/* Category Card */}
+                      <div className={`relative overflow-hidden rounded-lg p-3 sm:p-4 transition-all duration-300 border-2 border-gray-200 hover:border-blue-500 ${category.bgColor} ${category.hoverBg} shadow-md hover:shadow-xl`}>
                         {/* Icon */}
-                        <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                          currentCategoryIndex === index
-                            ? 'bg-white/20 backdrop-blur-sm'
-                            : 'bg-gray-100 group-hover:bg-orange-100'
-                        }`}>
-                          <span className="text-2xl">{category.icon}</span>
-                        </div>
-                        
-                        {/* Text */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className={`font-bold text-sm lg:text-base transition-colors ${
-                            currentCategoryIndex === index
-                              ? 'text-white'
-                              : 'text-gray-800 group-hover:text-gray-900'
-                          }`}>
-                          {category.name}
-                        </h3>
-                          <p className={`text-xs mt-0.5 transition-colors ${
-                            currentCategoryIndex === index
-                              ? 'text-white/80'
-                              : 'text-gray-500 group-hover:text-gray-600'
-                          }`}>
+                        <div className="flex flex-col items-center justify-center text-center space-y-1.5">
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${category.bgColor} group-hover:scale-110`}>
+                            <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 ${category.iconColor}`} />
+                          </div>
+                          <h3 className="font-bold text-[10px] sm:text-xs text-gray-800 group-hover:text-gray-900 transition-colors leading-tight">
+                            {category.name}
+                          </h3>
+                          <p className="text-[9px] sm:text-[10px] text-gray-500">
                             {category.services.length} services
                           </p>
                         </div>
-
-                        {/* Arrow */}
-                        <div className={`flex-shrink-0 transition-all duration-300 ${
-                          currentCategoryIndex === index
-                            ? 'text-white translate-x-1'
-                            : 'text-gray-400 group-hover:text-orange-500 group-hover:translate-x-1'
-                        }`}>
-                          <ChevronDown className={`w-5 h-5 transition-transform ${
-                            currentCategoryIndex === index ? '-rotate-90' : ''
-                          }`} />
-                        </div>
-                      </div>
-                      
-                      {/* Expanded Services Preview */}
-                      <div className={`overflow-hidden transition-all duration-500 ${
-                        currentCategoryIndex === index ? 'max-h-48' : 'max-h-0'
-                      }`}>
-                        <div className="px-4 pb-4 pt-2 border-t border-white/10">
-                            <div className="grid grid-cols-1 gap-1.5">
-                            {category.services.slice(0, 5).map((service, i) => (
-                                <div
-                                  key={service}
-                                className="text-xs text-white/90 py-1.5 px-2 bg-white/10 rounded hover:bg-white/20 transition-colors"
-                                style={{
-                                  animation: currentCategoryIndex === index ? `fadeInUp 0.4s ease-out ${i * 0.05}s both` : 'none'
-                                }}
-                              >
-                                • {service}
-                                </div>
-                              ))}
-                            {category.services.length > 5 && (
-                              <div className="text-xs text-white/70 py-1 px-2">
-                                +{category.services.length - 5} more services
-                            </div>
-                            )}
-                          </div>
-                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* View All Services Button */}
-              <div className="mt-8">
+              <div className="mt-3">
                 <button
                   onClick={() => navigate('/services')}
-                  className="w-full bg-white hover:bg-gray-100 text-black font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-gray-500/30 flex items-center justify-center gap-2 group"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2.5 px-5 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2 group text-sm"
                 >
                   <span>View All Services</span>
-                  <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                  <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Services Modal */}
+        {showServicesModal && currentCategoryIndex !== null && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => {
+            setShowServicesModal(false);
+            setCurrentCategoryIndex(null);
+          }}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className={`bg-gradient-to-r ${serviceCategories[currentCategoryIndex].gradient} p-6 flex items-center justify-between`}>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    {(() => {
+                      const IconComponent = serviceCategories[currentCategoryIndex].icon;
+                      return <IconComponent className="w-6 h-6 text-white" />;
+                    })()}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">{serviceCategories[currentCategoryIndex].name}</h2>
+                    <p className="text-white/80 text-sm">{serviceCategories[currentCategoryIndex].services.length} services available</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowServicesModal(false);
+                    setCurrentCategoryIndex(null);
+                  }}
+                  className="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Services Grid */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {serviceCategories[currentCategoryIndex].services.map((service, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleViewServices(service)}
+                      className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 bg-gray-50 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105 group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
+                          <ChevronDown className="w-4 h-4 text-blue-600 rotate-[-90deg]" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
+                          {service}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => handleViewServices(serviceCategories[currentCategoryIndex].name)}
+                  className={`w-full bg-gradient-to-r ${serviceCategories[currentCategoryIndex].gradient} text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl`}
+                >
+                  View All {serviceCategories[currentCategoryIndex].name} Services
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Featured Services Section */}
         <div className="relative w-full bg-gradient-to-b from-white via-orange-50/30 to-white py-20">
@@ -413,7 +412,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Why Choose Gezana Section */}
+      {/* Why Choose HomeHub Section */}
       <section className="py-20 bg-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           {/* Section Header */}
@@ -422,7 +421,7 @@ const Home = () => {
               <span className="text-2xl">⭐</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Why Choose <span className="text-orange-600">Gezana?</span>
+              Why Choose <span className="text-orange-600">HomeHub?</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Experience the difference with our commitment to quality, convenience, and customer satisfaction.
@@ -524,7 +523,7 @@ const Home = () => {
               What Our <span className="text-orange-600">Customers</span> Say
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of satisfied customers who trust Gezana for their service needs.
+              Join thousands of satisfied customers who trust HomeHub for their service needs.
             </p>
           </div>
           
@@ -539,7 +538,7 @@ const Home = () => {
                   <span className="ml-2 text-sm text-gray-500">5.0</span>
                 </div>
                 <p className="text-gray-600 mb-6 leading-relaxed text-lg">
-                "Gezana made finding a reliable plumber so easy! The booking process was seamless and the service was excellent. Highly recommended!"
+                "HomeHub made finding a reliable plumber so easy! The booking process was seamless and the service was excellent. Highly recommended!"
               </p>
               <div className="flex items-center">
                   <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
@@ -563,7 +562,7 @@ const Home = () => {
                   <span className="ml-2 text-sm text-gray-500">5.0</span>
                 </div>
                 <p className="text-gray-600 mb-6 leading-relaxed text-lg">
-                "As a service provider, Gezana has helped me grow my business significantly. The platform is user-friendly and the support is outstanding."
+                "As a service provider, HomeHub has helped me grow my business significantly. The platform is user-friendly and the support is outstanding."
               </p>
               <div className="flex items-center">
                   <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
@@ -587,7 +586,7 @@ const Home = () => {
                   <span className="ml-2 text-sm text-gray-500">5.0</span>
                 </div>
                 <p className="text-gray-600 mb-6 leading-relaxed text-lg">
-                "The cleaning service I booked through Gezana exceeded my expectations. Professional, punctual, and thorough. Will definitely use again!"
+                "The cleaning service I booked through HomeHub exceeded my expectations. Professional, punctual, and thorough. Will definitely use again!"
               </p>
               <div className="flex items-center">
                   <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mr-4">
@@ -618,7 +617,7 @@ const Home = () => {
             Ready to Experience the Difference?
           </h2>
           <p className="text-xl text-orange-100 mb-10 leading-relaxed">
-            Join thousands of satisfied customers and service providers who trust Gezana for their daily service needs.
+            Join thousands of satisfied customers and service providers who trust HomeHub for their daily service needs.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">

@@ -6,13 +6,11 @@ import { MdConnectWithoutContact } from "react-icons/md";
 import { HiSparkles, HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
 import { getServices, type Service } from "../api/services";
-import AuthModal from "./AuthModal";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -103,14 +101,14 @@ const Navbar = () => {
     <>
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
         scrolled 
-          ? "bg-black/95 backdrop-blur-xl shadow-2xl border-b border-orange-100/50" 
-          : "bg-black shadow-2xl"
+          ? "bg-white/98 backdrop-blur-xl shadow-lg border-b border-gray-200" 
+          : "bg-white shadow-md"
       }`}>
         {/* Top Announcement Bar */}
         <div className={`w-full transition-all duration-500 ${
           scrolled ? 'h-0 overflow-hidden' : 'h-12'
         }`}>
-          <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white relative overflow-hidden">
+          <div className="bg-black text-white relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute inset-0" style={{
@@ -130,49 +128,42 @@ const Navbar = () => {
               </div>
               
               <div className="hidden md:flex items-center space-x-6">
-                <div className="flex items-center space-x-2 text-orange-100">
+                <div className="flex items-center space-x-2 text-gray-300">
                   <span className="text-xs">⚡</span>
                   <span className="text-xs">{t('home.stats.bookings')}</span>
                 </div>
-                <div className="flex items-center space-x-2 text-orange-100">
+                <div className="flex items-center space-x-2 text-gray-300">
                   <span className="text-xs">🛡️</span>
                   <span className="text-xs">{t('services.rating')}</span>
                 </div>
-                <button 
-                  onClick={() => setAuthModalOpen(true)}
-                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
+                <Link 
+                  to="/login"
+                  className="bg-white text-black hover:bg-gray-100 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
                 >
                   <FaSignInAlt className="w-3 h-3" />
                   <span>{t('common.login')}</span>
-                </button>
+                </Link>
               </div>
             </div>
           </div>
         </div>
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex justify-between items-center py-2">
+          <div className="flex justify-between items-center py-4">
             {/* Logo & Brand */}
-            <Link to="/" className="flex items-center space-x-1 sm:space-x-2 group cursor-pointer -ml-2 sm:-ml-4 lg:-ml-6">
+            <Link to="/" className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer">
               <div className="relative">
-                <div className={`p-1.5 rounded-lg transition-all duration-300 border-2 ${
-                  scrolled ? 'bg-orange-50 border-black' : 'bg-black/80 border-black'
-                }`}>
-                  <img
-                    src="Gezana-logo.PNG"
-                    alt="Gezana Logo"
-                    className="h-5 sm:h-6 md:h-7 lg:h-8 object-contain transition-transform duration-300 group-hover:scale-110"
-                  />
-                </div>
-                <div className="absolute -top-0.5 -right-0.5">
-                  <HiSparkles className={`w-4 h-4 ${scrolled ? 'text-orange-500' : 'text-orange-400'} animate-pulse`} />
-                </div>
+                <img
+                  src="/home hub logo.jpg"
+                  alt="HomeHub Logo"
+                  className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
               <div className="hidden sm:block">
-                <h1 className={`text-sm sm:text-base md:text-lg font-bold text-white transition-colors duration-300 group-hover:text-orange-500`}>
-                  Gezana
+                <h1 className={`text-lg sm:text-xl md:text-2xl font-bold text-black transition-colors duration-300 group-hover:text-gray-700`}>
+                  HomeHub
                 </h1>
-                <p className={`text-xs sm:text-xs text-orange-400 font-medium transition-colors duration-300`}>
-                  Connect • Serve • Succeed
+                <p className={`text-xs sm:text-sm text-gray-600 font-medium transition-colors duration-300`}>
+                  Digital Solution
                 </p>
               </div>
             </Link>
@@ -183,14 +174,14 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={toggleSearch}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all duration-300 group ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 group border ${
                     scrolled 
-                      ? 'bg-orange-50 text-slate-700 hover:bg-orange-100' 
-                      : 'bg-white/10 text-white hover:bg-white/20'
+                      ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200' 
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
                   }`}
                 >
                   <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">{t('common.search')}...</span>
+                  <span className="text-sm font-medium">{t('common.search')}...</span>
                 </button>
               </div>
 
@@ -198,26 +189,26 @@ const Navbar = () => {
               <div className="flex items-center space-x-6">
                 <Link 
                   to="/about" 
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
                 >
-                  <FaUsers className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">{t('navigation.about')}</span>
+                  <FaUsers className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">{t('navigation.about')}</span>
                 </Link>
                 
                 <Link 
                   to="/services" 
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
                 >
-                  <MdConnectWithoutContact className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">{t('navigation.services')}</span>
+                  <MdConnectWithoutContact className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">{t('navigation.services')}</span>
                 </Link>
                 
                 <Link 
                   to="/contact" 
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition-all duration-300 group text-white hover:text-orange-400 hover:bg-white/10`}
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
                 >
-                  <FaHandshake className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-medium">{t('navigation.contact')}</span>
+                  <FaHandshake className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">{t('navigation.contact')}</span>
                 </Link>
               </div>
 
@@ -227,16 +218,13 @@ const Navbar = () => {
               </div>
 
               {/* Join Community Button */}
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className={`relative overflow-hidden px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500`}
+              <Link
+                to="/signup"
+                className={`relative overflow-hidden px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900 inline-flex items-center space-x-2`}
               >
-                <span className="relative z-10 flex items-center space-x-1.5">
-                  <FaUserPlus className="w-3.5 h-3.5" />
-                  <span>Join Community</span>
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
+                <FaUserPlus className="w-4 h-4" />
+                <span>Join Community</span>
+              </Link>
             </div>
 
             {/* Mobile Actions */}
@@ -247,26 +235,26 @@ const Navbar = () => {
               
               <button
                 onClick={toggleSearch}
-                className={`p-1.5 rounded-lg transition-all duration-300 ${
+                className={`p-2 rounded-lg transition-all duration-300 ${
                   scrolled 
-                    ? 'text-slate-700 hover:bg-orange-50' 
-                    : 'text-white hover:bg-white/10'
+                    ? 'text-gray-700 hover:bg-gray-100' 
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 aria-label="Search"
               >
-                <IoSearchOutline size={18} />
+                <IoSearchOutline size={20} />
               </button>
               
               <button
                 onClick={toggleMenu}
-                className={`p-1.5 rounded-lg transition-all duration-300 ${
+                className={`p-2 rounded-lg transition-all duration-300 ${
                   scrolled 
-                    ? 'text-slate-700 hover:bg-orange-50' 
-                    : 'text-white hover:bg-white/10'
+                    ? 'text-gray-700 hover:bg-gray-100' 
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 aria-label="Toggle menu"
               >
-                {menuOpen ? <FaTimes size={20} /> : <HiMenuAlt3 size={20} />}
+                {menuOpen ? <FaTimes size={22} /> : <HiMenuAlt3 size={22} />}
               </button>
             </div>
           </div>
@@ -286,74 +274,71 @@ const Navbar = () => {
         }`}>
           <div className="flex flex-col h-full">
             {/* Mobile Header */}
-            <div className="flex items-center justify-between p-6 bg-gradient-to-r from-orange-500 to-orange-600 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-orange-500/20"></div>
-              <div className="relative flex items-center space-x-3">
-                <div className="p-2 bg-white/20 rounded-xl border-2 border-black">
-                  <img
-                    src="Gezana-logo.PNG"
-                  alt="Gezana Logo"
-                  className="h-6 sm:h-8 object-contain"
+            <div className="flex items-center justify-between p-6 bg-white border-b border-gray-200">
+              <div className="flex items-center space-x-4">
+                <img
+                  src="/home hub logo.jpg"
+                  alt="HomeHub Logo"
+                  className="h-12 w-auto object-contain"
                 />
-                </div>
                 <div>
-                  <h2 className="text-white font-bold text-lg">Gezana</h2>
-                  <p className="text-orange-100 text-xs">Your Service Hub</p>
+                  <h2 className="text-black font-bold text-lg">HomeHub</h2>
+                  <p className="text-gray-600 text-xs">Digital Solution</p>
                 </div>
               </div>
               <button
                 onClick={toggleMenu}
-                className="relative p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <FaTimes size={20} />
               </button>
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex-1 p-6 space-y-4">
+            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
               <div className="space-y-2">
                 <Link
                   to="/about"
                   onClick={toggleMenu}
-                  className="flex items-center space-x-3 p-4 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
+                  className="flex items-center space-x-3 p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                 >
-                  <FaUsers className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
+                  <FaUsers className="w-5 h-5 text-gray-600 group-hover:text-black transition-colors" />
                   <span className="font-medium">About Us</span>
                 </Link>
                 
                 <Link
                   to="/services"
                   onClick={toggleMenu}
-                  className="flex items-center space-x-3 p-4 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
+                  className="flex items-center space-x-3 p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                 >
-                  <MdConnectWithoutContact className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
+                  <MdConnectWithoutContact className="w-5 h-5 text-gray-600 group-hover:text-black transition-colors" />
                   <span className="font-medium">Our Services</span>
                 </Link>
                 
                 <Link
                   to="/contact"
                   onClick={toggleMenu}
-                  className="flex items-center space-x-3 p-4 text-slate-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
+                  className="flex items-center space-x-3 p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                 >
-                  <FaHandshake className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
+                  <FaHandshake className="w-5 h-5 text-gray-600 group-hover:text-black transition-colors" />
                   <span className="font-medium">Contact Us</span>
                 </Link>
               </div>
 
               {/* Mobile Features */}
               <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Why Choose Gezana?</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Why Choose HomeHub?</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center space-x-3 text-sm text-gray-600">
-                    <FaShieldAlt className="w-4 h-4 text-green-500" />
+                  <div className="flex items-center space-x-3 text-sm text-gray-700">
+                    <FaShieldAlt className="w-4 h-4 text-black" />
                     <span>Verified Service Providers</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-gray-600">
-                    <FaStar className="w-4 h-4 text-yellow-500" />
+                  <div className="flex items-center space-x-3 text-sm text-gray-700">
+                    <FaStar className="w-4 h-4 text-black" />
                     <span>Quality Guaranteed</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-gray-600">
-                    <MdConnectWithoutContact className="w-4 h-4 text-blue-500" />
+                  <div className="flex items-center space-x-3 text-sm text-gray-700">
+                    <MdConnectWithoutContact className="w-4 h-4 text-black" />
                     <span>Seamless Connection</span>
                   </div>
                 </div>
@@ -369,17 +354,15 @@ const Navbar = () => {
             </div>
 
             {/* Mobile CTA */}
-            <div className="p-6 bg-gray-50">
-              <button
-                onClick={() => {
-                  toggleMenu();
-                  setAuthModalOpen(true);
-                }}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center space-x-2"
+            <div className="p-6 bg-gray-50 border-t border-gray-200">
+              <Link
+                to="/signup"
+                onClick={toggleMenu}
+                className="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center space-x-2"
               >
                 <FaUserPlus className="w-5 h-5" />
                 <span>Join Community</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -388,27 +371,27 @@ const Navbar = () => {
         {searchOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 transform transition-all duration-300 animate-in slide-in-from-top-4 max-h-[80vh] overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-6 border-b border-gray-200">
                 <form onSubmit={handleSearchSubmit} className="flex items-center space-x-3">
-                  <IoSearchOutline className="w-6 h-6 text-orange-500" />
+                  <IoSearchOutline className="w-6 h-6 text-gray-600" />
                   <input
                     type="text"
                     placeholder="Search for services, providers, or categories..."
-                    className="flex-1 text-lg border-none outline-none bg-transparent"
+                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-gray-400"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors"
                   >
                     <FaSearch className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
                     onClick={toggleSearch}
-                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <FaTimes size={20} />
                   </button>
@@ -421,7 +404,7 @@ const Navbar = () => {
                   <div className="p-6">
                     {searchLoading ? (
                       <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                         <span className="ml-3 text-gray-600">Searching...</span>
                       </div>
                     ) : searchError ? (
@@ -438,7 +421,7 @@ const Navbar = () => {
                           <div
                             key={service.id}
                             onClick={() => handleServiceClick(service)}
-                            className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-100"
+                            className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
                           >
                             <div className="flex-shrink-0">
                               {service.photos && service.photos.length > 0 ? (
@@ -448,8 +431,8 @@ const Navbar = () => {
                                   className="w-16 h-16 rounded-lg object-cover"
                                 />
                               ) : (
-                                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
-                                  <span className="text-orange-600 font-bold text-lg">
+                                <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                                  <span className="text-gray-600 font-bold text-lg">
                                     {(service.title || (service as any).name || 'S').charAt(0).toUpperCase()}
                                   </span>
                                 </div>
@@ -474,7 +457,7 @@ const Navbar = () => {
                               </div>
                             </div>
                             <div className="flex-shrink-0 text-right">
-                              <div className="text-lg font-bold text-orange-600">
+                              <div className="text-lg font-bold text-black">
                                 {formatPrice(service.price || 0, service.priceType || 'fixed')}
                               </div>
                               <div className="text-sm text-gray-500">
@@ -501,7 +484,7 @@ const Navbar = () => {
                         <button
                           key={item}
                           onClick={() => setSearchQuery(item)}
-                          className="text-left p-3 rounded-lg hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors"
+                          className="text-left p-3 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-black transition-colors border border-gray-200"
                         >
                           {item}
                         </button>
@@ -516,10 +499,6 @@ const Navbar = () => {
 
       </nav>
 
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
     </>
   );
 };

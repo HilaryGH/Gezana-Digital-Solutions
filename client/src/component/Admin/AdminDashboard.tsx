@@ -19,7 +19,7 @@ const AdminDashboard = () => {
                 Welcome, Admin 👋
               </h2>
               <p className="text-gray-700 text-base mt-2">
-                This is your dashboard where you can manage the Gezana platform.
+                This is your dashboard where you can manage the HomeHub platform.
               </p>
             </header>
 

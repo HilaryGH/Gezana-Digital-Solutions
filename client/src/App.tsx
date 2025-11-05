@@ -13,7 +13,7 @@ import Home from "./component/Home";
 import AboutPage from "./component/Pages/AboutPage";
 import ServicesPage from "./component/Pages/ServicesPage";
 import ContactPage from "./component/Pages/ContactPage";
-import LoginForm from "./component/LoginForm";
+import LoginPage from "./component/Pages/LoginPage";
 import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
 import SeekerDashboard from "./component/seeker/SeekerDashboard";
@@ -85,7 +85,7 @@ function AppContent() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/login" element={<LoginForm />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />
         <Route path="/payment" element={<PaymentPage />} />
