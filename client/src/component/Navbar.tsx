@@ -1,12 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaTimes, FaUsers, FaHandshake, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt, FaSignInAlt, FaUserPlus } from "react-icons/fa";
+import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt, FaSignInAlt } from "react-icons/fa";
 import { MdConnectWithoutContact } from "react-icons/md";
-import { HiSparkles, HiMenuAlt3 } from "react-icons/hi";
+import { HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
 import { getServices, type Service } from "../api/services";
 import LanguageSwitcher from "./LanguageSwitcher";
+
+const SERVICE_PROMPTS = [
+  "Home Maintenance pros",
+  "Cleaning services near you",
+  "Appliance repair experts",
+  "Personal care specialists",
+  "Household support teams",
+  "Hotel & lounge staff"
+];
 
 const Navbar = () => {
   const { t } = useTranslation();
@@ -17,6 +26,10 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState<Service[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [promptIndex, setPromptIndex] = useState(0);
+  const [typingStage, setTypingStage] = useState<"typing" | "waiting" | "deleting">("typing");
+  const [typedText, setTypedText] = useState("");
+  const typingTimeoutRef = useRef<number | null>(null);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const toggleSearch = () => {
@@ -66,6 +79,46 @@ const Navbar = () => {
     return () => clearTimeout(searchTimeout);
   }, [searchQuery]);
 
+  const activePrompt = SERVICE_PROMPTS[promptIndex];
+
+  useEffect(() => {
+    const TYPING_SPEED = 80;
+    const DELETING_SPEED = 40;
+    const WAIT_AFTER_TYPING = 1500;
+    const WAIT_BEFORE_TYPING = 300;
+
+    if (typingStage === "typing") {
+      if (typedText.length < activePrompt.length) {
+        typingTimeoutRef.current = window.setTimeout(() => {
+          setTypedText(activePrompt.slice(0, typedText.length + 1));
+        }, TYPING_SPEED);
+      } else {
+        typingTimeoutRef.current = window.setTimeout(() => {
+          setTypingStage("waiting");
+        }, WAIT_AFTER_TYPING);
+      }
+    } else if (typingStage === "waiting") {
+      typingTimeoutRef.current = window.setTimeout(() => {
+        setTypingStage("deleting");
+      }, WAIT_BEFORE_TYPING);
+    } else if (typingStage === "deleting") {
+      if (typedText.length > 0) {
+        typingTimeoutRef.current = window.setTimeout(() => {
+          setTypedText(typedText.slice(0, -1));
+        }, DELETING_SPEED);
+      } else {
+        setPromptIndex((prev) => (prev + 1) % SERVICE_PROMPTS.length);
+        setTypingStage("typing");
+      }
+    }
+
+    return () => {
+      if (typingTimeoutRef.current) {
+        window.clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [typedText, typingStage, activePrompt]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -83,17 +136,15 @@ const Navbar = () => {
 
   const formatPrice = (price: number, priceType: string) => {
     const formattedPrice = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(price);
 
     switch (priceType) {
-      case 'hourly': return `${formattedPrice}/hour`;
-      case 'per_sqft': return `${formattedPrice}/sq ft`;
-      case 'custom': return formattedPrice;
-      default: return formattedPrice;
+      case 'hourly': return `${formattedPrice} ETB/hour`;
+      case 'per_sqft': return `${formattedPrice} ETB/sq ft`;
+      case 'custom': return `From ${formattedPrice} ETB`;
+      default: return `${formattedPrice} ETB`;
     }
   };
 
@@ -148,24 +199,17 @@ const Navbar = () => {
           </div>
         </div>
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-2">
             {/* Logo & Brand */}
             <Link to="/" className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer">
               <div className="relative">
                 <img
-                  src="/home hub logo.jpg"
+                  src="/logo correct.png"
                   alt="HomeHub Logo"
-                  className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  className="h-8 sm:h-10 md:h-12 lg:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
-              <div className="hidden sm:block">
-                <h1 className={`text-lg sm:text-xl md:text-2xl font-bold text-black transition-colors duration-300 group-hover:text-gray-700`}>
-                  HomeHub
-                </h1>
-                <p className={`text-xs sm:text-sm text-gray-600 font-medium transition-colors duration-300`}>
-                  Digital Solution
-                </p>
-              </div>
+              
             </Link>
 
             {/* Desktop Navigation */}
@@ -174,14 +218,18 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={toggleSearch}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 group border ${
+                  className={`flex items-center space-x-2 px-5 py-2 rounded-lg transition-all duration-300 group border min-w-[220px] lg:min-w-[260px] ${
                     scrolled 
                       ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200' 
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
                   }`}
                 >
                   <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">{t('common.search')}...</span>
+                  <span className="text-xs lg:text-sm font-medium whitespace-nowrap font-mono max-w-[220px] lg:max-w-[260px] truncate">
+                    {t('common.search')}{" "}
+                    <span className="text-brand-primary">{typedText}</span>
+                    <span className="ml-0.5 inline-block w-[2px] h-4 bg-brand-primary align-middle animate-pulse"></span>
+                  </span>
                 </button>
               </div>
 
@@ -189,25 +237,22 @@ const Navbar = () => {
               <div className="flex items-center space-x-6">
                 <Link 
                   to="/about" 
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
+                  className={`px-3 py-1.5 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
                 >
-                  <FaUsers className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{t('navigation.about')}</span>
                 </Link>
                 
                 <Link 
                   to="/services" 
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
+                  className={`px-3 py-1.5 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
                 >
-                  <MdConnectWithoutContact className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{t('navigation.services')}</span>
                 </Link>
                 
                 <Link 
                   to="/contact" 
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
+                  className={`px-3 py-1.5 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50`}
                 >
-                  <FaHandshake className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{t('navigation.contact')}</span>
                 </Link>
               </div>
@@ -220,9 +265,8 @@ const Navbar = () => {
               {/* Join Community Button */}
               <Link
                 to="/signup"
-                className={`relative overflow-hidden px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900 inline-flex items-center space-x-2`}
+                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900`}
               >
-                <FaUserPlus className="w-4 h-4" />
                 <span>Join Community</span>
               </Link>
             </div>
@@ -277,13 +321,13 @@ const Navbar = () => {
             <div className="flex items-center justify-between p-6 bg-white border-b border-gray-200">
               <div className="flex items-center space-x-4">
                 <img
-                  src="/home hub logo.jpg"
+                  src="/logo correct.png"
                   alt="HomeHub Logo"
                   className="h-12 w-auto object-contain"
                 />
                 <div>
                   <h2 className="text-black font-bold text-lg">HomeHub</h2>
-                  <p className="text-gray-600 text-xs">Digital Solution</p>
+              <p className="text-gray-600 text-xs">Home Services, Redefined & Delivered</p>
                 </div>
               </div>
               <button
@@ -300,27 +344,24 @@ const Navbar = () => {
                 <Link
                   to="/about"
                   onClick={toggleMenu}
-                  className="flex items-center space-x-3 p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <FaUsers className="w-5 h-5 text-gray-600 group-hover:text-black transition-colors" />
                   <span className="font-medium">About Us</span>
                 </Link>
                 
                 <Link
                   to="/services"
                   onClick={toggleMenu}
-                  className="flex items-center space-x-3 p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <MdConnectWithoutContact className="w-5 h-5 text-gray-600 group-hover:text-black transition-colors" />
                   <span className="font-medium">Our Services</span>
                 </Link>
                 
                 <Link
                   to="/contact"
                   onClick={toggleMenu}
-                  className="flex items-center space-x-3 p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <FaHandshake className="w-5 h-5 text-gray-600 group-hover:text-black transition-colors" />
                   <span className="font-medium">Contact Us</span>
                 </Link>
               </div>
@@ -358,9 +399,8 @@ const Navbar = () => {
               <Link
                 to="/signup"
                 onClick={toggleMenu}
-                className="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center space-x-2"
+                className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
-                <FaUserPlus className="w-5 h-5" />
                 <span>Join Community</span>
               </Link>
             </div>

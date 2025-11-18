@@ -23,7 +23,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     try {
       const decoded = jwtDecode<DecodedToken>(token);
       console.log("Decoded token:", decoded);
-      if (decoded.role === "admin") {
+      if (decoded.role === "admin" || decoded.role === "superadmin") {
         setIsAdmin(true);
       } else {
         console.log("Not admin");

@@ -136,7 +136,7 @@ const MyBookings = () => {
                 <td className="px-4 py-3 font-medium">
                   {booking.service?.name || "—"}
                   <div className="text-xs text-gray-500">
-                    ETB {booking.service?.price ?? "—"}
+                    {booking.service?.price ? `${booking.service.price} ETB` : "—"}
                   </div>
                 </td>
 

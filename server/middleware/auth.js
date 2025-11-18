@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const JWT_SECRET = require("../config/jwt");
 
 module.exports = function auth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -10,7 +11,7 @@ module.exports = function auth(req, res, next) {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "yourSecretKey");
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // attach user info to request
     next();
   } catch (err) {

@@ -19,11 +19,11 @@
 
 /* Colors & backgrounds */
 .bg-btn {
-  background-color: #1d6ceb;
+  background-color: var(--brand-primary);
 }
 
 .text-orange {
-  color: #FF6B00;
+  color: var(--brand-accent);
 }
 
 .text-medium {
@@ -31,7 +31,7 @@
 }
 
 .bg-light-section {
-  background-color: #f9fafb;
+  background-color: var(--brand-background);
 }
 
 .border-soft {
@@ -39,7 +39,7 @@
 }
 
 .text-accent {
-  color: #facc15;
+  color: var(--brand-gold);
 }
 
 /* Animations */
@@ -85,7 +85,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 165, 0, 0.8) 0%, rgba(255, 140, 0, 0.4) 70%, rgba(255, 165, 0, 0) 100%);
+  background: radial-gradient(circle, rgba(247, 147, 30, 0.8) 0%, rgba(46, 61, 211, 0.4) 70%, rgba(0, 229, 255, 0) 100%);
   filter: blur(8px);
   animation-name: floatUp;
   animation-timing-function: linear;

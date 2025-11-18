@@ -2,6 +2,8 @@ const express = require("express");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const Service = require("../models/Service");
 const User = require("../models/User");
+const Review = require("../models/Review");
+const Booking = require("../models/Booking");
 const upload = require("../middleware/upload");
 const { sendServicePublishedNotifications } = require("../utils/notificationService");
 
@@ -133,28 +135,57 @@ router.get("/", async (req, res) => {
 
     const availableServices = services.filter((s) => s.provider !== null);
 
+    // Get service ratings from reviews
+    const serviceIds = availableServices.map(s => s._id);
+    const reviews = await Review.find({
+      service: { $in: serviceIds },
+      isActive: true,
+      isApproved: true
+    }).select('service rating');
+
+    // Calculate average rating for each service
+    const serviceRatings = {};
+    reviews.forEach(review => {
+      const serviceId = review.service.toString();
+      if (!serviceRatings[serviceId]) {
+        serviceRatings[serviceId] = { sum: 0, count: 0 };
+      }
+      serviceRatings[serviceId].sum += review.rating;
+      serviceRatings[serviceId].count += 1;
+    });
+
     // Transform the data to match client expectations
-    const transformedServices = availableServices.map(service => ({
-      id: service._id,
-      title: service.name, // Map name to title
-      description: service.description,
-      category: service.category?.name || service.category,
-      subcategory: service.type?.name || service.type,
-      price: service.price,
-      priceType: service.priceType,
-      photos: service.photos.map(photo => {
-        if (photo.startsWith('http')) return photo;
-        // Handle different photo path formats
-        const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
-        return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
-      }),
-      providerId: service.provider._id,
-      providerName: service.provider.name,
-      providerRating: service.provider.rating || 4.5, // Default rating if not available
-      isAvailable: service.isActive,
-      location: service.location,
-      createdAt: service.createdAt,
-      updatedAt: service.updatedAt
+    const transformedServices = await Promise.all(availableServices.map(async service => {
+      const serviceId = service._id.toString();
+      const ratingData = serviceRatings[serviceId];
+      const serviceRating = ratingData && ratingData.count > 0 
+        ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
+        : null;
+
+      return {
+        id: service._id,
+        title: service.name, // Map name to title
+        description: service.description,
+        category: service.category?.name || service.category,
+        subcategory: service.type?.name || service.type,
+        price: service.price,
+        priceType: service.priceType,
+        photos: service.photos.map(photo => {
+          if (photo.startsWith('http')) return photo;
+          // Handle different photo path formats
+          const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
+          return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
+        }),
+        providerId: service.provider._id,
+        providerName: service.provider.name,
+        providerRating: service.provider.rating || 4.5, // Provider's overall rating
+        serviceRating: serviceRating, // Service-specific rating from reviews (null if no reviews)
+        ratingCount: ratingData ? ratingData.count : 0, // Number of ratings
+        isAvailable: service.isActive,
+        location: service.location,
+        createdAt: service.createdAt,
+        updatedAt: service.updatedAt
+      };
     }));
 
     res.json(transformedServices);
@@ -179,6 +210,17 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Service not found" });
     }
 
+    // Calculate service rating from reviews
+    const reviews = await Review.find({
+      service: service._id,
+      isActive: true,
+      isApproved: true
+    }).select('rating');
+
+    const serviceRating = reviews.length > 0
+      ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1))
+      : null;
+
     // Transform the data to match client expectations
     const transformedService = {
       id: service._id,
@@ -195,7 +237,9 @@ router.get("/:id", async (req, res) => {
       }),
       providerId: service.provider._id,
       providerName: service.provider.name,
-      providerRating: service.provider.rating || 4.5,
+      providerRating: service.provider.rating || 4.5, // Provider's overall rating
+      serviceRating: serviceRating, // Service-specific rating from reviews (null if no reviews)
+      ratingCount: reviews.length, // Number of ratings
       isAvailable: service.isActive,
       location: service.location,
       createdAt: service.createdAt,
@@ -401,6 +445,290 @@ router.delete("/admin/services/:id", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Error deleting service:", err);
     res.status(500).json({ message: "Failed to delete service" });
+  }
+});
+
+/**
+ * GET /api/services/recent - Get recently added services
+ */
+router.get("/recent", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const services = await Service.find({ isActive: true })
+      .populate("category", "name")
+      .populate("type", "name")
+      .populate({
+        path: "provider",
+        match: { isActive: true },
+        select: "name email rating",
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    const availableServices = services.filter((s) => s.provider !== null);
+
+    // Get service ratings from reviews
+    const serviceIds = availableServices.map(s => s._id);
+    const reviews = await Review.find({
+      service: { $in: serviceIds },
+      isActive: true,
+      isApproved: true
+    }).select('service rating');
+
+    // Calculate average rating for each service
+    const serviceRatings = {};
+    reviews.forEach(review => {
+      const serviceId = review.service.toString();
+      if (!serviceRatings[serviceId]) {
+        serviceRatings[serviceId] = { sum: 0, count: 0 };
+      }
+      serviceRatings[serviceId].sum += review.rating;
+      serviceRatings[serviceId].count += 1;
+    });
+
+    // Transform the data
+    const transformedServices = availableServices.map(service => {
+      const serviceId = service._id.toString();
+      const ratingData = serviceRatings[serviceId];
+      const serviceRating = ratingData && ratingData.count > 0 
+        ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
+        : null;
+
+      return {
+        id: service._id,
+        title: service.name,
+        description: service.description,
+        category: service.category?.name || service.category,
+        subcategory: service.type?.name || service.type,
+        price: service.price,
+        priceType: service.priceType,
+        photos: service.photos.map(photo => {
+          if (photo.startsWith('http')) return photo;
+          const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
+          return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
+        }),
+        providerId: service.provider._id,
+        providerName: service.provider.name,
+        providerRating: service.provider.rating || 4.5,
+        serviceRating: serviceRating,
+        ratingCount: ratingData ? ratingData.count : 0,
+        isAvailable: service.isActive,
+        location: service.location,
+        createdAt: service.createdAt,
+        updatedAt: service.updatedAt
+      };
+    });
+
+    res.json(transformedServices);
+  } catch (err) {
+    console.error("Error fetching recent services:", err);
+    res.status(500).json({ message: "Could not fetch recent services", error: err.message });
+  }
+});
+
+/**
+ * GET /api/services/most-booked - Get most booked services
+ */
+router.get("/most-booked", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Aggregate bookings to count bookings per service
+    const bookingCounts = await Booking.aggregate([
+      {
+        $group: {
+          _id: "$service",
+          bookingCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { bookingCount: -1 }
+      },
+      {
+        $limit: limit
+      }
+    ]);
+
+    const serviceIds = bookingCounts.map(b => b._id);
+    const bookingCountMap = {};
+    bookingCounts.forEach(b => {
+      bookingCountMap[b._id.toString()] = b.bookingCount;
+    });
+
+    // Fetch services with booking counts
+    const services = await Service.find({
+      _id: { $in: serviceIds },
+      isActive: true
+    })
+      .populate("category", "name")
+      .populate("type", "name")
+      .populate({
+        path: "provider",
+        match: { isActive: true },
+        select: "name email rating",
+      });
+
+    const availableServices = services.filter((s) => s.provider !== null);
+
+    // Sort services by booking count (maintain order from aggregation)
+    availableServices.sort((a, b) => {
+      const countA = bookingCountMap[a._id.toString()] || 0;
+      const countB = bookingCountMap[b._id.toString()] || 0;
+      return countB - countA;
+    });
+
+    // Get service ratings from reviews
+    const reviewServiceIds = availableServices.map(s => s._id);
+    const reviews = await Review.find({
+      service: { $in: reviewServiceIds },
+      isActive: true,
+      isApproved: true
+    }).select('service rating');
+
+    // Calculate average rating for each service
+    const serviceRatings = {};
+    reviews.forEach(review => {
+      const serviceId = review.service.toString();
+      if (!serviceRatings[serviceId]) {
+        serviceRatings[serviceId] = { sum: 0, count: 0 };
+      }
+      serviceRatings[serviceId].sum += review.rating;
+      serviceRatings[serviceId].count += 1;
+    });
+
+    // Transform the data
+    const transformedServices = availableServices.map(service => {
+      const serviceId = service._id.toString();
+      const ratingData = serviceRatings[serviceId];
+      const serviceRating = ratingData && ratingData.count > 0 
+        ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
+        : null;
+
+      return {
+        id: service._id,
+        title: service.name,
+        description: service.description,
+        category: service.category?.name || service.category,
+        subcategory: service.type?.name || service.type,
+        price: service.price,
+        priceType: service.priceType,
+        photos: service.photos.map(photo => {
+          if (photo.startsWith('http')) return photo;
+          const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
+          return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
+        }),
+        providerId: service.provider._id,
+        providerName: service.provider.name,
+        providerRating: service.provider.rating || 4.5,
+        serviceRating: serviceRating,
+        ratingCount: ratingData ? ratingData.count : 0,
+        bookingCount: bookingCountMap[serviceId] || 0,
+        isAvailable: service.isActive,
+        location: service.location,
+        createdAt: service.createdAt,
+        updatedAt: service.updatedAt
+      };
+    });
+
+    res.json(transformedServices);
+  } catch (err) {
+    console.error("Error fetching most booked services:", err);
+    res.status(500).json({ message: "Could not fetch most booked services", error: err.message });
+  }
+});
+
+/**
+ * GET /api/services/top-providers - Get top rated providers
+ */
+router.get("/top-providers", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Get all providers
+    const providers = await User.find({
+      role: "provider",
+      isActive: true,
+      isVerified: true
+    }).select("name email phone whatsapp photo serviceType city location rating");
+
+    // Get all services for these providers
+    const providerIds = providers.map(p => p._id);
+    const services = await Service.find({
+      provider: { $in: providerIds },
+      isActive: true
+    }).populate("provider", "name email");
+
+    // Get all reviews for these services
+    const serviceIds = services.map(s => s._id);
+    const reviews = await Review.find({
+      service: { $in: serviceIds },
+      isActive: true,
+      isApproved: true
+    }).select('service rating').populate({
+      path: 'service',
+      select: 'provider',
+      populate: {
+        path: 'provider',
+        select: '_id'
+      }
+    });
+
+    // Calculate average rating per provider from their service reviews
+    const providerRatings = {};
+    const providerServiceCounts = {};
+
+    reviews.forEach(review => {
+      const providerId = review.service?.provider?._id?.toString();
+      if (providerId) {
+        if (!providerRatings[providerId]) {
+          providerRatings[providerId] = { sum: 0, count: 0 };
+        }
+        providerRatings[providerId].sum += review.rating;
+        providerRatings[providerId].count += 1;
+      }
+    });
+
+    // Count services per provider
+    services.forEach(service => {
+      const providerId = service.provider?._id?.toString();
+      if (providerId) {
+        providerServiceCounts[providerId] = (providerServiceCounts[providerId] || 0) + 1;
+      }
+    });
+
+    // Calculate average rating and prepare provider data
+    const providersWithRatings = providers.map(provider => {
+      const providerId = provider._id.toString();
+      const ratingData = providerRatings[providerId];
+      const averageRating = ratingData && ratingData.count > 0
+        ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
+        : null;
+
+      return {
+        id: provider._id,
+        name: provider.name,
+        email: provider.email,
+        phone: provider.phone,
+        whatsapp: provider.whatsapp,
+        photo: provider.photo ? `${req.protocol}://${req.get('host')}/uploads/${provider.photo}` : null,
+        serviceType: provider.serviceType,
+        city: provider.city,
+        location: provider.location,
+        rating: averageRating || provider.rating || 0,
+        reviewCount: ratingData ? ratingData.count : 0,
+        serviceCount: providerServiceCounts[providerId] || 0
+      };
+    });
+
+    // Sort by rating (highest first) and limit
+    providersWithRatings.sort((a, b) => b.rating - a.rating);
+    const topProviders = providersWithRatings.slice(0, limit);
+
+    res.json(topProviders);
+  } catch (err) {
+    console.error("Error fetching top providers:", err);
+    res.status(500).json({ message: "Could not fetch top providers", error: err.message });
   }
 });
 

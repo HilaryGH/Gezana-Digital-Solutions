@@ -35,7 +35,7 @@ const LoginPage = () => {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img
-              src="/home hub logo.jpg"
+              src="/logo correct.png"
               alt="HomeHub Logo"
               className="h-16 sm:h-20 object-contain"
             />

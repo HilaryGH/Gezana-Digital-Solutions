@@ -31,9 +31,19 @@ const HomeServices = () => {
       </h2>
 
       {loading ? (
-        <p className="text-center">Loading services...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-7xl mx-auto">
+          {[...Array(10)].map((_, index) => (
+            <div key={index} className="bg-white rounded-2xl shadow-lg p-4 animate-pulse">
+              <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-w-7xl mx-auto">
           {services.map((service) => (
             <ServiceCard
               key={service.id}

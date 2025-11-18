@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --force",
-    "clean": "powershell -Command \"if (Test-Path 'node_modules\\.vite-temp') { Remove-Item -Path 'node_modules\\.vite-temp' -Recurse -Force }; if (Test-Path 'node_modules\\.vite') { Remove-Item -Path 'node_modules\\.vite' -Recurse -Force }\"",
+    "clean": "powershell -Command \"if (Test-Path 'node_modules\\.vite-temp') { Remove-Item -Path 'node_modules\\.vite-temp' -Recurse -Force }; if (Test-Path 'node_modules\\.vite') { Remove-Item -Path 'node_modules\\.vite' -Recurse -Force }; if (Test-Path '.vite') { Remove-Item -Path '.vite' -Recurse -Force }\"",
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["seeker", "provider", "admin", "superadmin", "support"],
+      enum: ["seeker", "provider", "admin", "superadmin", "support", "marketing"],
       default: "seeker",
     },
     loyaltyPoints: {
@@ -86,6 +86,7 @@ const userSchema = new mongoose.Schema(
     servicePhotos: [{ type: String }], // Array of file paths
     video: { type: String }, // File path
     priceList: { type: String }, // File path
+    credentials: [{ type: String }], // Additional credential uploads
     
     // Verification status
     isVerified: { type: Boolean, default: false },
@@ -94,6 +95,12 @@ const userSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending"
     },
+    verificationNotes: { type: String },
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    verifiedAt: { type: Date },
     
     // Subscription fields
     currentSubscription: {

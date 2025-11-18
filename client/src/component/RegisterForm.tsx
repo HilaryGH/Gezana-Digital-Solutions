@@ -283,7 +283,7 @@ const RegisterForm = () => {
       {/* Logo Header */}
       <div className="my-6 sm:my-8 z-10">
         <img
-          src="/home hub logo.jpg"
+          src="/logo correct.png"
           alt="HomeHub Logo"
           className="h-16 sm:h-20 object-contain"
         />

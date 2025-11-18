@@ -1,5 +1,6 @@
 const express = require("express");
 const TeamMember = require("../models/TeamMember");
+const { authMiddleware } = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/isAdmin");
 
 const router = express.Router();
@@ -16,7 +17,7 @@ router.get("/", async (req, res) => {
 });
 
 // Get all team members including inactive (admin only)
-router.get("/all", isAdmin, async (req, res) => {
+router.get("/all", authMiddleware, isAdmin, async (req, res) => {
   try {
     const teamMembers = await TeamMember.find().sort({ order: 1 });
     res.json(teamMembers);
@@ -41,7 +42,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Create new team member (admin only)
-router.post("/", isAdmin, async (req, res) => {
+router.post("/", authMiddleware, isAdmin, async (req, res) => {
   try {
     const { name, role, photo, bio, order, isActive } = req.body;
 
@@ -68,7 +69,7 @@ router.post("/", isAdmin, async (req, res) => {
 });
 
 // Update team member (admin only)
-router.put("/:id", isAdmin, async (req, res) => {
+router.put("/:id", authMiddleware, isAdmin, async (req, res) => {
   try {
     const { name, role, photo, bio, order, isActive } = req.body;
 
@@ -94,7 +95,7 @@ router.put("/:id", isAdmin, async (req, res) => {
 });
 
 // Delete team member (admin only)
-router.delete("/:id", isAdmin, async (req, res) => {
+router.delete("/:id", authMiddleware, isAdmin, async (req, res) => {
   try {
     const teamMember = await TeamMember.findById(req.params.id);
     if (!teamMember) {
@@ -110,7 +111,7 @@ router.delete("/:id", isAdmin, async (req, res) => {
 });
 
 // Toggle active status (admin only)
-router.patch("/:id/toggle", isAdmin, async (req, res) => {
+router.patch("/:id/toggle", authMiddleware, isAdmin, async (req, res) => {
   try {
     const teamMember = await TeamMember.findById(req.params.id);
     if (!teamMember) {

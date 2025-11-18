@@ -121,7 +121,7 @@ const ServiceList: React.FC = () => {
                   Category
                 </th>
                 <th className="border border-gray-300 px-4 py-2 text-left">
-                  Price ($)
+                  Price (ETB)
                 </th>
                 <th className="border border-gray-300 px-4 py-2 text-left">
                   Status
@@ -147,7 +147,7 @@ const ServiceList: React.FC = () => {
                     {service.category?.name || "N/A"}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {service.price.toFixed(2)}
+                    {service.price.toFixed(2)} ETB
                   </td>
                   <td
                     className={`border border-gray-300 px-4 py-2 font-semibold ${

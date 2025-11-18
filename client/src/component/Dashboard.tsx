@@ -5,7 +5,7 @@ import axios from "../api/axios";
 type User = {
   name: string;
   email: string;
-  role: "seeker" | "provider" | "admin";
+  role: "seeker" | "provider" | "admin" | "superadmin" | "support" | "marketing";
   createdAt: string;
 };
 
@@ -29,6 +29,9 @@ const Dashboard = () => {
         if (role === "seeker") navigate("/seeker-dashboard");
         else if (role === "provider") navigate("/provider-dashboard");
         else if (role === "admin") navigate("/admin-dashboard");
+        else if (role === "superadmin") navigate("/superadmin-dashboard");
+        else if (role === "support") navigate("/support-dashboard");
+        else if (role === "marketing") navigate("/marketing-dashboard");
         else navigate("/login");
       } catch {
         navigate("/login");

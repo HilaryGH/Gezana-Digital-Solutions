@@ -19,6 +19,8 @@ export interface Service {
   providerId: string;
   providerName: string;
   providerRating: number;
+  serviceRating?: number | null; // Service-specific rating from reviews
+  ratingCount?: number; // Number of ratings/reviews
   isAvailable: boolean;
   location: string;
   createdAt: string;
@@ -383,6 +385,60 @@ export const searchServices = async (query: string, filters?: Omit<ServiceSearch
     };
   } catch (error) {
     console.error('Error searching services:', error);
+    throw error;
+  }
+};
+
+// Get recently added services
+export const getRecentServices = async (limit: number = 10): Promise<Service[]> => {
+  try {
+    const response = await axios.get('/services/recent', {
+      params: { limit }
+    });
+    return response.data as Service[];
+  } catch (error) {
+    console.error('Error fetching recent services:', error);
+    throw error;
+  }
+};
+
+// Get most booked services
+export const getMostBookedServices = async (limit: number = 10): Promise<Service[]> => {
+  try {
+    const response = await axios.get('/services/most-booked', {
+      params: { limit }
+    });
+    return response.data as Service[];
+  } catch (error) {
+    console.error('Error fetching most booked services:', error);
+    throw error;
+  }
+};
+
+// Get top rated providers
+export interface TopProvider {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  whatsapp?: string;
+  photo?: string | null;
+  serviceType?: string;
+  city?: string;
+  location?: string;
+  rating: number;
+  reviewCount: number;
+  serviceCount: number;
+}
+
+export const getTopProviders = async (limit: number = 10): Promise<TopProvider[]> => {
+  try {
+    const response = await axios.get('/services/top-providers', {
+      params: { limit }
+    });
+    return response.data as TopProvider[];
+  } catch (error) {
+    console.error('Error fetching top providers:', error);
     throw error;
   }
 };

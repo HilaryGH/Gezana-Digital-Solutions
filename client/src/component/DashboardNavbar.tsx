@@ -2,11 +2,13 @@ import { NavLink } from "react-router-dom";
 
 const DashboardNavbar = () => {
   return (
-    <nav className="bg-orange-600 text-white p-4 flex space-x-6 shadow-md">
+    <nav className="bg-white text-brand-primary p-4 flex space-x-6 shadow-md border-b border-gray-100">
       <NavLink
         to="/seeker-dashboard"
         className={({ isActive }) =>
-          isActive ? "underline font-bold" : "hover:underline"
+          isActive
+            ? "underline font-bold text-brand-accent"
+            : "hover:underline hover:text-brand-secondary transition-colors"
         }
       >
         Seeker Dashboard
@@ -15,7 +17,9 @@ const DashboardNavbar = () => {
       <NavLink
         to="/provider-dashboard"
         className={({ isActive }) =>
-          isActive ? "underline font-bold" : "hover:underline"
+          isActive
+            ? "underline font-bold text-brand-accent"
+            : "hover:underline hover:text-brand-secondary transition-colors"
         }
       >
         Provider Dashboard
@@ -24,7 +28,9 @@ const DashboardNavbar = () => {
       <NavLink
         to="/admin-dashboard"
         className={({ isActive }) =>
-          isActive ? "underline font-bold" : "hover:underline"
+          isActive
+            ? "underline font-bold text-brand-accent"
+            : "hover:underline hover:text-brand-secondary transition-colors"
         }
       >
         Admin Dashboard
@@ -33,7 +39,9 @@ const DashboardNavbar = () => {
       <NavLink
         to="/my-bookings"
         className={({ isActive }) =>
-          isActive ? "underline font-bold" : "hover:underline"
+          isActive
+            ? "underline font-bold text-brand-accent"
+            : "hover:underline hover:text-brand-secondary transition-colors"
         }
       >
         My Bookings

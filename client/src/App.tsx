@@ -20,6 +20,9 @@ import SeekerDashboard from "./component/seeker/SeekerDashboard";
 import ProviderDashboard from "./component/Provider/ProviderDashboard";
 import AdminDashboard from "./component/Admin/AdminDashboard";
 import AdminRoute from "./component/AdminRoute";
+import CustomerSupportDashboard from "./component/Support/CustomerSupportDashboard";
+import MarketingDashboard from "./component/Marketing/MarketingDashboard";
+import SuperadminDashboard from "./component/Superadmin/SuperadminDashboard";
 import MyProfile from "./component/MyProfile";
 import LoyaltyPoints from "./component/LoyaltyPoints";
 import AddService from "./component/Provider/AddService";
@@ -35,6 +38,7 @@ import ServiceList from "./component/Provider/ServiceList";
 import AdminProvidersList from "./component/Admin/AdminProvidersList";
 import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
 import AdminTestimonials from "./component/Admin/AdminTestimonials";
+import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
@@ -54,12 +58,16 @@ function AppContent() {
     "/seeker-dashboard",
     "/provider-dashboard",
     "/admin-dashboard",
+    "/support-dashboard",
+    "/marketing-dashboard",
+    "/superadmin-dashboard",
     "/provider/add-service",
     "/admin/user",
     "/admin/bookings",
     "/admin/services",
     "/admin/team-members",
     "/admin/testimonials",
+    "/admin/promotional-banners",
     "/provider/bookings",
     "/provider/service-lists",
   ];
@@ -123,6 +131,16 @@ function AppContent() {
         <Route path="/admin/providers-list" element={<AdminProvidersList />} />
         <Route path="/admin/team-members" element={<AdminTeamMembers />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
+        <Route path="/admin/promotional-banners" element={<AdminPromotionalBanners />} />
+
+        {/* Support Routes */}
+        <Route path="/support-dashboard" element={<CustomerSupportDashboard />} />
+
+        {/* Marketing Routes */}
+        <Route path="/marketing-dashboard" element={<MarketingDashboard />} />
+
+        {/* Superadmin Routes */}
+        <Route path="/superadmin-dashboard" element={<SuperadminDashboard />} />
 
         {/* Fallback */}
         <Route path="*" element={<Home />} />

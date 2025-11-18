@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { getServiceById, type Service } from '../api/services';
 import BookingModal from './BookingModal';
+import Reviews from './Reviews';
 
 const ServiceDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -194,9 +195,25 @@ const ServiceDetails = () => {
                     </span>
                   )}
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                  {service.title}
-                </h1>
+                <div className="flex items-start justify-between mb-2">
+                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+                    {service.title}
+                  </h1>
+                  {/* Service Rating from Reviews */}
+                  {service.serviceRating !== null && service.serviceRating !== undefined ? (
+                    <div className="flex items-center space-x-1 ml-4">
+                      <Star size={24} className={`${getRatingColor(service.serviceRating)} fill-current`} />
+                      <span className={`text-2xl font-bold ${getRatingColor(service.serviceRating)}`}>
+                        {service.serviceRating.toFixed(1)}
+                      </span>
+                      {service.ratingCount !== undefined && service.ratingCount > 0 && (
+                        <span className="text-sm text-gray-500 ml-1">
+                          ({service.ratingCount} {service.ratingCount === 1 ? 'rating' : 'ratings'})
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
                 
                 {/* Location and Availability */}
                 <div className="flex items-center space-x-4 text-gray-600">
@@ -244,6 +261,9 @@ const ServiceDetails = () => {
                 </div>
               </div>
             </div>
+
+            {/* Reviews Section */}
+            <Reviews serviceId={id || ''} />
           </div>
 
           {/* Sidebar - Right Side */}

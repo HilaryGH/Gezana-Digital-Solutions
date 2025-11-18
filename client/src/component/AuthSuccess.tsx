@@ -27,6 +27,9 @@ const AuthSuccess: React.FC = () => {
           if (payload.role === "seeker") navigate("/seeker-dashboard");
           else if (payload.role === "provider") navigate("/provider-dashboard");
           else if (payload.role === "admin") navigate("/admin-dashboard");
+          else if (payload.role === "superadmin") navigate("/superadmin-dashboard");
+          else if (payload.role === "support") navigate("/support-dashboard");
+          else if (payload.role === "marketing") navigate("/marketing-dashboard");
           else navigate("/");
         }, 2000);
       } catch (error) {

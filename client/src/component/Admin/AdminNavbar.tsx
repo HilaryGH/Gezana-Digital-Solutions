@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, X, Shield, ChevronRight } from "lucide-react";
-import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft } from "react-icons/fa";
+import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft, FaBullhorn } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { HiSparkles } from "react-icons/hi";
 
@@ -53,6 +53,12 @@ const AdminNavbar = () => {
       icon: FaQuoteLeft,
       description: "Manage Reviews"
     },
+    { 
+      to: "/admin/promotional-banners", 
+      label: "Promotional Banners", 
+      icon: FaBullhorn,
+      description: "Manage Banners"
+    },
   ];
 
   useEffect(() => {
@@ -70,26 +76,26 @@ const AdminNavbar = () => {
   return (
     <>
       {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 backdrop-blur-md shadow-2xl px-4 py-4 md:pl-72 transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-md shadow-md border-b border-gray-100 px-4 py-4 md:pl-72 transition-all duration-300">
         {/* Logo and Title */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <img
-                src="/home hub logo.jpg"
+                src="/logo correct.png"
                 alt="HomeHub Logo"
                 className="h-10 w-auto object-contain"
               />
               <div className="absolute -top-1 -right-1">
-                <HiSparkles className="w-3 h-3 text-orange-400 animate-pulse" />
+                <HiSparkles className="w-3 h-3 text-brand-gold animate-pulse" />
               </div>
             </div>
             <div className="hidden sm:block">
               <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 text-orange-400" />
-                <h1 className="text-xl font-bold text-white">Admin Panel</h1>
+                <Shield className="w-5 h-5 text-brand-highlight" />
+                <h1 className="text-xl font-bold text-brand-primary">Admin Panel</h1>
               </div>
-              <p className="text-xs text-orange-300 font-medium">HomeHub Digital Solution</p>
+              <p className="text-xs text-brand-secondary font-medium">Home Services, Redefined & Delivered</p>
             </div>
           </div>
 
@@ -98,10 +104,10 @@ const AdminNavbar = () => {
             {/* Admin Info - Desktop */}
             <div className="hidden lg:flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-white">{adminName}</p>
-                <p className="text-xs text-orange-300">{currentTime.toLocaleTimeString()}</p>
+                <p className="text-sm font-medium text-brand-primary">{adminName}</p>
+                <p className="text-xs text-brand-secondary">{currentTime.toLocaleTimeString()}</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-r from-brand-accent to-brand-gold rounded-full flex items-center justify-center text-black font-bold text-sm shadow-lg">
                 {adminName.substring(0, 2).toUpperCase()}
               </div>
             </div>
@@ -109,7 +115,7 @@ const AdminNavbar = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+              className="md:hidden p-2 text-brand-primary hover:bg-brand-highlight/10 rounded-lg transition-all duration-200"
               aria-label="Toggle menu"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
@@ -134,14 +140,14 @@ const AdminNavbar = () => {
         } md:translate-x-0`}
       >
         {/* Admin Profile - Mobile */}
-        <div className="md:hidden mb-6 p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl text-white">
+        <div className="md:hidden mb-6 p-4 bg-gradient-to-r from-brand-accent to-brand-gold rounded-xl text-black">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="w-12 h-12 bg-black/10 rounded-full flex items-center justify-center text-black font-bold">
               {adminName.substring(0, 2).toUpperCase()}
             </div>
             <div>
               <p className="font-semibold">{adminName}</p>
-              <p className="text-orange-100 text-sm">Administrator</p>
+              <p className="text-black/70 text-sm">Administrator</p>
             </div>
           </div>
         </div>
@@ -162,17 +168,17 @@ const AdminNavbar = () => {
                 className={({ isActive }) =>
                   `group relative flex items-center space-x-3 py-3 px-4 rounded-xl text-sm transition-all duration-200 ${
                     isActive
-                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-[1.02]"
-                      : "text-gray-700 hover:bg-orange-50 hover:text-orange-600 hover:transform hover:scale-[1.01]"
+                      ? "bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg transform scale-[1.02]"
+                      : "text-gray-700 hover:bg-brand-highlight/10 hover:text-brand-primary hover:transform hover:scale-[1.01]"
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <IconComponent className={`w-5 h-5 ${isActive ? 'text-white' : 'text-orange-500'} group-hover:scale-110 transition-transform`} />
+                    <IconComponent className={`w-5 h-5 ${isActive ? 'text-white' : 'text-brand-primary'} group-hover:scale-110 transition-transform`} />
                     <div className="flex-1">
                       <p className="font-medium">{link.label}</p>
-                      <p className={`text-xs ${isActive ? 'text-orange-100' : 'text-gray-500'}`}>{link.description}</p>
+                      <p className={`text-xs ${isActive ? 'text-brand-highlight' : 'text-gray-500'}`}>{link.description}</p>
                     </div>
                     <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'} opacity-0 group-hover:opacity-100 transition-all`} />
                     
@@ -188,11 +194,11 @@ const AdminNavbar = () => {
 
         {/* Admin Status */}
         <div className="mt-auto pt-6 border-t border-gray-200">
-          <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-xl">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="flex items-center space-x-3 p-3 bg-brand-highlight/10 rounded-xl">
+            <div className="w-3 h-3 bg-brand-highlight rounded-full animate-pulse"></div>
             <div>
-              <p className="text-sm font-medium text-green-800">System Status</p>
-              <p className="text-xs text-green-600">All services operational</p>
+              <p className="text-sm font-medium text-brand-primary">System Status</p>
+              <p className="text-xs text-brand-secondary">All services operational</p>
             </div>
           </div>
         </div>

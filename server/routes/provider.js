@@ -10,9 +10,17 @@ const router = express.Router();
 router.post("/upload-credentials", authMiddleware, upload.array("files", 5), async (req, res) => {
   try {
     const provider = await User.findById(req.user.userId);
-    const filenames = req.files.map((file) => `/uploads/credentials/${file.filename}`);
+    if (!provider) {
+      return res.status(404).json({ message: "Provider not found" });
+    }
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
+    }
 
-    provider.credentials.push(...filenames);
+    const filenames = req.files.map((file) => file.filename);
+    const existingCredentials = provider.credentials || [];
+
+    provider.credentials = [...existingCredentials, ...filenames];
     await provider.save();
 
     res.status(200).json({ message: "Credentials uploaded", credentials: provider.credentials });

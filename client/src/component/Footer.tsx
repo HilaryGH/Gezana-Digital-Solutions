@@ -102,11 +102,11 @@ const Footer = () => {
             >
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                  <img src="/home hub logo.jpg" alt="HomeHub Logo" className="w-8 h-8 object-contain" />
+                  <img src="/logo correct.png" alt="HomeHub Logo" className="w-8 h-8 object-contain" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">HomeHub</h2>
-                  <p className="text-xs text-blue-400 font-medium">Digital Solution</p>
+                  <p className="text-xs text-blue-400 font-medium">Home Services, Redefined & Delivered</p>
                 </div>
               </div>
               {expandedSection === "company" ? (
@@ -119,11 +119,11 @@ const Footer = () => {
             {/* Desktop Header (always visible) */}
             <div className="hidden md:flex items-center space-x-3 mb-4">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                <img src="/home hub logo.jpg" alt="HomeHub Logo" className="w-10 h-10 object-contain" />
+                <img src="/logo correct.png" alt="HomeHub Logo" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">HomeHub</h2>
-                <p className="text-sm text-blue-400 font-medium">Digital Solution</p>
+                <p className="text-sm text-blue-400 font-medium">Home Services, Redefined & Delivered</p>
               </div>
             </div>
 
@@ -306,7 +306,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              © {currentYear} <span className="text-white font-semibold">HomeHub Digital Solution</span>. All rights reserved.
+              © {currentYear} <span className="text-white font-semibold">HomeHub</span> — Home Services, Redefined & Delivered. All rights reserved.
             </div>
             <div className="flex items-center space-x-4 text-sm">
               <a href="/privacy" className="text-gray-400 hover:text-blue-400 transition-colors font-medium">

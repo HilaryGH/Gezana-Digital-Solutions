@@ -55,6 +55,17 @@ const isSeeker = (req, res, next) => {
   next();
 };
 
+// Check if user is Marketing or higher (Marketing, Support, Admin, Super Admin)
+const isMarketing = (req, res, next) => {
+  if (!["marketing", "support", "admin", "superadmin"].includes(req.user.role)) {
+    return res.status(403).json({ 
+      success: false,
+      message: "Access denied. Marketing privileges required." 
+    });
+  }
+  next();
+};
+
 // Check if user has any of the specified roles
 const hasRole = (...roles) => {
   return (req, res, next) => {
@@ -72,6 +83,7 @@ module.exports = {
   isSuperAdmin,
   isAdmin,
   isSupport,
+  isMarketing,
   isProvider,
   isSeeker,
   hasRole

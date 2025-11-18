@@ -30,14 +30,14 @@ const checkExpiredSubscriptions = async () => {
       try {
         await sendEmail({
           to: subscription.user.email,
-          subject: "Subscription Expired - Gezana",
+          subject: "Subscription Expired - HomeHub",
           html: `
-            <h2>Your Subscription Has Expired</h2>
-            <p>Hi ${subscription.user.name},</p>
-            <p>Your ${subscription.plan.displayName} subscription has expired.</p>
-            <p>To continue enjoying our services, please renew your subscription.</p>
-            <p><a href="${process.env.FRONTEND_URL}/subscriptions" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Renew Now</a></p>
-            <p>Thank you for using Gezana!</p>
+            <h2 style="color: #2e3dd3;">Your Subscription Has Expired</h2>
+            <p style="color: #4b5563;">Hi ${subscription.user.name},</p>
+            <p style="color: #4b5563;">Your ${subscription.plan.displayName} subscription has expired.</p>
+            <p style="color: #4b5563;">To continue enjoying our services, please renew your subscription.</p>
+            <p><a href="${process.env.FRONTEND_URL}/subscriptions" style="background: linear-gradient(135deg, #f7931e 0%, #ffc60b 100%); color: #000000; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Renew Now</a></p>
+            <p style="color: #4b5563;">Thank you for using HomeHub!</p>
           `,
         });
       } catch (emailError) {
@@ -83,14 +83,14 @@ const sendExpirationReminders = async (daysBefore = 3) => {
 
         await sendEmail({
           to: subscription.user.email,
-          subject: `Subscription Expiring Soon - ${daysLeft} Days Left`,
+          subject: `HomeHub Subscription Expiring Soon - ${daysLeft} Days Left`,
           html: `
-            <h2>Your Subscription is Expiring Soon</h2>
-            <p>Hi ${subscription.user.name},</p>
-            <p>Your ${subscription.plan.displayName} subscription will expire in ${daysLeft} days on ${subscription.endDate.toLocaleDateString()}.</p>
-            <p>To avoid any interruption to your services, please renew your subscription.</p>
-            <p><a href="${process.env.FRONTEND_URL}/subscriptions" style="background-color: #f97316; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Renew Now</a></p>
-            <p>Thank you for being a valued member!</p>
+            <h2 style="color: #2e3dd3;">Your Subscription is Expiring Soon</h2>
+            <p style="color: #4b5563;">Hi ${subscription.user.name},</p>
+            <p style="color: #4b5563;">Your ${subscription.plan.displayName} subscription will expire in ${daysLeft} days on ${subscription.endDate.toLocaleDateString()}.</p>
+            <p style="color: #4b5563;">To avoid any interruption to your services, please renew your subscription.</p>
+            <p><a href="${process.env.FRONTEND_URL}/subscriptions" style="background: linear-gradient(135deg, #2e3dd3 0%, #00aeef 100%); color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">Renew Now</a></p>
+            <p style="color: #4b5563;">Thank you for being a valued member of HomeHub!</p>
           `,
         });
 

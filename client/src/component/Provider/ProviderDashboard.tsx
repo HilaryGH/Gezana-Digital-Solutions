@@ -374,9 +374,14 @@ const ProviderDashboard: React.FC = () => {
                           {/* Price and Status */}
                           <div className="flex items-center gap-4 mt-3">
                             <span className="text-xl font-bold text-orange-600">
-                              ${service.price}
+                              {service.price} ETB
                               {service.priceType && service.priceType !== 'fixed' && (
-                                <span className="text-sm font-normal text-gray-500">/{service.priceType}</span>
+                                <span className="text-sm font-normal text-gray-500">
+                                  {service.priceType === 'hourly' ? '/hour' : 
+                                   service.priceType === 'per_sqft' ? '/sq ft' : 
+                                   service.priceType === 'custom' ? ' (starting)' : 
+                                   `/${service.priceType}`}
+                                </span>
                               )}
                             </span>
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -457,7 +462,7 @@ const ProviderDashboard: React.FC = () => {
                           <p className="text-xs text-gray-500 mb-1">Details</p>
                           {booking.note && <p className="text-sm text-gray-700 italic line-clamp-2">"{booking.note}"</p>}
                           {booking.service?.price && (
-                            <p className="text-lg font-bold text-orange-600 mt-1">${booking.service.price}</p>
+                            <p className="text-lg font-bold text-orange-600 mt-1">{booking.service.price} ETB</p>
                           )}
                         </div>
                         

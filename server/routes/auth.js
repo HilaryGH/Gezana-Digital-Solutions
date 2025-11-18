@@ -6,6 +6,7 @@ const User = require("../models/User");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 const { sendWelcomeNotifications } = require("../utils/notificationService");
+const JWT_SECRET = require("../config/jwt");
 
 const router = express.Router();
 
@@ -222,7 +223,7 @@ router.post("/login", async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid email or password" });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -314,7 +315,7 @@ router.get("/google/callback",
       // Generate JWT token
       const token = jwt.sign(
         { id: user._id, role: user.role },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: "7d" }
       );
 
@@ -343,7 +344,7 @@ router.get("/facebook/callback",
       // Generate JWT token
       const token = jwt.sign(
         { id: user._id, role: user.role },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: "7d" }
       );
 

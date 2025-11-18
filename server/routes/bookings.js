@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const Booking = require("../models/Booking");
 const Service = require("../models/Service");
@@ -6,13 +7,14 @@ const Category = require("../models/Category");
 const ServiceType = require("../models/ServiceType");
 const User = require("../models/User");
 const { sendBookingConfirmationNotifications } = require("../utils/notificationService");
+const JWT_SECRET = require("../config/jwt");
 
 
 const router = express.Router();
 
 // Admin: Get ALL bookings with populated user info
 router.get("/all", authMiddleware, async (req, res) => {
-  if (!["admin", "superadmin", "support"].includes(req.user.role)) {
+  if (!["admin", "superadmin", "support", "marketing"].includes(req.user.role)) {
     return res.status(403).json({ message: "Permission denied" });
   }
 
@@ -104,8 +106,7 @@ router.post("/", async (req, res) => {
     // If token is provided, verify it and get user ID
     if (token) {
       try {
-        const jwt = require('jsonwebtoken');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET);
         userId = decoded.id || decoded._id;
       } catch (err) {
         console.log("Invalid token, proceeding as guest");

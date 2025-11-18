@@ -79,25 +79,25 @@ const ProviderNavbar = () => {
   return (
     <>
       {/* Top navbar */}
-      <nav className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white p-4 flex justify-between items-center shadow-2xl fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
+      <nav className="bg-white text-brand-primary p-4 flex justify-between items-center shadow-md border-b border-gray-100 fixed top-0 left-0 right-0 z-40 backdrop-blur-md">
         <div className="flex items-center space-x-4">
           {/* Logo */}
           <div className="relative">
           <img
-            src="/home hub logo.jpg"
+            src="/logo correct.png"
               alt="HomeHub Logo"
               className="w-auto h-10 object-contain"
             />
-            <div className="absolute -top-1 -right-1">
-              <HiSparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
+              <div className="absolute -top-1 -right-1">
+                <HiSparkles className="w-3 h-3 text-brand-accent animate-pulse" />
             </div>
           </div>
           <div className="hidden sm:block">
             <div className="flex items-center space-x-2">
-              <FaTools className="w-5 h-5 text-yellow-400" />
-              <h1 className="text-xl font-bold">HomeHub Providers</h1>
+              <FaTools className="w-5 h-5 text-brand-accent" />
+              <h1 className="text-xl font-bold text-brand-primary">HomeHub Providers</h1>
             </div>
-            <p className="text-xs text-blue-200 font-medium">Your Service Hub</p>
+            <p className="text-xs text-brand-secondary font-medium">Your Service Hub</p>
           </div>
         </div>
 
@@ -105,7 +105,7 @@ const ProviderNavbar = () => {
           {/* Notifications */}
           <div className="hidden md:flex items-center space-x-4">
             <div className="relative">
-              <Bell className="w-6 h-6 text-white hover:text-yellow-400 cursor-pointer transition-colors" />
+              <Bell className="w-6 h-6 text-brand-primary hover:text-brand-accent cursor-pointer transition-colors" />
               {notifications > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
                   {notifications}
@@ -114,20 +114,20 @@ const ProviderNavbar = () => {
             </div>
             
             {/* Provider Info */}
-            <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+            <div className="flex items-center space-x-3 bg-brand-highlight/10 rounded-full px-4 py-2">
               <div className="text-right">
-                <p className="text-sm font-medium">{userName}</p>
-                <p className="text-xs text-blue-200">{currentTime.toLocaleTimeString()}</p>
+                <p className="text-sm font-medium text-brand-primary">{userName}</p>
+                <p className="text-xs text-brand-secondary">{currentTime.toLocaleTimeString()}</p>
               </div>
               <div className="relative">
-            <Avatar name={initials} />
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                <Avatar name={initials} />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-brand-highlight rounded-full border-2 border-white"></div>
               </div>
             </div>
           </div>
 
           <button
-            className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
+            className="md:hidden p-2 text-brand-primary hover:bg-brand-highlight/10 rounded-lg transition-all duration-200"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
@@ -139,13 +139,13 @@ const ProviderNavbar = () => {
       {/* Sidebar for desktop */}
       <aside className="hidden md:flex flex-col w-64 h-screen bg-gradient-to-b from-white to-gray-50 text-gray-800 fixed top-16 left-0 pt-6 shadow-2xl border-r border-gray-200 z-30">
         {/* Provider Stats */}
-        <div className="mx-4 mb-6 p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white">
+        <div className="mx-4 mb-6 p-4 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-xl text-white">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-semibold text-sm">Provider Status</h3>
-            <HiBadgeCheck className="w-5 h-5 text-yellow-400" />
+            <HiBadgeCheck className="w-5 h-5 text-brand-gold" />
           </div>
           <div className="flex items-center space-x-2">
-            <FaCrown className="w-4 h-4 text-yellow-400" />
+            <FaCrown className="w-4 h-4 text-brand-gold" />
             <span className="text-sm">Verified Provider</span>
           </div>
         </div>
@@ -158,11 +158,11 @@ const ProviderNavbar = () => {
           {navLinks.map((link) => {
             const IconComponent = link.icon;
             const colorMap: Record<string, string> = {
-              blue: 'text-blue-500',
-              green: 'text-green-500',
-              orange: 'text-orange-500',
-              purple: 'text-purple-500',
-              indigo: 'text-indigo-500'
+              blue: 'text-brand-primary',
+              green: 'text-brand-secondary',
+              orange: 'text-brand-accent',
+              purple: 'text-brand-highlight',
+              indigo: 'text-brand-primary'
             };
             
             return (
@@ -172,8 +172,8 @@ const ProviderNavbar = () => {
               className={({ isActive }) =>
                   `group relative flex items-center space-x-3 py-3 px-4 rounded-xl text-sm transition-all duration-200 ${
                     isActive
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transform scale-[1.02]"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:transform hover:scale-[1.01]"
+                      ? "bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg transform scale-[1.02]"
+                      : "text-gray-700 hover:bg-brand-highlight/10 hover:text-brand-primary hover:transform hover:scale-[1.01]"
                   }`
                 }
               >
@@ -182,7 +182,7 @@ const ProviderNavbar = () => {
                     <IconComponent className={`w-5 h-5 ${isActive ? 'text-white' : colorMap[link.color]} group-hover:scale-110 transition-transform`} />
                     <div className="flex-1">
                       <p className="font-medium">{link.label}</p>
-                      <p className={`text-xs ${isActive ? 'text-blue-100' : 'text-gray-500'}`}>{link.description}</p>
+                      <p className={`text-xs ${isActive ? 'text-brand-highlight' : 'text-gray-500'}`}>{link.description}</p>
                     </div>
                     <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'} opacity-0 group-hover:opacity-100 transition-all`} />
                     
@@ -197,21 +197,21 @@ const ProviderNavbar = () => {
         </nav>
 
         {/* Performance Stats */}
-        <div className="mx-4 mb-4 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+        <div className="mx-4 mb-4 p-4 bg-gradient-to-r from-brand-highlight/10 to-brand-secondary/10 rounded-xl border border-brand-highlight/30">
           <div className="flex items-center space-x-2 mb-2">
-            <FaChartLine className="w-4 h-4 text-green-600" />
-            <h4 className="font-semibold text-green-800 text-sm">This Month</h4>
+            <FaChartLine className="w-4 h-4 text-brand-primary" />
+            <h4 className="font-semibold text-brand-primary text-sm">This Month</h4>
           </div>
           <div className="space-y-1">
             <div className="flex justify-between text-xs">
-              <span className="text-green-600">Bookings</span>
-              <span className="text-green-800 font-semibold">24</span>
+              <span className="text-brand-secondary">Bookings</span>
+              <span className="text-brand-primary font-semibold">24</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-green-600">Rating</span>
+              <span className="text-brand-secondary">Rating</span>
               <div className="flex items-center space-x-1">
-                <FaStar className="w-3 h-3 text-yellow-500" />
-                <span className="text-green-800 font-semibold">4.8</span>
+                <FaStar className="w-3 h-3 text-brand-gold" />
+                <span className="text-brand-primary font-semibold">4.8</span>
               </div>
             </div>
           </div>
@@ -238,15 +238,15 @@ const ProviderNavbar = () => {
           />
           <div className="fixed top-16 left-0 z-50 w-80 max-w-[85vw] h-full bg-white shadow-2xl overflow-auto">
             {/* Mobile Header */}
-            <div className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <div className="p-6 bg-gradient-to-r from-brand-primary to-brand-secondary text-white">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="relative">
-              <Avatar name={initials} />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                  <Avatar name={initials} />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-brand-highlight rounded-full border-2 border-white"></div>
                 </div>
                 <div>
                   <h2 className="font-semibold text-lg">{userName}</h2>
-                  <p className="text-blue-100 text-sm flex items-center space-x-1">
+                  <p className="text-brand-highlight text-sm flex items-center space-x-1">
                     <HiBadgeCheck className="w-4 h-4" />
                     <span>Verified Provider</span>
                   </p>
@@ -265,18 +265,18 @@ const ProviderNavbar = () => {
               {navLinks.map((link) => {
                 const IconComponent = link.icon;
                 const colorMap: Record<string, string> = {
-                  blue: 'text-blue-500',
-                  green: 'text-green-500',
-                  orange: 'text-orange-500',
-                  purple: 'text-purple-500',
-                  indigo: 'text-indigo-500'
+                  blue: 'text-brand-primary',
+                  green: 'text-brand-secondary',
+                  orange: 'text-brand-accent',
+                  purple: 'text-brand-highlight',
+                  indigo: 'text-brand-primary'
                 };
                 
                 return (
               <NavLink
                 key={link.to}
                 to={link.to}
-                    className="flex items-center space-x-3 p-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+                    className="flex items-center space-x-3 p-4 text-gray-700 hover:text-brand-primary hover:bg-brand-highlight/10 rounded-xl transition-all duration-200 group"
                 onClick={() => setIsOpen(false)}
               >
                     <IconComponent className={`w-5 h-5 ${colorMap[link.color]} group-hover:scale-110 transition-transform`} />
@@ -289,19 +289,19 @@ const ProviderNavbar = () => {
               })}
 
               {/* Mobile Stats */}
-              <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
-                <h4 className="font-semibold text-green-800 text-sm mb-3">Quick Stats</h4>
+              <div className="mt-8 p-4 bg-gradient-to-r from-brand-highlight/10 to-brand-secondary/10 rounded-xl border border-brand-highlight/30">
+                <h4 className="font-semibold text-brand-primary text-sm mb-3">Quick Stats</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-xl font-bold text-green-800">24</p>
-                    <p className="text-xs text-green-600">Bookings</p>
+                    <p className="text-xl font-bold text-brand-primary">24</p>
+                    <p className="text-xs text-brand-secondary">Bookings</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center space-x-1">
-                      <FaStar className="w-4 h-4 text-yellow-500" />
-                      <p className="text-xl font-bold text-green-800">4.8</p>
+                      <FaStar className="w-4 h-4 text-brand-gold" />
+                      <p className="text-xl font-bold text-brand-primary">4.8</p>
                     </div>
-                    <p className="text-xs text-green-600">Rating</p>
+                    <p className="text-xs text-brand-secondary">Rating</p>
                   </div>
                 </div>
               </div>

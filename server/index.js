@@ -76,6 +76,11 @@ app.use("/api/team-members", teamMembersRoutes);
 const testimonialsRoutes = require("./routes/testimonials");
 app.use("/api/testimonials", testimonialsRoutes);
 
+const reviewsRoutes = require("./routes/reviews");
+app.use("/api/reviews", reviewsRoutes);
+
+const promotionalBannersRoutes = require("./routes/promotionalBanners");
+app.use("/api/promotional-banners", promotionalBannersRoutes);
 
 // Root route
 app.get("/", (req, res) => {

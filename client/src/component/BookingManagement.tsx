@@ -232,7 +232,7 @@ const BookingManagement: React.FC = () => {
                     </div>
 
                     <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Price: ${booking.service?.price || 0}</span>
+                      <span>Price: {booking.service?.price || 0} ETB</span>
                       <span>Created: {formatDate(booking.createdAt)}</span>
                     </div>
                   </div>

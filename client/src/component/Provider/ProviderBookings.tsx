@@ -242,7 +242,7 @@ const ProviderBookings = () => {
                             <div>
                               <p className="text-sm text-gray-500">Price</p>
                               <p className="font-semibold text-green-600">
-                                ${booking.service.price.toFixed(2)}
+                                {booking.service.price.toFixed(2)} ETB
                               </p>
                             </div>
                           </div>

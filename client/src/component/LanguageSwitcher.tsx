@@ -32,7 +32,7 @@ const LanguageSwitcher: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-1.5 px-2.5 py-1.5 text-white hover:text-orange-400 hover:bg-white/10 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 rounded-lg group"
+        className="flex items-center space-x-1.5 px-3 py-2 rounded-lg transition-all duration-300 text-gray-700 hover:text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-opacity-40 group"
         aria-label="Select language"
       >
         <Globe size={16} className="group-hover:scale-110 transition-transform" />

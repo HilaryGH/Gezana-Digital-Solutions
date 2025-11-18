@@ -120,17 +120,15 @@ const AdminServices = () => {
 
   const formatPrice = (price: number, priceType: string) => {
     const formattedPrice = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(price);
 
     switch (priceType) {
-      case 'hourly': return `${formattedPrice}/hour`;
-      case 'per_sqft': return `${formattedPrice}/sq ft`;
-      case 'custom': return formattedPrice;
-      default: return formattedPrice;
+      case 'hourly': return `${formattedPrice} ETB/hour`;
+      case 'per_sqft': return `${formattedPrice} ETB/sq ft`;
+      case 'custom': return `From ${formattedPrice} ETB`;
+      default: return `${formattedPrice} ETB`;
     }
   };
 

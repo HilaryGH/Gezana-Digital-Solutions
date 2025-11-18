@@ -259,8 +259,8 @@ const ServiceSearch: React.FC<ServiceSearchProps> = ({
 
       {/* Services Grid/List */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {[...Array(10)].map((_, index) => (
             <div key={index} className="bg-white rounded-2xl shadow-lg p-4 animate-pulse">
               <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
               <div className="space-y-3">
@@ -274,7 +274,7 @@ const ServiceSearch: React.FC<ServiceSearchProps> = ({
       ) : (services && services.length > 0) ? (
         <div className={
           viewMode === 'grid' 
-            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+            ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
             : 'space-y-4'
         }>
           {(services || []).map((service) => (
