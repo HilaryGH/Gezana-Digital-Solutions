@@ -155,7 +155,7 @@ const Home = () => {
         <div className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden">
           
           {/* Left Side - Home Structure */}
-          <div className="relative w-full lg:w-[58.33%] min-h-[65vh] md:min-h-[70vh] lg:h-screen bg-sky-50 flex items-center justify-center overflow-hidden py-8 md:py-10 lg:py-0">
+          <div className="relative w-full lg:w-[58.33%] min-h-[50vh] md:min-h-[60vh] lg:h-screen bg-sky-50 flex items-center justify-center overflow-hidden py-6 md:py-8 lg:py-0">
             
             {/* Decorative Background */}
             <div className="absolute inset-0">
@@ -219,7 +219,7 @@ const Home = () => {
           </div>
 
           {/* Right Side - Services Navigation */}
-          <div className="relative w-full lg:w-[41.67%] min-h-[75vh] md:min-h-[80vh] lg:h-screen bg-sky-50 flex items-center justify-center overflow-hidden py-12 md:py-16 lg:py-0">
+          <div className="relative w-full lg:w-[41.67%] min-h-[50vh] md:min-h-[60vh] lg:h-screen bg-sky-50 flex items-center justify-center overflow-hidden py-6 md:py-8 lg:py-0">
             
             {/* Animated Grid Background */}
             <div className="absolute inset-0 opacity-20">
