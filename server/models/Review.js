@@ -10,7 +10,12 @@ const reviewSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false, // Optional for guest reviews
+    },
+    // Guest information for non-logged-in users
+    guestInfo: {
+      name: { type: String },
+      email: { type: String }
     },
     rating: {
       type: Number,
@@ -35,13 +40,16 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Prevent duplicate reviews from same user for same service
-reviewSchema.index({ service: 1, user: 1 }, { unique: true });
+// Prevent duplicate reviews from same user for same service (only if user exists)
+// Note: Guest reviews are allowed multiple times, but we can add email-based deduplication if needed
 
 // Index for faster queries
 reviewSchema.index({ service: 1, isActive: 1, isApproved: 1 });
 
 module.exports = mongoose.model("Review", reviewSchema);
+
+
+
 
 
 

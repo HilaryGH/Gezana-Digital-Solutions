@@ -14,6 +14,9 @@ import AboutPage from "./component/Pages/AboutPage";
 import ServicesPage from "./component/Pages/ServicesPage";
 import ContactPage from "./component/Pages/ContactPage";
 import LoginPage from "./component/Pages/LoginPage";
+import SupportForm from "./component/Pages/SupportForm";
+import DiasporaCommunityForm from "./component/Pages/DiasporaCommunityForm";
+import CommunityPage from "./component/Pages/CommunityPage";
 import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
 import SeekerDashboard from "./component/seeker/SeekerDashboard";
@@ -50,9 +53,11 @@ function AppContent() {
   const location = useLocation();
 
   // Routes where Navbar should NOT be shown
-  const noNavbarRoutes = [
+const noNavbarRoutes = [
     "/signup",
     "/login",
+    "/support",
+    "/diaspora",
     "/auth/success",
     "/auth/error",
     "/seeker-dashboard",
@@ -93,6 +98,9 @@ function AppContent() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/support" element={<SupportForm />} />
+        <Route path="/diaspora" element={<DiasporaCommunityForm />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />

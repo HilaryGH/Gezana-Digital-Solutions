@@ -24,6 +24,30 @@ router.get("/service/:serviceId", async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .exec();
+    
+    // Format reviews to include guest info or user info
+    const formattedReviews = reviews.map(review => {
+      const reviewObj = review.toObject();
+      if (reviewObj.user) {
+        return {
+          ...reviewObj,
+          user: {
+            _id: reviewObj.user._id,
+            name: reviewObj.user.name,
+            email: reviewObj.user.email
+          }
+        };
+      } else {
+        return {
+          ...reviewObj,
+          user: {
+            _id: null,
+            name: reviewObj.guestInfo?.name || "Guest",
+            email: reviewObj.guestInfo?.email || ""
+          }
+        };
+      }
+    });
 
     const total = await Review.countDocuments({
       service: serviceId,
@@ -53,7 +77,7 @@ router.get("/service/:serviceId", async (req, res) => {
     };
 
     res.json({
-      reviews,
+      reviews: formattedReviews,
       total,
       page: parseInt(page),
       totalPages: Math.ceil(total / limit),
@@ -68,12 +92,27 @@ router.get("/service/:serviceId", async (req, res) => {
 });
 
 /**
- * POST /api/reviews - Create a new review
+ * POST /api/reviews - Create a new review (supports both logged-in users and guests)
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { serviceId, rating, comment } = req.body;
-    const userId = req.user.userId;
+    const { serviceId, rating, comment, guestInfo } = req.body;
+    
+    // Check for authentication token (optional)
+    const token = req.headers.authorization?.split(' ')[1];
+    let userId = null;
+    
+    if (token) {
+      try {
+        const jwt = require("jsonwebtoken");
+        const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.id || decoded.userId;
+      } catch (err) {
+        // Invalid token, proceed as guest
+        console.log("Invalid token, proceeding as guest review");
+      }
+    }
 
     // Validation
     if (!serviceId || !rating || !comment) {
@@ -88,43 +127,75 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
+    // If no user ID, validate guest information
+    if (!userId) {
+      if (!guestInfo || !guestInfo.name || !guestInfo.email) {
+        return res.status(400).json({
+          message: "Guest information (name and email) is required for guest reviews",
+        });
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestInfo.email)) {
+        return res.status(400).json({
+          message: "Please provide a valid email address",
+        });
+      }
+    }
+
     // Check if service exists
     const service = await Service.findById(serviceId);
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
 
-    // Check if user already reviewed this service
-    const existingReview = await Review.findOne({
-      service: serviceId,
-      user: userId,
-    });
-
-    if (existingReview) {
-      // Update existing review
-      existingReview.rating = rating;
-      existingReview.comment = comment;
-      existingReview.isApproved = true; // Re-approve on update
-      await existingReview.save();
-
-      return res.json({
-        message: "Review updated successfully",
-        review: existingReview,
+    // Check if user already reviewed this service (only for logged-in users)
+    if (userId) {
+      const existingReview = await Review.findOne({
+        service: serviceId,
+        user: userId,
       });
+
+      if (existingReview) {
+        // Update existing review
+        existingReview.rating = rating;
+        existingReview.comment = comment.trim();
+        existingReview.isApproved = true; // Re-approve on update
+        await existingReview.save();
+
+        await existingReview.populate("user", "name email");
+
+        return res.json({
+          message: "Review updated successfully",
+          review: existingReview,
+        });
+      }
     }
 
     // Create new review
-    const review = new Review({
+    const reviewData = {
       service: serviceId,
-      user: userId,
       rating,
       comment: comment.trim(),
-    });
+    };
 
+    if (userId) {
+      reviewData.user = userId;
+    } else {
+      reviewData.guestInfo = {
+        name: guestInfo.name.trim(),
+        email: guestInfo.email.trim().toLowerCase(),
+      };
+    }
+
+    const review = new Review(reviewData);
     await review.save();
 
-    // Populate user data
-    await review.populate("user", "name email");
+    // Populate user data if user exists
+    if (userId) {
+      await review.populate("user", "name email");
+    }
 
     res.status(201).json({
       message: "Review submitted successfully",
@@ -245,6 +316,9 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 module.exports = router;
+
+
+
 
 
 

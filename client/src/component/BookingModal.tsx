@@ -56,7 +56,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
-      // Try to get user info from token or make an API call
+      // Try to get user info from localStorage first
       try {
         const userData = localStorage.getItem('user');
         if (userData) {
@@ -69,9 +69,31 @@ const BookingModal: React.FC<BookingModalProps> = ({
             phone: user.phone || '',
             address: user.address || ''
           }));
+        } else {
+          // Fetch user info from API if not in localStorage
+          axios.get('/user/me', {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(response => {
+            const user = response.data;
+            setUserInfo(user);
+            localStorage.setItem('user', JSON.stringify(user));
+            setFormData(prev => ({
+              ...prev,
+              fullName: user.name || '',
+              email: user.email || '',
+              phone: user.phone || '',
+              address: user.address || ''
+            }));
+          }).catch(error => {
+            console.error('Error fetching user info:', error);
+            // If token is invalid, treat as guest
+            setIsLoggedIn(false);
+            localStorage.removeItem('token');
+          });
         }
       } catch (error) {
         console.error('Error parsing user data:', error);
+        setIsLoggedIn(false);
       }
     } else {
       setIsLoggedIn(false);

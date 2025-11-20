@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt, FaSignInAlt } from "react-icons/fa";
+import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
 import { MdConnectWithoutContact } from "react-icons/md";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
@@ -19,6 +19,7 @@ const SERVICE_PROMPTS = [
 
 const Navbar = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -31,7 +32,15 @@ const Navbar = () => {
   const [typedText, setTypedText] = useState("");
   const typingTimeoutRef = useRef<number | null>(null);
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+    // Prevent body scroll when menu is open
+    if (!menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  };
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
     if (!searchOpen) {
@@ -49,6 +58,21 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Cleanup: restore body scroll when component unmounts or menu closes
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Close menu on route change
+  useEffect(() => {
+    if (menuOpen) {
+      setMenuOpen(false);
+      document.body.style.overflow = '';
+    }
+  }, [location.pathname]);
 
   // Search functionality with debouncing
   useEffect(() => {
@@ -154,7 +178,7 @@ const Navbar = () => {
         scrolled 
           ? "bg-white/98 backdrop-blur-xl shadow-lg border-b border-gray-200" 
           : "bg-white shadow-md"
-      }`}>
+      } ${menuOpen ? 'lg:z-50' : ''}`}>
         {/* Top Announcement Bar */}
         <div className={`w-full transition-all duration-500 ${
           scrolled ? 'h-0 overflow-hidden' : 'h-12'
@@ -188,11 +212,11 @@ const Navbar = () => {
                   <span className="text-xs">{t('services.rating')}</span>
                 </div>
                 <Link 
-                  to="/login"
+                  to="/community"
                   className="bg-white text-black hover:bg-gray-100 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
                 >
-                  <FaSignInAlt className="w-3 h-3" />
-                  <span>{t('common.login')}</span>
+                  <MdConnectWithoutContact className="w-3 h-3" />
+                  <span>Join Community</span>
                 </Link>
               </div>
             </div>
@@ -262,12 +286,12 @@ const Navbar = () => {
                 <LanguageSwitcher />
               </div>
 
-              {/* Join Community Button */}
+              {/* Login Button */}
               <Link
-                to="/signup"
+                to="/login"
                 className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900`}
               >
-                <span>Join Community</span>
+                <span>Login</span>
               </Link>
             </div>
 
@@ -307,13 +331,13 @@ const Navbar = () => {
         {/* Mobile Menu Overlay */}
         {menuOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] lg:hidden"
             onClick={toggleMenu}
           />
         )}
 
         {/* Mobile Slide Menu */}
-        <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-50 transform transition-transform duration-300 ease-out lg:hidden shadow-2xl ${
+        <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-[70] transform transition-transform duration-300 ease-out lg:hidden shadow-2xl ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}>
           <div className="flex flex-col h-full">
@@ -395,13 +419,13 @@ const Navbar = () => {
             </div>
 
             {/* Mobile CTA */}
-            <div className="p-6 bg-gray-50 border-t border-gray-200">
+            <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
               <Link
-                to="/signup"
+                to="/login"
                 onClick={toggleMenu}
                 className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
-                <span>Join Community</span>
+                <span>Login</span>
               </Link>
             </div>
           </div>

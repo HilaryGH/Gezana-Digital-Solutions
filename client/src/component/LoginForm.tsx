@@ -10,7 +10,7 @@ type LoginResponse = {
     id: string;
     name: string;
     email: string;
-    role: "seeker" | "provider" | "admin";
+    role: "seeker" | "provider" | "admin" | "support" | "marketing" | "superadmin";
     createdAt: string;
   };
 };
@@ -42,10 +42,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
 
       if (onClose) onClose();
 
-      if (user.role === "seeker") navigate("/seeker-dashboard");
-      else if (user.role === "provider") navigate("/provider-dashboard");
-      else if (user.role === "admin") navigate("/admin-dashboard");
-      else navigate("/login");
+      // Navigate based on user role
+      if (user.role === "seeker") {
+        navigate("/seeker-dashboard");
+      } else if (user.role === "provider") {
+        navigate("/provider-dashboard");
+      } else if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (user.role === "support") {
+        navigate("/support-dashboard");
+      } else if (user.role === "marketing") {
+        navigate("/marketing-dashboard");
+      } else if (user.role === "superadmin") {
+        navigate("/superadmin-dashboard");
+      } else {
+        // Fallback for unknown roles
+        setError("Unknown user role. Please contact support.");
+      }
     } catch (err: any) {
       setError(
         err.response?.data?.message || "Login failed. Please try again."

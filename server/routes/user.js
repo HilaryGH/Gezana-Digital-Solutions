@@ -206,6 +206,47 @@ router.post("/redeem", authMiddleware, async (req, res) => {
   }
 });
 
+// Update user status (superadmin only)
+router.patch("/:userId", authMiddleware, async (req, res) => {
+  try {
+    // Check if user is superadmin
+    if (req.user.role !== "superadmin") {
+      return res.status(403).json({ message: "Only superadmin can update user status" });
+    }
+
+    const { userId } = req.params;
+    const { isActive, name, email, phone, role } = req.body;
+
+    // Prevent modifying superadmin accounts
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (targetUser.role === "superadmin" && userId !== req.user.userId) {
+      return res.status(403).json({ message: "Cannot modify other superadmin accounts" });
+    }
+
+    const updates = {};
+    if (isActive !== undefined) updates.isActive = isActive;
+    if (name) updates.name = name;
+    if (email) updates.email = email;
+    if (phone) updates.phone = phone;
+    if (role && req.user.role === "superadmin") updates.role = role;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      { new: true }
+    ).select("-password");
+
+    res.json({ message: "User updated successfully", user: updatedUser });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ message: "Failed to update user" });
+  }
+});
+
 
 
 

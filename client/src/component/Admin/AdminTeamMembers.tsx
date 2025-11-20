@@ -26,6 +26,9 @@ const AdminTeamMembers = () => {
     order: 0,
     isActive: true,
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
 
   const fetchTeamMembers = async () => {
     const token = localStorage.getItem("token");
@@ -56,20 +59,56 @@ const AdminTeamMembers = () => {
     }));
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        setFormData(prev => ({ ...prev, photo: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
+    setUploading(true);
 
     try {
+      const submitFormData = new FormData();
+      
+      // Add text fields
+      submitFormData.append("name", formData.name);
+      submitFormData.append("role", formData.role);
+      submitFormData.append("bio", formData.bio);
+      submitFormData.append("order", formData.order.toString());
+      submitFormData.append("isActive", formData.isActive.toString());
+
+      // Handle photo: if file is selected, upload it; otherwise use URL
+      if (photoFile) {
+        submitFormData.append("photo", photoFile);
+      } else if (formData.photo) {
+        submitFormData.append("photo", formData.photo);
+      }
+
       if (editingMember) {
         // Update existing member
-        await axios.put(`/team-members/${editingMember._id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
+        await axios.put(`/team-members/${editingMember._id}`, submitFormData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         });
       } else {
         // Create new member
-        await axios.post("/team-members", formData, {
-          headers: { Authorization: `Bearer ${token}` },
+        await axios.post("/team-members", submitFormData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         });
       }
 
@@ -83,9 +122,13 @@ const AdminTeamMembers = () => {
         order: 0,
         isActive: true,
       });
+      setPhotoFile(null);
+      setPhotoPreview("");
       fetchTeamMembers();
     } catch (error: any) {
       alert(error.response?.data?.message || "Failed to save team member");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -99,6 +142,8 @@ const AdminTeamMembers = () => {
       order: member.order,
       isActive: member.isActive,
     });
+    setPhotoPreview(member.photo);
+    setPhotoFile(null);
     setShowModal(true);
   };
 
@@ -138,6 +183,8 @@ const AdminTeamMembers = () => {
       order: 0,
       isActive: true,
     });
+    setPhotoFile(null);
+    setPhotoPreview("");
     setShowModal(true);
   };
 
@@ -272,24 +319,52 @@ const AdminTeamMembers = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photo URL *
+                  Photo *
                 </label>
-                <input
-                  type="url"
-                  name="photo"
-                  value={formData.photo}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="https://example.com/photo.jpg"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
-                />
-                {formData.photo && (
-                  <img
-                    src={formData.photo}
-                    alt="Preview"
-                    className="mt-2 w-20 h-20 rounded-full object-cover border-2 border-orange-300"
-                  />
-                )}
+                <div className="space-y-3">
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Upload Photo (or enter URL below)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm"
+                    />
+                  </div>
+                  
+                  {/* URL Input */}
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Or enter Photo URL
+                    </label>
+                    <input
+                      type="url"
+                      name="photo"
+                      value={formData.photo}
+                      onChange={handleInputChange}
+                      placeholder="https://example.com/photo.jpg"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+                  
+                  {/* Preview */}
+                  {(photoPreview || formData.photo) && (
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-600 mb-2">Preview:</p>
+                      <img
+                        src={photoPreview || formData.photo}
+                        alt="Preview"
+                        className="w-24 h-24 rounded-full object-cover border-2 border-orange-300 shadow-md"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://via.placeholder.com/150?text=Invalid+Image";
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -342,17 +417,28 @@ const AdminTeamMembers = () => {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-semibold"
+                  disabled={uploading || !formData.name || !formData.role || !formData.photo || !formData.bio}
+                  className="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {editingMember ? "Update" : "Create"}
+                  {uploading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <span>{editingMember ? "Update Team Member" : "Add Team Member"}</span>
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setShowModal(false);
                     setEditingMember(null);
+                    setPhotoFile(null);
+                    setPhotoPreview("");
                   }}
-                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+                  disabled={uploading}
+                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-semibold disabled:opacity-50"
                 >
                   Cancel
                 </button>

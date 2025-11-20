@@ -4,7 +4,7 @@ import ServiceSearch from "./ServiceSearch";
 import ServiceCard from "./ServiceCard";
 import { ChevronDown, X, Sparkles, TrendingUp, Star } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
-import { getRecentServices, getMostBookedServices, type Service } from "../api/services";
+import { getRecentServices, getMostBookedServices, getServices, type Service } from "../api/services";
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
 
 const serviceCategories = [
@@ -78,9 +78,11 @@ const Home = () => {
   const [recentServices, setRecentServices] = useState<Service[]>([]);
   const [mostBookedServices, setMostBookedServices] = useState<Service[]>([]);
   const [promotionalBanners, setPromotionalBanners] = useState<PromotionalBanner[]>([]);
+  const [categoryServices, setCategoryServices] = useState<Service[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [loadingMostBooked, setLoadingMostBooked] = useState(false);
   const [loadingBanners, setLoadingBanners] = useState(false);
+  const [loadingCategoryServices, setLoadingCategoryServices] = useState(false);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -113,9 +115,12 @@ const Home = () => {
       setLoadingMostBooked(true);
       try {
         const services = await getMostBookedServices(8);
-        setMostBookedServices(services);
-      } catch (error) {
+        console.log('Most booked services fetched:', services);
+        setMostBookedServices(services || []);
+      } catch (error: any) {
         console.error('Error fetching most booked services:', error);
+        console.error('Error details:', error.response?.data || error.message);
+        setMostBookedServices([]);
       } finally {
         setLoadingMostBooked(false);
       }
@@ -139,9 +144,22 @@ const Home = () => {
     fetchPromotionalBanners();
   }, []);
 
-  const handleCategoryClick = (index: number) => {
+  const handleCategoryClick = async (index: number) => {
     setCurrentCategoryIndex(index);
     setShowServicesModal(true);
+    
+    // Fetch services for the selected category
+    const categoryName = serviceCategories[index].name;
+    setLoadingCategoryServices(true);
+    try {
+      const response = await getServices({ category: categoryName, limit: 50 });
+      setCategoryServices(response.services || []);
+    } catch (error) {
+      console.error('Error fetching category services:', error);
+      setCategoryServices([]);
+    } finally {
+      setLoadingCategoryServices(false);
+    }
   };
 
   const handleViewServices = (categoryName: string) => {
@@ -265,10 +283,10 @@ const Home = () => {
                           <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${category.bgColor} group-hover:scale-110`}>
                             <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5 xl:w-6 xl:h-6 ${category.iconColor}`} />
                           </div>
-                          <h3 className="font-bold text-[8px] sm:text-[9px] lg:text-[10px] xl:text-xs text-gray-800 group-hover:text-gray-900 transition-colors leading-tight">
+                          <h3 className="font-bold text-[7px] sm:text-[9px] lg:text-[10px] xl:text-xs text-gray-800 group-hover:text-gray-900 transition-colors leading-tight">
                             {category.name}
                           </h3>
-                          <p className="text-[7px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-500">
+                          <p className="text-[6px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-500">
                             {category.services.length} services
                           </p>
                         </div>
@@ -287,6 +305,7 @@ const Home = () => {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => {
             setShowServicesModal(false);
             setCurrentCategoryIndex(null);
+            setCategoryServices([]);
           }}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
               {/* Modal Header */}
@@ -300,13 +319,20 @@ const Home = () => {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white">{serviceCategories[currentCategoryIndex].name}</h2>
-                    <p className="text-white/80 text-sm">{serviceCategories[currentCategoryIndex].services.length} services available</p>
+                    <p className="text-white/80 text-sm">
+                      {loadingCategoryServices 
+                        ? 'Loading...' 
+                        : categoryServices.length > 0 
+                          ? `${categoryServices.length} services available` 
+                          : `${serviceCategories[currentCategoryIndex].services.length} service types available`}
+                    </p>
                   </div>
                 </div>
                 <button
                   onClick={() => {
                     setShowServicesModal(false);
                     setCurrentCategoryIndex(null);
+                    setCategoryServices([]);
                   }}
                   className="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
                 >
@@ -316,24 +342,65 @@ const Home = () => {
 
               {/* Services Grid */}
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  {serviceCategories[currentCategoryIndex].services.map((service, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleViewServices(service)}
-                      className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 bg-gray-50 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105 group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
-                          <ChevronDown className="w-4 h-4 text-blue-600 rotate-[-90deg]" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
-                          {service}
-                        </span>
+                {loadingCategoryServices ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {[...Array(6)].map((_, index) => (
+                      <div key={index} className="p-4 rounded-xl border-2 border-gray-200 bg-gray-50 animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : categoryServices.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {categoryServices.map((service) => (
+                      <div
+                        key={service.id}
+                        onClick={() => navigate(`/service/${service.id}`)}
+                        className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 bg-gray-50 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105 group"
+                      >
+                        <div className="flex flex-col space-y-2">
+                          <h4 className="text-sm font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">
+                            {service.title}
+                          </h4>
+                          {service.subcategory && (
+                            <p className="text-xs text-gray-600">{service.subcategory}</p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold text-blue-600">${service.price}</span>
+                            {service.ratingCount && service.ratingCount > 0 && (
+                              <div className="flex items-center space-x-1">
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs text-gray-600">
+                                  {service.serviceRating?.toFixed(1) || service.providerRating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    {serviceCategories[currentCategoryIndex].services.map((service, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleViewServices(service)}
+                        className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 bg-gray-50 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105 group"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
+                            <ChevronDown className="w-4 h-4 text-blue-600 rotate-[-90deg]" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
+                            {service}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Modal Footer */}
@@ -365,11 +432,11 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Services Grid */}
+            {/* Services Grid - 4 columns, horizontally scrollable */}
             {loadingRecent ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
                 {[...Array(8)].map((_, index) => (
-                  <div key={index} className="bg-white rounded-2xl shadow-lg p-4 animate-pulse">
+                  <div key={index} className="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-lg p-4 animate-pulse">
                     <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
                     <div className="space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -379,13 +446,14 @@ const Home = () => {
                 ))}
               </div>
             ) : recentServices.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
                 {recentServices.map((service) => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    onViewDetails={() => navigate(`/service/${service.id}`)}
-                  />
+                  <div key={service.id} className="flex-shrink-0 w-[280px]">
+                    <ServiceCard
+                      service={service}
+                      onViewDetails={() => navigate(`/service/${service.id}`)}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -412,11 +480,11 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Services Grid */}
+            {/* Services Grid - 4 columns, horizontally scrollable */}
             {loadingMostBooked ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
                 {[...Array(8)].map((_, index) => (
-                  <div key={index} className="bg-white rounded-2xl shadow-lg p-4 animate-pulse">
+                  <div key={index} className="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-lg p-4 animate-pulse">
                     <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
                     <div className="space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -426,18 +494,19 @@ const Home = () => {
                 ))}
               </div>
             ) : mostBookedServices.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
                 {mostBookedServices.map((service) => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    onViewDetails={() => navigate(`/service/${service.id}`)}
-                  />
+                  <div key={service.id} className="flex-shrink-0 w-[280px]">
+                    <ServiceCard
+                      service={service}
+                      onViewDetails={() => navigate(`/service/${service.id}`)}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
               <div className="text-left py-8">
-                <p className="text-gray-500 text-sm">No booked services available</p>
+                <p className="text-gray-500 text-sm">No booked services available. Services will appear here once bookings are made.</p>
               </div>
             )}
           </div>

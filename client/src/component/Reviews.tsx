@@ -24,6 +24,8 @@ const Reviews: React.FC<ReviewsProps> = ({ serviceId }) => {
   const [formData, setFormData] = useState({
     rating: 5,
     comment: '',
+    guestName: '',
+    guestEmail: '',
   });
 
   useEffect(() => {
@@ -61,25 +63,51 @@ const Reviews: React.FC<ReviewsProps> = ({ serviceId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate guest information if not logged in
     if (!currentUser) {
-      alert('Please login to leave a review');
-      return;
+      if (!formData.guestName || !formData.guestEmail) {
+        alert('Please provide your name and email to submit a review');
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.guestEmail)) {
+        alert('Please provide a valid email address');
+        return;
+      }
     }
 
     try {
       if (editingReview) {
+        // Only logged-in users can edit their reviews
+        if (!currentUser) {
+          alert('Please login to edit a review');
+          return;
+        }
         await updateReview(editingReview._id, {
           rating: formData.rating,
           comment: formData.comment,
         });
       } else {
-        await createReview({
+        // Create review with guest info if not logged in
+        const reviewData: any = {
           serviceId,
           rating: formData.rating,
           comment: formData.comment,
-        });
+        };
+        
+        if (!currentUser) {
+          reviewData.guestInfo = {
+            name: formData.guestName,
+            email: formData.guestEmail,
+          };
+        }
+        
+        await createReview(reviewData);
       }
-      setFormData({ rating: 5, comment: '' });
+      setFormData({ rating: 5, comment: '', guestName: '', guestEmail: '' });
       setShowForm(false);
       setEditingReview(null);
       fetchReviews();
@@ -175,7 +203,7 @@ const Reviews: React.FC<ReviewsProps> = ({ serviceId }) => {
             </div>
           )}
         </div>
-        {currentUser && !showForm && !editingReview && (
+        {!showForm && !editingReview && (
           <button
             onClick={() => setShowForm(true)}
             className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium"
@@ -266,6 +294,42 @@ const Reviews: React.FC<ReviewsProps> = ({ serviceId }) => {
               </div>
             </div>
 
+            {/* Guest Information (only show if not logged in) */}
+            {!currentUser && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.guestName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, guestName: e.target.value })
+                    }
+                    required
+                    placeholder="Enter your name"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.guestEmail}
+                    onChange={(e) =>
+                      setFormData({ ...formData, guestEmail: e.target.value })
+                    }
+                    required
+                    placeholder="Enter your email"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your Review *
@@ -294,7 +358,7 @@ const Reviews: React.FC<ReviewsProps> = ({ serviceId }) => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingReview(null);
-                  setFormData({ rating: 5, comment: '' });
+                  setFormData({ rating: 5, comment: '', guestName: '', guestEmail: '' });
                 }}
                 className="px-4 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium"
               >

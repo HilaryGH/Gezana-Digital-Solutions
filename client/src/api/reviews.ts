@@ -36,6 +36,10 @@ export interface CreateReviewData {
   serviceId: string;
   rating: number;
   comment: string;
+  guestInfo?: {
+    name: string;
+    email: string;
+  };
 }
 
 export const getServiceReviews = async (
@@ -51,13 +55,18 @@ export const getServiceReviews = async (
 
 export const createReview = async (data: CreateReviewData): Promise<Review> => {
   const token = localStorage.getItem('token');
+  const headers: any = {};
+  
+  // Only add Authorization header if token exists
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
   const response = await axios.post(
     '/reviews',
     data,
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     }
   );
   return response.data.review;
@@ -88,6 +97,9 @@ export const deleteReview = async (reviewId: string): Promise<void> => {
     },
   });
 };
+
+
+
 
 
 

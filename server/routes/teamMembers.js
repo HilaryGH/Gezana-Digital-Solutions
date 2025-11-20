@@ -2,6 +2,8 @@ const express = require("express");
 const TeamMember = require("../models/TeamMember");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/isAdmin");
+const upload = require("../middleware/upload");
+const path = require("path");
 
 const router = express.Router();
 
@@ -41,20 +43,29 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create new team member (admin only)
-router.post("/", authMiddleware, isAdmin, async (req, res) => {
+// Create new team member (admin only) - supports file upload or URL
+router.post("/", authMiddleware, isAdmin, upload.single("photo"), async (req, res) => {
   try {
     const { name, role, photo, bio, order, isActive } = req.body;
 
     // Validation
-    if (!name || !role || !photo || !bio) {
-      return res.status(400).json({ message: "Please provide all required fields" });
+    if (!name || !role || !bio) {
+      return res.status(400).json({ message: "Please provide name, role, and bio" });
+    }
+
+    // Handle photo: use uploaded file if available, otherwise use URL from body
+    let photoUrl = photo;
+    if (req.file) {
+      // If file was uploaded, use the file path
+      photoUrl = `/uploads/${req.file.filename}`;
+    } else if (!photoUrl) {
+      return res.status(400).json({ message: "Please provide a photo (upload file or URL)" });
     }
 
     const teamMember = new TeamMember({
       name,
       role,
-      photo,
+      photo: photoUrl,
       bio,
       order: order || 0,
       isActive: isActive !== undefined ? isActive : true,
@@ -68,8 +79,8 @@ router.post("/", authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
-// Update team member (admin only)
-router.put("/:id", authMiddleware, isAdmin, async (req, res) => {
+// Update team member (admin only) - supports file upload or URL
+router.put("/:id", authMiddleware, isAdmin, upload.single("photo"), async (req, res) => {
   try {
     const { name, role, photo, bio, order, isActive } = req.body;
 
@@ -81,10 +92,16 @@ router.put("/:id", authMiddleware, isAdmin, async (req, res) => {
     // Update fields
     if (name) teamMember.name = name;
     if (role) teamMember.role = role;
-    if (photo) teamMember.photo = photo;
     if (bio) teamMember.bio = bio;
     if (order !== undefined) teamMember.order = order;
     if (isActive !== undefined) teamMember.isActive = isActive;
+
+    // Handle photo: use uploaded file if available, otherwise use URL from body
+    if (req.file) {
+      teamMember.photo = `/uploads/${req.file.filename}`;
+    } else if (photo) {
+      teamMember.photo = photo;
+    }
 
     await teamMember.save();
     res.json({ message: "Team member updated successfully", teamMember });

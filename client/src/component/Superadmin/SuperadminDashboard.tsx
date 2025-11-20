@@ -70,86 +70,106 @@ const SuperadminDashboard = () => {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [userName, setUserName] = useState("Superadmin");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("user");
+      
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          setUserName(user.name || "Superadmin");
+        } catch (e) {
+          console.error("Error parsing user data:", e);
+        }
+      }
+
+      // Fetch all bookings
+      let bookingsData: BookingWithDetails[] = [];
+      try {
+        bookingsData = await getAllBookings();
+        setBookings(bookingsData);
+      } catch (error: any) {
+        console.error("Error fetching bookings:", error);
+        setBookings([]);
+      }
+
+      // Calculate revenue from completed/confirmed bookings with paid status
+      const totalRevenue = bookingsData
+        .filter(b => (b.status === "completed" || b.status === "confirmed") && b.paymentStatus === "paid")
+        .reduce((sum, b) => sum + (b.service?.price || 0), 0);
+
+      // Fetch all users
+      let allUsers: any[] = [];
+      try {
+        const usersResponse = await axios.get("/user/all", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        allUsers = usersResponse.data || [];
+      } catch (e: any) {
+        console.error("Error fetching users:", e);
+        // Try alternative endpoint
+        try {
+          const usersResponse2 = await axios.get("/user", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          allUsers = usersResponse2.data || [];
+        } catch (e2) {
+          console.error("User endpoints not available");
+        }
+      }
+
+      // Calculate user stats by role
+      const totalUsers = allUsers.length;
+      const totalProviders = allUsers.filter(u => u.role === "provider").length;
+      const totalAdmins = allUsers.filter(u => u.role === "admin").length;
+      const totalSupport = allUsers.filter(u => u.role === "support").length;
+      const totalMarketing = allUsers.filter(u => u.role === "marketing").length;
+
+      // Filter admin users (admin, superadmin, support, marketing)
+      const adminUsersList = allUsers.filter(u => 
+        ["admin", "superadmin", "support", "marketing"].includes(u.role)
+      );
+      setAdminUsers(adminUsersList);
+
+      // Fetch services count
+      let activeServices = 0;
+      try {
+        const servicesResponse = await axios.get("/services", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const services = servicesResponse.data.services || servicesResponse.data || [];
+        activeServices = Array.isArray(services) 
+          ? services.filter((s: any) => s.isActive !== false).length 
+          : 0;
+      } catch (e: any) {
+        console.error("Error fetching services:", e);
+      }
+
+      setStats({
+        totalUsers,
+        totalProviders,
+        totalAdmins,
+        totalSupport,
+        totalMarketing,
+        totalBookings: bookingsData.length,
+        totalRevenue,
+        pendingBookings: bookingsData.filter(b => b.status === "pending").length,
+        activeServices,
+        systemHealth: "healthy",
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const userData = localStorage.getItem("user");
-        
-        if (userData) {
-          try {
-            const user = JSON.parse(userData);
-            setUserName(user.name || "Superadmin");
-          } catch (e) {
-            console.error("Error parsing user data:", e);
-          }
-        }
-
-        // Fetch all bookings
-        const bookingsData = await getAllBookings();
-        setBookings(bookingsData);
-
-        // Calculate revenue
-        const totalRevenue = bookingsData
-          .filter(b => b.status === "completed" || b.status === "confirmed")
-          .reduce((sum, b) => sum + (b.service?.price || 0), 0);
-
-        // Fetch all users
-        let allUsers: any[] = [];
-        try {
-          const usersResponse = await axios.get("/user/all", {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          allUsers = usersResponse.data || [];
-        } catch (e) {
-          console.log("User endpoint not available");
-        }
-
-        // Calculate user stats by role
-        const totalUsers = allUsers.length;
-        const totalProviders = allUsers.filter(u => u.role === "provider").length;
-        const totalAdmins = allUsers.filter(u => u.role === "admin").length;
-        const totalSupport = allUsers.filter(u => u.role === "support").length;
-        const totalMarketing = allUsers.filter(u => u.role === "marketing").length;
-
-        // Filter admin users (admin, superadmin, support, marketing)
-        const adminUsersList = allUsers.filter(u => 
-          ["admin", "superadmin", "support", "marketing"].includes(u.role)
-        );
-        setAdminUsers(adminUsersList);
-
-        // Fetch services count
-        let activeServices = 0;
-        try {
-          const servicesResponse = await axios.get("/services", {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const services = servicesResponse.data.services || servicesResponse.data || [];
-          activeServices = services.filter((s: any) => s.isActive !== false).length;
-        } catch (e) {
-          console.log("Services endpoint not available");
-        }
-
-        setStats({
-          totalUsers,
-          totalProviders,
-          totalAdmins,
-          totalSupport,
-          totalMarketing,
-          totalBookings: bookingsData.length,
-          totalRevenue,
-          pendingBookings: bookingsData.filter(b => b.status === "pending").length,
-          activeServices,
-          systemHealth: "healthy",
-        });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -157,6 +177,72 @@ const SuperadminDashboard = () => {
     if (confirm("Are you sure you want to logout?")) {
       localStorage.clear();
       window.location.href = "/login";
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
+
+  const handleExport = () => {
+    try {
+      const csvContent = [
+        ["Name", "Email", "Role", "Status", "Created At"],
+        ...filteredAdminUsers.map(user => [
+          user.name,
+          user.email,
+          user.role,
+          user.isActive ? "Active" : "Inactive",
+          new Date(user.createdAt).toLocaleDateString()
+        ])
+      ].map(row => row.join(",")).join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `admin-users-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      alert("Failed to export data. Please try again.");
+    }
+  };
+
+  const handleEditUser = (user: AdminUser) => {
+    // Navigate to user management page or show edit modal
+    navigate(`/admin/user`, { state: { editUser: user } });
+  };
+
+  const handleDeleteUser = async (user: AdminUser) => {
+    if (user.role === "superadmin") {
+      alert("Cannot deactivate superadmin account");
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to deactivate ${user.name}? They will not be able to access the system.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(`/user/${user._id}`, { isActive: false }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update local state
+      setAdminUsers(adminUsers.map(u => 
+        u._id === user._id ? { ...u, isActive: false } : u
+      ));
+      alert("User deactivated successfully");
+      fetchData(); // Refresh data
+    } catch (error: any) {
+      console.error("Error deactivating user:", error);
+      alert(error.response?.data?.message || "Failed to deactivate user. Please try again.");
     }
   };
 
@@ -329,13 +415,20 @@ const SuperadminDashboard = () => {
                 <p className="text-gray-600 mt-1">Manage all admin, support, and marketing accounts</p>
               </div>
               <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors">
+                <button 
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+                >
                   <Download className="w-4 h-4" />
                   <span className="text-sm font-medium">Export</span>
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors">
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="text-sm font-medium">Refresh</span>
+                <button 
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="text-sm font-medium">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
                 </button>
               </div>
             </div>
@@ -408,11 +501,19 @@ const SuperadminDashboard = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <button className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" title="Edit">
+                            <button 
+                              onClick={() => handleEditUser(user)}
+                              className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors" 
+                              title="Edit"
+                            >
                               <Settings className="w-4 h-4" />
                             </button>
                             {user.role !== "superadmin" && (
-                              <button className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" title="Delete">
+                              <button 
+                                onClick={() => handleDeleteUser(user)}
+                                className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors" 
+                                title="Delete"
+                              >
                                 <XCircle className="w-4 h-4" />
                               </button>
                             )}

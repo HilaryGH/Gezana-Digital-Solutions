@@ -82,6 +82,12 @@ app.use("/api/reviews", reviewsRoutes);
 const promotionalBannersRoutes = require("./routes/promotionalBanners");
 app.use("/api/promotional-banners", promotionalBannersRoutes);
 
+const supportRoutes = require("./routes/support");
+app.use("/api/support", supportRoutes);
+
+const diasporaRoutes = require("./routes/diaspora");
+app.use("/api/diaspora", diasporaRoutes);
+
 // Root route
 app.get("/", (req, res) => {
   res.send("Gezana backend is running 🚀");

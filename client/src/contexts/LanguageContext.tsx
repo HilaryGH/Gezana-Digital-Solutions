@@ -32,7 +32,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   ];
 
   // Determine if current language is RTL
-  const isRTL = currentLanguage === 'am'; // Amharic is written left-to-right, but we can add RTL styling if needed
+  // Note: Amharic is written left-to-right (LTR), not right-to-left (RTL)
+  const isRTL = false; // Both English and Amharic use LTR direction
 
   const changeLanguage = async (language: string) => {
     try {
@@ -41,8 +42,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       localStorage.setItem('i18nextLng', language);
       
       // Update document direction and language
+      // Both English and Amharic use left-to-right (LTR) direction
       document.documentElement.lang = language;
-      document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+      document.documentElement.dir = 'ltr'; // Always LTR for both languages
       
       // Add language-specific CSS class
       document.body.className = document.body.className.replace(/lang-\w+/g, '');
@@ -57,7 +59,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const handleLanguageChange = (lng: string) => {
       setCurrentLanguage(lng);
       document.documentElement.lang = lng;
-      document.documentElement.dir = lng === 'am' ? 'rtl' : 'ltr';
+      // Always use LTR direction - both English and Amharic are left-to-right languages
+      document.documentElement.dir = 'ltr';
       document.body.className = document.body.className.replace(/lang-\w+/g, '');
       document.body.classList.add(`lang-${lng}`);
     };
