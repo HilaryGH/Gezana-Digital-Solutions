@@ -6,7 +6,7 @@ const getBaseURL = () => {
   if (import.meta.env.DEV) {
     return "http://localhost:5000/api"; // Local development server
   }
-  return "https://gezana-api.onrender.com/api"; // Production server
+  return "https://gezana-api-m8u7.onrender.com/api"; // Production server
 };
 
 const instance = axios.create({
