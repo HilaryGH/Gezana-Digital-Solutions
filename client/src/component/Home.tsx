@@ -267,19 +267,10 @@ const Home = () => {
                 borderBottomColor: 'rgba(247, 147, 30, 0.85)'
               }}>
                 {/* Brand color gradient overlay */}
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 pointer-events-none" style={{
-                  width: '480px',
-                  height: '80px',
-                  clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-                  background: 'linear-gradient(to bottom, rgba(247, 147, 30, 0.75) 0%, rgba(255, 180, 120, 0.7) 25%, rgba(255, 220, 180, 0.65) 40%, rgba(200, 220, 255, 0.7) 60%, rgba(46, 61, 211, 0.75) 75%, rgba(0, 174, 239, 0.7) 100%)',
-                  transform: 'translateX(-50%)'
-                }}></div>
+               
               </div>
                   
-               {/* Roof Overhang - Nude center with darker nude borders */}
-               <div className="w-full h-[8px] sm:h-[9px] md:h-[10px] lg:h-[14px] bg-stone-100/95 backdrop-blur-sm border-t-2 border-stone-700 border-b-2 border-stone-700"></div>
-
-              {/* Walls Section - Narrower than roof */}
+                      {/* Walls Section - Narrower than roof */}
               <div className="relative w-[320px] sm:w-[360px] md:w-[400px] lg:w-[520px] h-[150px] sm:h-[170px] md:h-[190px] lg:h-[240px] flex mx-auto">
 
                 {/* Walls Frame - Single unified frame with brand colors */}
