@@ -7,103 +7,103 @@
     "react": {
       "src": "../../node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "8ba6c6a1",
+      "fileHash": "2a83ec34",
       "needsInterop": true
     },
     "react-dom": {
       "src": "../../node_modules/react-dom/index.js",
       "file": "react-dom.js",
-      "fileHash": "ea532ca0",
+      "fileHash": "39a049c6",
       "needsInterop": true
     },
     "axios": {
       "src": "../../node_modules/axios/index.js",
       "file": "axios.js",
-      "fileHash": "d6ee172c",
+      "fileHash": "2f7ce451",
       "needsInterop": false
     },
     "lucide-react": {
       "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
       "file": "lucide-react.js",
-      "fileHash": "0fd3bd88",
+      "fileHash": "26c60230",
       "needsInterop": false
     },
     "react-icons": {
       "src": "../../node_modules/react-icons/index.mjs",
       "file": "react-icons.js",
-      "fileHash": "aa1bcca8",
+      "fileHash": "b6a1f630",
       "needsInterop": false
     },
     "react-router-dom": {
       "src": "../../node_modules/react-router-dom/dist/index.mjs",
       "file": "react-router-dom.js",
-      "fileHash": "61503f11",
+      "fileHash": "36538673",
       "needsInterop": false
     },
     "jwt-decode": {
       "src": "../../node_modules/jwt-decode/build/esm/index.js",
       "file": "jwt-decode.js",
-      "fileHash": "eb5ab8d4",
+      "fileHash": "b1227a62",
       "needsInterop": false
     },
     "react/jsx-dev-runtime": {
       "src": "../../node_modules/react/jsx-dev-runtime.js",
       "file": "react_jsx-dev-runtime.js",
-      "fileHash": "28cdb43c",
+      "fileHash": "dbcfd8b5",
       "needsInterop": true
     },
     "react/jsx-runtime": {
       "src": "../../node_modules/react/jsx-runtime.js",
       "file": "react_jsx-runtime.js",
-      "fileHash": "10c425f8",
+      "fileHash": "32519ae4",
       "needsInterop": true
     },
     "i18next": {
       "src": "../../node_modules/i18next/dist/esm/i18next.js",
       "file": "i18next.js",
-      "fileHash": "69a6f26e",
+      "fileHash": "dafae6a9",
       "needsInterop": false
     },
     "i18next-browser-languagedetector": {
       "src": "../../node_modules/i18next-browser-languagedetector/dist/esm/i18nextBrowserLanguageDetector.js",
       "file": "i18next-browser-languagedetector.js",
-      "fileHash": "09ff740e",
+      "fileHash": "3782aba6",
       "needsInterop": false
     },
     "react-dom/client": {
       "src": "../../node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "02fd3412",
+      "fileHash": "016d81a5",
       "needsInterop": true
     },
     "react-i18next": {
       "src": "../../node_modules/react-i18next/dist/es/index.js",
       "file": "react-i18next.js",
-      "fileHash": "fdd9d153",
+      "fileHash": "baf0f186",
       "needsInterop": false
     },
     "react-icons/fa": {
       "src": "../../node_modules/react-icons/fa/index.mjs",
       "file": "react-icons_fa.js",
-      "fileHash": "bd95cb82",
+      "fileHash": "e22377fe",
       "needsInterop": false
     },
     "react-icons/hi": {
       "src": "../../node_modules/react-icons/hi/index.mjs",
       "file": "react-icons_hi.js",
-      "fileHash": "ba97a8b0",
+      "fileHash": "298986c5",
       "needsInterop": false
     },
     "react-icons/io5": {
       "src": "../../node_modules/react-icons/io5/index.mjs",
       "file": "react-icons_io5.js",
-      "fileHash": "1495cb47",
+      "fileHash": "ae26a100",
       "needsInterop": false
     },
     "react-icons/md": {
       "src": "../../node_modules/react-icons/md/index.mjs",
       "file": "react-icons_md.js",
-      "fileHash": "19587b4c",
+      "fileHash": "c8aad507",
       "needsInterop": false
     }
   },

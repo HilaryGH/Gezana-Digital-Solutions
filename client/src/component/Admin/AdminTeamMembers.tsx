@@ -2,12 +2,39 @@ import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
 import { Edit, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 
+// Helper function to get correct image URL
+const getImageUrl = (photo: string): string => {
+  if (!photo) return "https://via.placeholder.com/150?text=No+Image";
+  // If already a full URL, return as is
+  if (photo.startsWith('http://') || photo.startsWith('https://')) {
+    return photo;
+  }
+  // If it's a relative path starting with /uploads, construct full URL
+  if (photo.startsWith('/uploads/')) {
+    const baseUrl = import.meta.env.DEV 
+      ? 'http://localhost:5000' 
+      : 'https://gezana-api.onrender.com';
+    return `${baseUrl}${photo}`;
+  }
+  // Otherwise return as is
+  return photo;
+};
+
 type TeamMember = {
   _id: string;
   name: string;
   role: string;
   photo: string;
   bio: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  education?: string;
+  experience?: string;
+  skills?: string[];
+  linkedin?: string;
+  twitter?: string;
+  facebook?: string;
   order: number;
   isActive: boolean;
 };
@@ -23,6 +50,15 @@ const AdminTeamMembers = () => {
     role: "",
     photo: "",
     bio: "",
+    email: "",
+    phone: "",
+    location: "",
+    education: "",
+    experience: "",
+    skills: "",
+    linkedin: "",
+    twitter: "",
+    facebook: "",
     order: 0,
     isActive: true,
   });
@@ -84,6 +120,15 @@ const AdminTeamMembers = () => {
       submitFormData.append("name", formData.name);
       submitFormData.append("role", formData.role);
       submitFormData.append("bio", formData.bio);
+      submitFormData.append("email", formData.email || "");
+      submitFormData.append("phone", formData.phone || "");
+      submitFormData.append("location", formData.location || "");
+      submitFormData.append("education", formData.education || "");
+      submitFormData.append("experience", formData.experience || "");
+      submitFormData.append("skills", formData.skills || "");
+      submitFormData.append("linkedin", formData.linkedin || "");
+      submitFormData.append("twitter", formData.twitter || "");
+      submitFormData.append("facebook", formData.facebook || "");
       submitFormData.append("order", formData.order.toString());
       submitFormData.append("isActive", formData.isActive.toString());
 
@@ -119,6 +164,15 @@ const AdminTeamMembers = () => {
         role: "",
         photo: "",
         bio: "",
+        email: "",
+        phone: "",
+        location: "",
+        education: "",
+        experience: "",
+        skills: "",
+        linkedin: "",
+        twitter: "",
+        facebook: "",
         order: 0,
         isActive: true,
       });
@@ -139,10 +193,19 @@ const AdminTeamMembers = () => {
       role: member.role,
       photo: member.photo,
       bio: member.bio,
+      email: member.email || "",
+      phone: member.phone || "",
+      location: member.location || "",
+      education: member.education || "",
+      experience: member.experience || "",
+      skills: Array.isArray(member.skills) ? member.skills.join(", ") : (member.skills || ""),
+      linkedin: member.linkedin || "",
+      twitter: member.twitter || "",
+      facebook: member.facebook || "",
       order: member.order,
       isActive: member.isActive,
     });
-    setPhotoPreview(member.photo);
+    setPhotoPreview(getImageUrl(member.photo));
     setPhotoFile(null);
     setShowModal(true);
   };
@@ -219,9 +282,13 @@ const AdminTeamMembers = () => {
             >
               <div className="flex flex-col items-center text-center">
                 <img
-                  src={member.photo}
+                  src={getImageUrl(member.photo)}
                   alt={member.name}
                   className="w-28 h-28 rounded-full mb-4 object-cover border-4 border-orange-300"
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    e.currentTarget.src = "https://via.placeholder.com/150?text=No+Image";
+                  }}
                 />
                 <h3 className="text-xl font-semibold text-orange-700">
                   {member.name}
@@ -355,7 +422,7 @@ const AdminTeamMembers = () => {
                     <div className="mt-3">
                       <p className="text-xs text-gray-600 mb-2">Preview:</p>
                       <img
-                        src={photoPreview || formData.photo}
+                        src={photoPreview || getImageUrl(formData.photo)}
                         alt="Preview"
                         className="w-24 h-24 rounded-full object-cover border-2 border-orange-300 shadow-md"
                         onError={(e) => {
@@ -380,6 +447,156 @@ const AdminTeamMembers = () => {
                   placeholder="Short description about the team member"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
+              </div>
+
+              {/* Contact Information Section */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">Contact Information</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="email@example.com"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="+1234567890"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      placeholder="City, Country"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Information Section */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">Professional Information</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Education
+                    </label>
+                    <input
+                      type="text"
+                      name="education"
+                      value={formData.education}
+                      onChange={handleInputChange}
+                      placeholder="e.g., B.Sc. Computer Science, Harvard University"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Experience
+                    </label>
+                    <input
+                      type="text"
+                      name="experience"
+                      value={formData.experience}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 10+ years or 5 years in industry"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Skills (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      name="skills"
+                      value={formData.skills}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Leadership, Project Management, Web Development"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Separate multiple skills with commas
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Media Links Section */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">Social Media Links</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      LinkedIn
+                    </label>
+                    <input
+                      type="url"
+                      name="linkedin"
+                      value={formData.linkedin}
+                      onChange={handleInputChange}
+                      placeholder="https://linkedin.com/in/username"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Twitter
+                    </label>
+                    <input
+                      type="url"
+                      name="twitter"
+                      value={formData.twitter}
+                      onChange={handleInputChange}
+                      placeholder="https://twitter.com/username"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Facebook
+                    </label>
+                    <input
+                      type="url"
+                      name="facebook"
+                      value={formData.facebook}
+                      onChange={handleInputChange}
+                      placeholder="https://facebook.com/username"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>

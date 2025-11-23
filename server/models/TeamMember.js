@@ -18,6 +18,42 @@ const teamMemberSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    email: {
+      type: String,
+      default: "",
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    location: {
+      type: String,
+      default: "",
+    },
+    education: {
+      type: String,
+      default: "",
+    },
+    experience: {
+      type: String,
+      default: "", // e.g., "5 years" or "10+ years"
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    linkedin: {
+      type: String,
+      default: "",
+    },
+    twitter: {
+      type: String,
+      default: "",
+    },
+    facebook: {
+      type: String,
+      default: "",
+    },
     order: {
       type: Number,
       default: 0, // For ordering team members

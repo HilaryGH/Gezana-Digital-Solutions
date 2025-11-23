@@ -28,6 +28,7 @@ import {
 import { getAllBookings, type BookingWithDetails } from "../../api/bookings";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import AdminTeamMembers from "../Admin/AdminTeamMembers";
 
 interface SuperadminStats {
   totalUsers: number;
@@ -578,6 +579,11 @@ const SuperadminDashboard = () => {
             <h3 className="font-bold text-gray-900 mb-2">Team Members</h3>
             <p className="text-sm text-gray-600">Manage team and permissions</p>
           </button>
+        </div>
+
+        {/* Team Members Management Section */}
+        <div className="mb-8">
+          <AdminTeamMembers />
         </div>
 
         {/* System Summary */}
