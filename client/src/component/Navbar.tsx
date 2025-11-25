@@ -217,7 +217,7 @@ const Navbar = () => {
                 </div>
                 <Link 
                   to="/community"
-                  className="bg-white text-black hover:bg-gray-100 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
+                  className="bg-orange-600 text-white hover:bg-orange-700 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
                 >
                   <MdConnectWithoutContact className="w-3 h-3" />
                   <span>Join Community</span>
@@ -293,7 +293,7 @@ const Navbar = () => {
               {/* Login Button */}
               <Link
                 to="/login"
-                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900`}
+                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-orange-600 text-white hover:bg-orange-700`}
               >
                 <span>Login</span>
               </Link>
@@ -427,7 +427,7 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={toggleMenu}
-                className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
+                className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
                 <span>Login</span>
               </Link>
@@ -452,7 +452,7 @@ const Navbar = () => {
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors"
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                   >
                     <FaSearch className="w-4 h-4" />
                   </button>

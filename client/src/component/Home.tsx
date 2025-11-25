@@ -170,7 +170,7 @@ const Home = () => {
     <>
       <section className="w-full flex flex-col bg-gradient-to-b from-sky-500 via-sky-400 to-sky-300 pt-20 relative overflow-hidden">
         {/* Sky Clouds at the Top - Positioned below navbar */}
-        <div className="absolute top-0 left-0 w-full h-96 z-0 pointer-events-none" style={{ overflow: 'visible' }}>
+        <div className="absolute top-0 left-0 w-full h-96 z-0 pointer-events-none hidden md:block" style={{ overflow: 'visible' }}>
           {/* Cloud 1 - Left Side */}
           <div className="absolute animate-float" style={{ top: '100px', left: '40px', animationDelay: '0s', zIndex: 1 }}>
             <div className="relative" style={{ width: '140px', height: '80px' }}>
@@ -221,7 +221,7 @@ const Home = () => {
         <div className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden z-10">
           
           {/* Right Side - Home Structure (swapped from left) */}
-          <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-4 md:pt-5 lg:pt-0 pb-1 md:pb-2 lg:pb-0">
+          <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-2 md:pt-5 lg:pt-0 pb-1 md:pb-2 lg:pb-0">
             
             {/* Decorative Background with Brand Colors */}
             <div className="absolute inset-0">
@@ -323,7 +323,7 @@ const Home = () => {
           </div>
 
           {/* Left Side - Services Navigation (swapped from right) */}
-          <div className="relative w-full lg:w-[41.67%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-1 md:pt-2 lg:pt-0 pb-4 md:pb-5 lg:pb-0">
+          <div className="relative w-full lg:w-[41.67%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-1 md:pt-2 lg:pt-0 pb-1 md:pb-5 lg:pb-0">
             
             {/* Animated Grid Background */}
             <div className="absolute inset-0 opacity-20">
@@ -344,7 +344,7 @@ const Home = () => {
             <div className="relative z-10 w-full h-full flex flex-col items-center lg:items-start justify-center px-4 sm:px-5 lg:px-6">
               {/* Header */}
               <div className="mb-3 sm:mb-4 lg:mb-5 w-full text-center lg:text-left">
-                <h2 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-1.5 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-1.5 tracking-tight">
                   Our Services
                 </h2>
                 <p className="text-gray-600 text-[10px] sm:text-xs lg:text-sm">
