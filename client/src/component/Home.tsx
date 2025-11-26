@@ -83,6 +83,7 @@ const Home = () => {
   const [loadingMostBooked, setLoadingMostBooked] = useState(false);
   const [loadingBanners, setLoadingBanners] = useState(false);
   const [loadingCategoryServices, setLoadingCategoryServices] = useState(false);
+  const [isNightMode, setIsNightMode] = useState(false);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -91,6 +92,14 @@ const Home = () => {
     if (search) {
       setSearchQuery(search);
     }
+  }, []);
+
+  // Auto-toggle between day and night mode every 6 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsNightMode(prev => !prev);
+    }, 6000);
+    return () => clearInterval(interval);
   }, []);
 
   // Fetch recently added services
@@ -168,153 +177,344 @@ const Home = () => {
 
   return (
     <>
-      <section className="w-full flex flex-col bg-gradient-to-b from-sky-500 via-sky-400 to-sky-300 pt-20 relative overflow-hidden">
-        {/* Sky Clouds at the Top - Positioned below navbar */}
-        <div className="absolute top-0 left-0 w-full h-96 z-0 pointer-events-none hidden md:block" style={{ overflow: 'visible' }}>
+      <section className="w-full flex flex-col pt-20 relative overflow-hidden">
+        {/* Sky Clouds at the Top - Positioned below navbar - Enhanced Visibility */}
+        <div className="absolute top-0 left-0 w-full h-96 z-0 pointer-events-none" style={{ overflow: 'visible' }}>
           {/* Cloud 1 - Left Side */}
           <div className="absolute animate-float" style={{ top: '100px', left: '40px', animationDelay: '0s', zIndex: 1 }}>
             <div className="relative" style={{ width: '140px', height: '80px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '50px', height: '50px', top: '0px', left: '0px', opacity: 0.85 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '60px', height: '60px', top: '10px', left: '30px', opacity: 0.9 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '45px', height: '45px', top: '15px', left: '70px', opacity: 0.87 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '50px', height: '50px', top: '0px', left: '0px', opacity: 0.95 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '60px', height: '60px', top: '10px', left: '30px', opacity: 1 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '45px', height: '45px', top: '15px', left: '70px', opacity: 0.97 }}></div>
             </div>
           </div>
           
           {/* Cloud 2 - Center Left */}
           <div className="absolute animate-float" style={{ top: '120px', left: '25%', animationDelay: '1s', zIndex: 1 }}>
             <div className="relative" style={{ width: '160px', height: '90px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '55px', height: '55px', top: '0px', left: '0px', opacity: 0.88 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '70px', height: '70px', top: '15px', left: '35px', opacity: 0.92 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '50px', height: '50px', top: '20px', left: '85px', opacity: 0.86 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '55px', height: '55px', top: '0px', left: '0px', opacity: 0.98 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '70px', height: '70px', top: '15px', left: '35px', opacity: 1 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '50px', height: '50px', top: '20px', left: '85px', opacity: 0.96 }}></div>
             </div>
           </div>
           
           {/* Cloud 5 - Right Side */}
           <div className="absolute animate-float" style={{ top: '115px', right: '40px', animationDelay: '2.5s', zIndex: 1 }}>
             <div className="relative" style={{ width: '155px', height: '88px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '54px', height: '54px', top: '0px', left: '0px', opacity: 0.88 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '68px', height: '68px', top: '13px', left: '33px', opacity: 0.92 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '49px', height: '49px', top: '19px', left: '82px', opacity: 0.86 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '54px', height: '54px', top: '0px', left: '0px', opacity: 0.98 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '68px', height: '68px', top: '13px', left: '33px', opacity: 1 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '49px', height: '49px', top: '19px', left: '82px', opacity: 0.96 }}></div>
             </div>
           </div>
           
           {/* Cloud 6 - Far Left */}
           <div className="absolute animate-float" style={{ top: '140px', left: '8%', animationDelay: '3s', zIndex: 1 }}>
             <div className="relative" style={{ width: '130px', height: '75px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '45px', height: '45px', top: '0px', left: '0px', opacity: 0.85 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '58px', height: '58px', top: '8px', left: '28px', opacity: 0.89 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '42px', height: '42px', top: '14px', left: '70px', opacity: 0.83 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '45px', height: '45px', top: '0px', left: '0px', opacity: 0.95 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '58px', height: '58px', top: '8px', left: '28px', opacity: 0.99 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '42px', height: '42px', top: '14px', left: '70px', opacity: 0.93 }}></div>
             </div>
           </div>
           
           {/* Cloud 7 - Far Right */}
           <div className="absolute animate-float" style={{ top: '125px', right: '8%', animationDelay: '0.5s', zIndex: 1 }}>
             <div className="relative" style={{ width: '135px', height: '78px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '47px', height: '47px', top: '0px', left: '0px', opacity: 0.87 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '60px', height: '60px', top: '9px', left: '29px', opacity: 0.91 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '44px', height: '44px', top: '15px', left: '72px', opacity: 0.85 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '47px', height: '47px', top: '0px', left: '0px', opacity: 0.97 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '60px', height: '60px', top: '9px', left: '29px', opacity: 1 }}></div>
+              <div className="absolute rounded-full bg-white" style={{ width: '44px', height: '44px', top: '15px', left: '72px', opacity: 0.95 }}></div>
             </div>
           </div>
         </div>
         
         {/* Hero Section - Split Left and Right */}
-        <div className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden z-10">
+        <div 
+          className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden z-10"
+          onMouseEnter={() => setIsNightMode(true)}
+          onMouseLeave={() => setIsNightMode(false)}
+        >
+          {/* Unified Background - Day (Blue Sky) or Night (Dark Sky) - Upper Part */}
+          <div 
+            className="absolute inset-0" 
+            style={{
+              clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+              transition: 'background 2s ease-in-out',
+              background: isNightMode 
+                ? 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 20%, #16213e 40%, #0f1419 60%, #0a0a1a 80%, #000000 100%)'
+                : 'linear-gradient(to bottom, #87CEEB 0%, #5BA3D0 20%, #4A90C2 40%, #3A7DB4 60%, #2E6BA6 80%, #2e3dd3 100%)',
+              opacity: 1
+            }}
+          >
+            {/* Day Mode - Sunlight Effect */}
+            {!isNightMode && (
+              <>
+                {/* Sunlight Effect - Radial gradient in the center */}
+                <div className="absolute inset-0 flex items-center justify-center" style={{
+                  background: 'radial-gradient(circle at center, rgba(255, 255, 200, 0.4) 0%, rgba(255, 220, 150, 0.3) 15%, rgba(255, 200, 100, 0.2) 30%, rgba(200, 200, 255, 0.1) 50%, transparent 70%)',
+                  pointerEvents: 'none',
+                  transition: 'opacity 2s ease-in-out'
+                }}></div>
+                {/* Additional sunlight rays */}
+                <div className="absolute inset-0 flex items-center justify-center" style={{
+                  background: 'radial-gradient(ellipse at center top, rgba(255, 255, 255, 0.5) 0%, rgba(255, 240, 200, 0.3) 20%, rgba(200, 220, 255, 0.2) 40%, transparent 60%)',
+                  pointerEvents: 'none',
+                  transition: 'opacity 2s ease-in-out'
+                }}></div>
+                {/* Sun glow effect */}
+                <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl" style={{
+                  background: 'radial-gradient(circle, rgba(255, 255, 200, 0.6), rgba(255, 220, 150, 0.4), rgba(255, 200, 100, 0.2), transparent)',
+                  filter: 'blur(60px)',
+                  pointerEvents: 'none',
+                  transition: 'opacity 2s ease-in-out'
+                }}></div>
+              </>
+            )}
+            
+            {/* Night Mode - Stars and Moon */}
+            {isNightMode && (
+              <>
+                {/* Stars - Responsive */}
+                <div className="absolute top-12 xs:top-16 sm:top-20 left-1/4 w-1.5 h-1.5 xs:w-2 xs:h-2 bg-white rounded-full shadow-[0_0_6px_2px_rgba(255,255,255,0.8)] animate-pulse" style={{ animationDelay: '0s' }}></div>
+                <div className="absolute top-20 xs:top-24 sm:top-32 right-1/3 w-1 h-1 xs:w-1.5 xs:h-1.5 bg-white rounded-full shadow-[0_0_4px_1px_rgba(255,255,255,0.9)] animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-10 xs:top-12 sm:top-16 right-1/4 w-2 h-2 xs:w-2.5 xs:h-2.5 bg-white rounded-full shadow-[0_0_8px_3px_rgba(255,255,255,0.7)] animate-pulse" style={{ animationDelay: '2s' }}></div>
+                
+                {/* Half Moon - Left Section - Responsive */}
+                <div className="absolute top-1/4 left-4 xs:left-6 sm:left-8 md:left-12 lg:left-16 transform -translate-y-1/2 opacity-70">
+                  {/* Moon glow - Reduced brightness */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 xs:w-24 xs:h-24 sm:w-32 sm:h-32 rounded-full blur-2xl" style={{
+                    background: 'radial-gradient(circle, rgba(255, 255, 220, 0.15), rgba(255, 255, 200, 0.05), transparent)',
+                    pointerEvents: 'none'
+                  }}></div>
+                  {/* Moon body - Reduced brightness */}
+                  <div className="relative w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 rounded-full" style={{
+                    background: 'linear-gradient(135deg, #c0c0c0 0%, #b0b0b0 50%, #a0a0a0 100%)',
+                    boxShadow: '0 0 15px rgba(255, 255, 255, 0.2), inset -20px 0 0 rgba(0, 0, 0, 0.15)',
+                    opacity: 0.8
+                  }}>
+                    {/* Moon shadow (half moon effect) */}
+                    <div className="absolute inset-0 rounded-full" style={{
+                      background: 'radial-gradient(ellipse at 30% 50%, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.4) 40%, transparent 70%)',
+                      clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)'
+                    }}></div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          {/* Unified Lower part with white background */}
+          <div className="absolute inset-0 bg-white" style={{
+            clipPath: 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)'
+          }}></div>
+          {/* Animated Brand Color Orbs */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Primary Blue Orbs */}
+            <div className="absolute top-20 left-10 w-72 h-72 bg-[#2E3DD3] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+            <div className="absolute top-40 right-20 w-96 h-96 bg-[#00AEEF] rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute bottom-40 left-1/4 w-80 h-80 bg-[#F7931E] rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-float" style={{animationDelay: '4s'}}></div>
+            {/* Secondary Accents */}
+            <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-[#00E5FF] rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-float" style={{animationDelay: '1s'}}></div>
+            <div className="absolute bottom-20 right-1/4 w-56 h-56 bg-[#FFC60B] rounded-full mix-blend-multiply filter blur-2xl opacity-12 animate-float" style={{animationDelay: '3s'}}></div>
+          </div>
+          
+          {/* Geometric Pattern Overlay */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, #2E3DD3 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }}></div>
           
           {/* Right Side - Home Structure (swapped from left) */}
-          <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-2 md:pt-5 lg:pt-0 pb-1 md:pb-2 lg:pb-0">
+          <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-4 md:pt-5 lg:pt-0 pb-1 md:pb-2 lg:pb-0">
             
-            {/* Decorative Background with Brand Colors */}
+            {/* Enhanced Decorative Background with Brand Colors - Orange Removed */}
             <div className="absolute inset-0">
-              <div className="absolute top-16 left-8 w-16 h-16 rounded-full blur-xl animate-float" style={{
-                background: 'radial-gradient(circle, rgba(247, 147, 30, 0.15), rgba(247, 147, 30, 0.05))'
-              }}></div>
+              {/* Glassmorphism Orbs - Only Blue/Cyan colors */}
               <div
-                className="absolute top-32 right-16 w-24 h-24 rounded-full blur-xl animate-float"
+                className="absolute top-32 right-16 w-28 h-28 rounded-full blur-2xl animate-float backdrop-blur-sm"
                 style={{ 
                   animationDelay: "2s",
-                  background: 'radial-gradient(circle, rgba(46, 61, 211, 0.15), rgba(46, 61, 211, 0.05))'
+                  background: 'radial-gradient(circle, rgba(46, 61, 211, 0.25), rgba(46, 61, 211, 0.1))',
+                  boxShadow: '0 0 40px rgba(46, 61, 211, 0.3)'
                 }}
               ></div>
               <div
-                className="absolute bottom-32 left-16 w-20 h-20 rounded-full blur-xl animate-float"
+                className="absolute bottom-32 left-16 w-24 h-24 rounded-full blur-2xl animate-float backdrop-blur-sm"
                 style={{ 
                   animationDelay: "4s",
-                  background: 'radial-gradient(circle, rgba(0, 174, 239, 0.15), rgba(0, 174, 239, 0.05))'
+                  background: 'radial-gradient(circle, rgba(0, 174, 239, 0.25), rgba(0, 174, 239, 0.1))',
+                  boxShadow: '0 0 40px rgba(0, 174, 239, 0.3)'
                 }}
               ></div>
-              {/* Additional brand color accents */}
+              {/* Additional brand color accents with glow - Only Blue colors */}
               <div
-                className="absolute top-48 right-8 w-12 h-12 rounded-full blur-lg animate-float"
-                style={{ 
-                  animationDelay: "1s",
-                  background: 'radial-gradient(circle, rgba(247, 147, 30, 0.12), transparent)'
-                }}
-              ></div>
-              <div
-                className="absolute bottom-48 right-32 w-14 h-14 rounded-full blur-lg animate-float"
+                className="absolute bottom-48 right-32 w-18 h-18 rounded-full blur-xl animate-float"
                 style={{ 
                   animationDelay: "3s",
-                  background: 'radial-gradient(circle, rgba(46, 61, 211, 0.12), transparent)'
+                  background: 'radial-gradient(circle, rgba(46, 61, 211, 0.2), transparent)',
+                  boxShadow: '0 0 30px rgba(46, 61, 211, 0.4)'
                 }}
               ></div>
           </div>
 
-             {/* House Container */}
-             <div className="relative mx-auto w-[420px] sm:w-[480px] md:w-[520px] lg:w-[680px] h-[240px] sm:h-[260px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px]">
+             {/* House Container - Responsive */}
+             <div className="relative mx-auto w-[280px] xs:w-[320px] sm:w-[420px] md:w-[520px] lg:w-[680px] h-[160px] xs:h-[180px] sm:h-[240px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2">
 
-               {/* Roof - Brand color gradient */}
-              <div className="relative w-0 h-0 border-l-[240px] sm:border-l-[275px] md:border-l-[300px] lg:border-l-[380px] border-r-[240px] sm:border-r-[275px] md:border-r-[300px] lg:border-r-[380px] border-b-[80px] sm:border-b-[85px] md:border-b-[90px] lg:border-b-[110px] border-l-transparent border-r-transparent" style={{
-                borderBottomColor: 'rgba(247, 147, 30, 0.85)'
+               {/* Roof - Made of thin rods/lines in spiral pattern - Responsive */}
+              <div className="relative w-[280px] xs:w-[320px] sm:w-[480px] md:w-[600px] lg:w-[760px] h-[50px] xs:h-[55px] sm:h-[80px] md:h-[90px] lg:h-[110px]" style={{
+                filter: 'drop-shadow(0 10px 30px rgba(247, 147, 30, 0.4))',
+                transition: 'all 0.3s ease'
               }}>
-                {/* Brand color gradient overlay */}
-               
+                <svg 
+                  className="w-full h-full"
+                  viewBox="0 0 480 80"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    {/* Clip path for triangular roof shape - Traditional house roof (apex at top) */}
+                    <clipPath id="roofClip">
+                      <polygon points="0,80 240,0 480,80" />
+                    </clipPath>
+                  </defs>
+                  
+                  {/* Spiral/radial rods pattern - CBE logo style */}
+                  <g clipPath="url(#roofClip)">
+                    {/* Center point for spiral - positioned at top center (apex) of triangle */}
+                    <g transform="translate(240, 0)">
+                      {/* Main spiral rods radiating from top center - creating wing effect */}
+                      {Array.from({ length: 32 }).map((_, i) => {
+                        const baseAngle = (i * 11.25) - 90; // Start from top, spread downward
+                        const angleRad = (baseAngle * Math.PI) / 180;
+                        // Increased length to extend beyond bottom horizontal frame
+                        const length = 400 + (Math.sin(i * 0.5) * 40);
+                        const x2 = Math.cos(angleRad) * length;
+                        const y2 = Math.sin(angleRad) * length;
+                        return (
+                          <line
+                            key={i}
+                            x1="0"
+                            y1="0"
+                            x2={x2}
+                            y2={y2}
+                            stroke="#F7931E"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            opacity={0.85}
+                          />
+                        );
+                      })}
+                      
+                      {/* Horizontal curved lines - clean, neat, spanning top to bottom */}
+                      {Array.from({ length: 8 }).map((_, i) => {
+                        // Evenly spaced from top (y=0) to bottom (y=80)
+                        const yPos = (i + 1) * 10; // Start from y=10, end at y=80
+                        // Calculate x positions based on triangle shape
+                        // At y position, triangle width = (yPos / 80) * 480
+                        const triangleWidth = (yPos / 80) * 480;
+                        const xStart = -triangleWidth / 2;
+                        const xEnd = triangleWidth / 2;
+                        // Control point for smooth curve (slightly above center)
+                        const controlY = yPos - 2;
+                        const controlX = 0;
+                        // Create smooth curved path
+                        return (
+                          <path
+                            key={`horizontal-${i}`}
+                            d={`M ${xStart} ${yPos} Q ${controlX} ${controlY} ${xEnd} ${yPos}`}
+                            stroke="#F7931E"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            fill="none"
+                            opacity={0.7}
+                          />
+                        );
+                      })}
+                    </g>
+                    
+                    {/* Triangular outline - Traditional house roof (apex at top, base at bottom) */}
+                    <polygon 
+                      points="0,80 240,0 480,80" 
+                      fill="none" 
+                      stroke="#F7931E" 
+                      strokeWidth="4.5"
+                      strokeLinejoin="round"
+                    />
+                  </g>
+                </svg>
               </div>
                   
-                      {/* Walls Section - Narrower than roof */}
-              <div className="relative w-[320px] sm:w-[360px] md:w-[400px] lg:w-[520px] h-[150px] sm:h-[170px] md:h-[190px] lg:h-[240px] flex mx-auto">
+                      {/* Walls Section - Narrower than roof - Responsive */}
+              <div className="relative w-[220px] xs:w-[250px] sm:w-[320px] md:w-[400px] lg:w-[520px] h-[100px] xs:h-[115px] sm:h-[150px] md:h-[190px] lg:h-[240px] flex mx-auto">
 
-                {/* Walls Frame - Single unified frame with brand colors */}
-                <div className="w-full backdrop-blur-sm border-l-[6px] border-r-[6px] shadow-[0_30px_60px_rgba(46,61,211,0.25)] rounded-xl relative overflow-hidden" style={{
-                  background: 'linear-gradient(to bottom, rgba(255, 245, 235, 0.95), rgba(255, 235, 220, 0.9), rgba(230, 240, 255, 0.95))',
-                  borderLeftColor: 'rgba(46, 61, 211, 0.6)',
-                  borderRightColor: 'rgba(247, 147, 30, 0.6)'
+                {/* Walls Frame - Enhanced glassmorphism with brand colors */}
+                <div className="w-full backdrop-blur-md border-l-[6px] border-r-[6px] rounded-xl relative overflow-hidden shadow-2xl" style={{
+                  background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 250, 245, 0.92), rgba(240, 248, 255, 0.95))',
+                  borderLeftColor: '#F7931E',
+                  borderRightColor: '#F7931E',
+                  boxShadow: '0 30px 60px rgba(46, 61, 211, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
                 }}>
+                  {/* Static gradient overlay - animation removed */}
                   <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(135deg, rgba(247, 147, 30, 0.15) 0%, rgba(255, 255, 255, 0.5) 50%, rgba(46, 61, 211, 0.15) 100%)'
+                    background: 'linear-gradient(135deg, rgba(247, 147, 30, 0.12) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(46, 61, 211, 0.12) 100%)'
                   }}></div>
-                  {/* Subtle brand color pattern overlay */}
-                  <div className="absolute inset-0 opacity-20" style={{
-                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(247, 147, 30, 0.05) 10px, rgba(247, 147, 30, 0.05) 20px, transparent 20px, transparent 30px, rgba(46, 61, 211, 0.05) 30px, rgba(46, 61, 211, 0.05) 40px)'
+                  {/* Enhanced brand color pattern overlay */}
+                  <div className="absolute inset-0 opacity-15" style={{
+                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(247, 147, 30, 0.08) 12px, rgba(247, 147, 30, 0.08) 24px, transparent 24px, transparent 36px, rgba(46, 61, 211, 0.08) 36px, rgba(46, 61, 211, 0.08) 48px)'
                   }}></div>
+                  {/* Glow effect */}
+                  <div className="absolute -inset-1 bg-gradient-to-r from-[#2E3DD3] via-[#F7931E] to-[#00AEEF] rounded-xl blur opacity-20 -z-10"></div>
                 </div>
-                <div className="absolute top-2 -right-14 w-14 h-[86%] border-l rounded-r-xl transform skew-y-6 origin-top shadow-[18px_22px_45px_rgba(46,61,211,0.3)]" style={{
-                  background: 'linear-gradient(to bottom, rgba(247, 147, 30, 0.7), rgba(255, 200, 150, 0.8), rgba(46, 61, 211, 0.7))',
-                  borderLeftColor: 'rgba(46, 61, 211, 0.4)'
+                <div className="absolute top-2 -right-14 w-14 h-[86%] border-l rounded-r-xl transform skew-y-6 origin-top" style={{
+                  background: 'linear-gradient(to bottom, #F7931E, rgba(255, 200, 150, 0.9), #2E3DD3)',
+                  borderLeftColor: '#2E3DD3',
+                  boxShadow: '18px 22px 45px rgba(46, 61, 211, 0.4), 0 0 20px rgba(247, 147, 30, 0.3)',
+                  filter: 'drop-shadow(0 0 10px rgba(0, 174, 239, 0.2))'
                 }}></div>
-                <div className="absolute top-[16%] -right-24 w-16 h-[72%] border-l rounded-r-lg transform skew-y-6 origin-top blur-[1px] opacity-75" style={{
-                  background: 'linear-gradient(to bottom, rgba(247, 147, 30, 0.5), rgba(255, 230, 200, 0.6), rgba(46, 61, 211, 0.5))',
-                  borderLeftColor: 'rgba(46, 61, 211, 0.25)'
+                <div className="absolute top-[16%] -right-24 w-16 h-[72%] border-l rounded-r-lg transform skew-y-6 origin-top blur-[1px] opacity-80" style={{
+                  background: 'linear-gradient(to bottom, rgba(247, 147, 30, 0.6), rgba(255, 230, 200, 0.7), rgba(46, 61, 211, 0.6))',
+                  borderLeftColor: 'rgba(46, 61, 211, 0.3)',
+                  boxShadow: '0 0 15px rgba(0, 174, 239, 0.2)'
                 }}></div>
                </div>
                 
-               {/* Heading centered in walls */}
-               <div className="absolute top-[110px] sm:top-[118px] md:top-[130px] lg:top-[170px] left-1/2 transform -translate-x-1/2 w-[320px] sm:w-[360px] md:w-[400px] lg:w-[520px] text-center px-3">
-                 <h1 className="text-blue-700 text-lg sm:text-xl md:text-2xl lg:text-4xl font-bold drop-shadow-[0_12px_20px_rgba(0,0,0,0.25)] animate-text-glow leading-tight">
+               {/* Heading centered in walls - Brand blue color - Responsive */}
+               <div className="absolute top-[70px] xs:top-[75px] sm:top-[110px] md:top-[130px] lg:top-[170px] left-1/2 transform -translate-x-1/2 w-[220px] xs:w-[250px] sm:w-[320px] md:w-[400px] lg:w-[520px] text-center px-2 xs:px-3">
+                 <h1 className="text-xs xs:text-sm sm:text-lg md:text-2xl lg:text-4xl font-bold leading-tight" style={{
+                   color: '#2E3DD3',
+                   filter: 'drop-shadow(0 4px 8px rgba(46, 61, 211, 0.3))',
+                   textShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+                 }}>
                     Home Services, Redefined & Delivered
                   </h1>
                </div>
 
-              {/* Call-to-Action Button */}
-               <div className="absolute top-[190px] sm:top-[205px] md:top-[220px] lg:top-[285px] left-1/2 transform -translate-x-1/2 w-[320px] sm:w-[360px] md:w-[400px] lg:w-[520px] px-4">
+              {/* Call-to-Action Button - Enhanced with brand colors - Responsive */}
+               <div className="absolute top-[130px] xs:top-[140px] sm:top-[190px] md:top-[220px] lg:top-[285px] left-1/2 transform -translate-x-1/2 w-[220px] xs:w-[250px] sm:w-[320px] md:w-[400px] lg:w-[520px] px-2 xs:px-4">
                 <div className="flex justify-center">
                   <button 
                     onClick={() => navigate('/signup')}
-                    className="group relative bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-3 sm:px-4 md:px-4 lg:px-5 py-1.5 sm:py-2 md:py-2.5 lg:py-3 rounded-full font-bold text-xs sm:text-sm md:text-sm lg:text-base shadow-md hover:shadow-lg transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 animate-button-bounce overflow-hidden border-2 border-blue-500 w-full max-w-[260px]">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
+                    className="group relative px-3 xs:px-3 sm:px-4 md:px-4 lg:px-5 py-2 xs:py-2 sm:py-2 md:py-2.5 lg:py-3 rounded-full font-bold text-[10px] xs:text-xs sm:text-sm md:text-sm lg:text-base transition-all duration-500 transform hover:scale-110 hover:-translate-y-1 overflow-hidden border-2 w-full max-w-[200px] xs:max-w-[220px] sm:max-w-[260px] text-white"
+                    style={{
+                      backgroundColor: '#2E3DD3',
+                      color: '#FFFFFF',
+                      boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4), 0 0 0 0 rgba(46, 61, 211, 0.3)',
+                      borderColor: 'rgba(255, 255, 255, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1e2db8';
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5), 0 0 20px rgba(46, 61, 211, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#2E3DD3';
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4), 0 0 0 0 rgba(46, 61, 211, 0.3)';
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
+                    }}></div>
                     <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
                       Become a Provider
                     </span>
-                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-full"></div>
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full"></div>
                   </button>
                 </div>
                </div>
@@ -322,38 +522,59 @@ const Home = () => {
              </div>
           </div>
 
-          {/* Left Side - Services Navigation (swapped from right) */}
-          <div className="relative w-full lg:w-[41.67%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-1 md:pt-2 lg:pt-0 pb-1 md:pb-5 lg:pb-0">
+          {/* Left Side - Services Navigation (swapped from right) - Responsive */}
+          <div className="relative w-full lg:w-[41.67%] min-h-[40vh] xs:min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-2 xs:pt-2 md:pt-2 lg:pt-0 pb-3 xs:pb-4 md:pb-5 lg:pb-0">
             
-            {/* Animated Grid Background */}
-            <div className="absolute inset-0 opacity-20">
+            {/* Enhanced Animated Grid Background with Brand Colors */}
+            <div className="absolute inset-0 opacity-15 z-10">
               <div className="absolute inset-0" style={{
-                backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.1) 1px, transparent 1px)`,
-                backgroundSize: '50px 50px',
+                backgroundImage: `linear-gradient(rgba(46, 61, 211, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 174, 239, 0.15) 1px, transparent 1px)`,
+                backgroundSize: '30px 30px',
               }}></div>
             </div>
 
-            {/* Floating Orbs */}
-            <div className="absolute inset-0">
-              <div className="absolute top-20 right-10 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute bottom-20 left-10 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-              <div className="absolute top-1/2 left-1/4 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+            {/* Enhanced Floating Orbs with Brand Colors */}
+            <div className="absolute inset-0 z-10">
+              <div className="absolute top-20 right-10 w-32 h-32 rounded-full blur-3xl animate-float" style={{
+                background: 'radial-gradient(circle, rgba(46, 61, 211, 0.2), rgba(46, 61, 211, 0.05))',
+                boxShadow: '0 0 40px rgba(46, 61, 211, 0.3)'
+              }}></div>
+              <div className="absolute bottom-20 left-10 w-40 h-40 rounded-full blur-3xl animate-float" style={{
+                animationDelay: '2s',
+                background: 'radial-gradient(circle, rgba(0, 174, 239, 0.2), rgba(0, 174, 239, 0.05))',
+                boxShadow: '0 0 40px rgba(0, 174, 239, 0.3)'
+              }}></div>
+              <div className="absolute top-1/2 left-1/4 w-36 h-36 rounded-full blur-3xl animate-float" style={{
+                animationDelay: '4s',
+                background: 'radial-gradient(circle, rgba(247, 147, 30, 0.15), rgba(247, 147, 30, 0.05))',
+                boxShadow: '0 0 40px rgba(247, 147, 30, 0.25)'
+              }}></div>
+              <div className="absolute bottom-1/3 right-1/4 w-28 h-28 rounded-full blur-2xl animate-float" style={{
+                animationDelay: '1s',
+                background: 'radial-gradient(circle, rgba(0, 229, 255, 0.15), transparent)',
+                boxShadow: '0 0 30px rgba(0, 229, 255, 0.2)'
+              }}></div>
             </div>
 
-            {/* Services Menu */}
-            <div className="relative z-10 w-full h-full flex flex-col items-center lg:items-start justify-center px-4 sm:px-5 lg:px-6">
-              {/* Header */}
-              <div className="mb-3 sm:mb-4 lg:mb-5 w-full text-center lg:text-left">
-                <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-2xl xl:text-3xl font-bold text-gray-900 mb-1.5 tracking-tight">
+            {/* Services Menu - Responsive */}
+            <div className="relative z-20 w-full h-full flex flex-col items-center lg:items-start justify-center px-3 xs:px-4 sm:px-5 lg:px-6">
+              {/* Enhanced Header with Brand Colors - Responsive */}
+              <div className="mb-2 xs:mb-3 sm:mb-4 lg:mb-5 w-full text-center lg:text-left">
+                <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-1 xs:mb-1.5 tracking-tight" style={{
+                  background: 'linear-gradient(135deg, #2E3DD3 0%, #00AEEF 50%, #F7931E 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
                   Our Services
                 </h2>
-                <p className="text-gray-600 text-[10px] sm:text-xs lg:text-sm">
+                <p className="text-gray-700 text-[9px] xs:text-[10px] sm:text-xs lg:text-sm font-medium">
                   Choose a category to explore
                 </p>
               </div>
               
-              {/* Category Grid */}
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:gap-2.5 w-full max-w-full">
+              {/* Category Grid - Responsive */}
+              <div className="grid grid-cols-3 gap-1 xs:gap-1.5 sm:gap-2 lg:gap-2.5 w-full max-w-full">
                 {serviceCategories.map((category, index) => {
                   const IconComponent = category.icon;
                   return (
@@ -362,17 +583,40 @@ const Home = () => {
                       onClick={() => handleCategoryClick(index)}
                       className="group relative cursor-pointer transition-all duration-300 transform hover:scale-105"
                     >
-                      {/* Category Card */}
-                      <div className={`relative overflow-hidden rounded-lg p-1.5 sm:p-2 lg:p-2.5 xl:p-3 transition-all duration-300 border-2 border-gray-200 hover:border-blue-500 ${category.bgColor} ${category.hoverBg} shadow-md hover:shadow-xl h-full flex flex-col`}>
-                        {/* Icon */}
-                        <div className="flex flex-col items-center justify-center text-center space-y-1 sm:space-y-1.5 flex-1">
-                          <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-lg flex items-center justify-center transition-all duration-300 ${category.bgColor} group-hover:scale-110`}>
-                            <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5 xl:w-6 xl:h-6 ${category.iconColor}`} />
+                      {/* Enhanced Category Card with Brand Colors - Responsive */}
+                      <div className={`relative overflow-hidden rounded-lg xs:rounded-xl p-1 xs:p-1.5 sm:p-2 lg:p-2.5 xl:p-3 transition-all duration-300 border-2 h-full flex flex-col backdrop-blur-sm group-hover:scale-105`}
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 250, 245, 0.9))',
+                          borderColor: 'rgba(46, 61, 211, 0.2)',
+                          boxShadow: '0 4px 15px rgba(46, 61, 211, 0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#2E3DD3';
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.25), 0 0 0 3px rgba(247, 147, 30, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'rgba(46, 61, 211, 0.2)';
+                          e.currentTarget.style.boxShadow = '0 4px 15px rgba(46, 61, 211, 0.1)';
+                        }}
+                      >
+                        {/* Gradient overlay on hover */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{
+                          background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.05), rgba(0, 174, 239, 0.05), rgba(247, 147, 30, 0.05))'
+                        }}></div>
+                        {/* Icon - Responsive */}
+                        <div className="flex flex-col items-center justify-center text-center space-y-0.5 xs:space-y-1 sm:space-y-1.5 flex-1 relative z-10">
+                          <div className="w-6 h-6 xs:w-8 xs:h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-lg xs:rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{
+                            background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.1), rgba(0, 174, 239, 0.1), rgba(247, 147, 30, 0.1))',
+                            boxShadow: '0 4px 15px rgba(46, 61, 211, 0.15)'
+                          }}>
+                            <IconComponent className={`w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5 xl:w-6 xl:h-6`} style={{
+                              color: '#2E3DD3'
+                            }} />
                           </div>
-                          <h3 className="font-bold text-[7px] sm:text-[9px] lg:text-[10px] xl:text-xs text-gray-800 group-hover:text-gray-900 transition-colors leading-tight">
+                          <h3 className="font-bold text-[6px] xs:text-[7px] sm:text-[9px] lg:text-[10px] xl:text-xs text-gray-800 group-hover:text-[#2E3DD3] transition-colors leading-tight px-0.5">
                             {category.name}
                           </h3>
-                          <p className="text-[6px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-500">
+                          <p className="text-[5px] xs:text-[6px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-600 font-medium">
                             {category.services.length} services
                           </p>
                         </div>
