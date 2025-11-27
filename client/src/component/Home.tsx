@@ -247,7 +247,7 @@ const Home = () => {
             className="absolute inset-0" 
                 style={{ 
               clipPath: isMobile 
-                ? 'polygon(0 0, 100% 0, 100% 35%, 0 35%)'
+                ? 'polygon(0 0, 100% 0, 100% 28%, 0 28%)'
                 : 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
               transition: 'background 2s ease-in-out, clip-path 0.3s ease-in-out',
               background: isNightMode 
@@ -319,7 +319,7 @@ const Home = () => {
           {/* Unified Lower part with white background */}
           <div className="absolute inset-0 bg-white" style={{
             clipPath: isMobile 
-              ? 'polygon(0 35%, 100% 35%, 100% 100%, 0 100%)'
+              ? 'polygon(0 28%, 100% 28%, 100% 100%, 0 100%)'
               : 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)'
           }}></div>
           {/* Animated Brand Color Orbs - Reduced for right side */}
@@ -639,18 +639,39 @@ const Home = () => {
                 </p>
               </div>
               
-              {/* Category Grid - Responsive */}
-              <div className="grid grid-cols-3 gap-1 xs:gap-1.5 sm:gap-2 lg:gap-2.5 w-full max-w-full">
+              {/* Category Grid - Responsive - Pattern: 1, 3, 2 on mobile, 3x2 on desktop */}
+              <div className="grid grid-cols-3 gap-2 xs:gap-2.5 sm:gap-2 lg:gap-2.5 w-full max-w-full">
                 {serviceCategories.map((category, index) => {
                   const IconComponent = category.icon;
+                  // Mobile pattern: first item spans 3 columns (1 service), items 2-4 normal (3 services), items 5-6 (2 services balanced)
+                  // Desktop: all items span 1 column (3x2 grid)
+                  let colSpan = '';
+                  let colStart = '';
+                  
+                  if (index === 0) {
+                    // Mobile: First row: 1 service (full width), Desktop: normal 1 column
+                    colSpan = 'col-span-3 sm:col-span-1';
+                  } else if (index >= 1 && index <= 3) {
+                    // Second row: 3 services (1 column each) - same for all screens
+                    colSpan = 'col-span-1';
+                  } else if (index === 4) {
+                    // Mobile: Third row: first of 2 services, Desktop: normal 1 column
+                    colSpan = 'col-span-1';
+                    colStart = 'col-start-1 sm:col-start-auto';
+                  } else if (index === 5) {
+                    // Mobile: Third row: second of 2 services, Desktop: normal 1 column
+                    colSpan = 'col-span-1';
+                    colStart = 'col-start-3 sm:col-start-auto';
+                  }
+                  
                   return (
                     <div
                       key={category.name}
                       onClick={() => handleCategoryClick(index)}
-                      className="group relative cursor-pointer transition-all duration-300 transform hover:scale-105"
+                      className={`group relative cursor-pointer transition-all duration-300 transform hover:scale-105 ${colSpan} ${colStart}`}
                     >
-                      {/* Enhanced Category Card with Brand Colors - Responsive */}
-                      <div className={`relative overflow-hidden rounded-lg xs:rounded-xl p-1 xs:p-1.5 sm:p-2 lg:p-2.5 xl:p-3 transition-all duration-300 border-2 h-full flex flex-col backdrop-blur-sm group-hover:scale-105`}
+                      {/* Enhanced Category Card with Brand Colors - Responsive - Increased size for mobile */}
+                      <div className={`relative overflow-hidden rounded-lg xs:rounded-xl p-2 xs:p-2.5 sm:p-2 lg:p-2.5 xl:p-3 transition-all duration-300 border-2 h-full flex flex-col backdrop-blur-sm group-hover:scale-105`}
                         style={{
                           background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 250, 245, 0.9))',
                           borderColor: 'rgba(46, 61, 211, 0.2)',
@@ -669,20 +690,20 @@ const Home = () => {
                         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{
                           background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.05), rgba(0, 174, 239, 0.05), rgba(247, 147, 30, 0.05))'
                         }}></div>
-                        {/* Icon - Responsive */}
-                        <div className="flex flex-col items-center justify-center text-center space-y-0.5 xs:space-y-1 sm:space-y-1.5 flex-1 relative z-10">
-                          <div className="w-6 h-6 xs:w-8 xs:h-8 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-lg xs:rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{
+                        {/* Icon - Responsive - Increased size for mobile */}
+                        <div className="flex flex-col items-center justify-center text-center space-y-1 xs:space-y-1.5 sm:space-y-1.5 flex-1 relative z-10">
+                          <div className="w-10 h-10 xs:w-12 xs:h-12 sm:w-10 sm:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-lg xs:rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style={{
                             background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.1), rgba(0, 174, 239, 0.1), rgba(247, 147, 30, 0.1))',
                             boxShadow: '0 4px 15px rgba(46, 61, 211, 0.15)'
                           }}>
-                            <IconComponent className={`w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5 xl:w-6 xl:h-6`} style={{
+                            <IconComponent className={`w-5 h-5 xs:w-6 xs:h-6 sm:w-5 sm:h-5 lg:w-5 lg:h-5 xl:w-6 xl:h-6`} style={{
                               color: '#2E3DD3'
                             }} />
                           </div>
-                          <h3 className="font-bold text-[6px] xs:text-[7px] sm:text-[9px] lg:text-[10px] xl:text-xs text-gray-800 group-hover:text-[#2E3DD3] transition-colors leading-tight px-0.5">
+                          <h3 className="font-bold text-[9px] xs:text-[10px] sm:text-[9px] lg:text-[10px] xl:text-xs text-gray-800 group-hover:text-[#2E3DD3] transition-colors leading-tight px-0.5">
                             {category.name}
                           </h3>
-                          <p className="text-[5px] xs:text-[6px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-600 font-medium">
+                          <p className="text-[7px] xs:text-[8px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-600 font-medium">
                             {category.services.length} services
                           </p>
                         </div>
