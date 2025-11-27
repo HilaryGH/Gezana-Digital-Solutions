@@ -43,6 +43,8 @@ import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
 import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
+import InvestPartnerPage from "./component/Pages/InvestPartnerPage";
+import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
 import AuthSuccess from "./component/AuthSuccess";
@@ -99,6 +101,8 @@ const noNavbarRoutes = [
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/community" element={<CommunityPage />} />
+        <Route path="/invest-partner" element={<InvestPartnerPage />} />
+        <Route path="/membership-plans" element={<PremiumMembershipPage />} />
         <Route path="/support" element={<SupportForm />} />
         <Route path="/diaspora" element={<DiasporaCommunityForm />} />
         <Route path="/login" element={<LoginPage />} />

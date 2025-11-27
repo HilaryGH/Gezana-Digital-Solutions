@@ -188,54 +188,6 @@ const Home = () => {
   return (
     <>
       <section className="w-full flex flex-col pt-20 relative overflow-hidden">
-        {/* Sky Clouds at the Top - Positioned below navbar - Enhanced Visibility */}
-        <div className="absolute top-0 left-0 w-full h-96 z-0 pointer-events-none" style={{ overflow: 'visible' }}>
-          {/* Cloud 1 - Left Side */}
-          <div className="absolute animate-float" style={{ top: '100px', left: '40px', animationDelay: '0s', zIndex: 1 }}>
-            <div className="relative" style={{ width: '140px', height: '80px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '50px', height: '50px', top: '0px', left: '0px', opacity: 0.95 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '60px', height: '60px', top: '10px', left: '30px', opacity: 1 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '45px', height: '45px', top: '15px', left: '70px', opacity: 0.97 }}></div>
-            </div>
-          </div>
-          
-          {/* Cloud 2 - Center Left */}
-          <div className="absolute animate-float" style={{ top: '120px', left: '25%', animationDelay: '1s', zIndex: 1 }}>
-            <div className="relative" style={{ width: '160px', height: '90px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '55px', height: '55px', top: '0px', left: '0px', opacity: 0.98 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '70px', height: '70px', top: '15px', left: '35px', opacity: 1 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '50px', height: '50px', top: '20px', left: '85px', opacity: 0.96 }}></div>
-            </div>
-          </div>
-          
-          {/* Cloud 5 - Right Side */}
-          <div className="absolute animate-float" style={{ top: '115px', right: '40px', animationDelay: '2.5s', zIndex: 1 }}>
-            <div className="relative" style={{ width: '155px', height: '88px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '54px', height: '54px', top: '0px', left: '0px', opacity: 0.98 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '68px', height: '68px', top: '13px', left: '33px', opacity: 1 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '49px', height: '49px', top: '19px', left: '82px', opacity: 0.96 }}></div>
-            </div>
-          </div>
-          
-          {/* Cloud 6 - Far Left */}
-          <div className="absolute animate-float" style={{ top: '140px', left: '8%', animationDelay: '3s', zIndex: 1 }}>
-            <div className="relative" style={{ width: '130px', height: '75px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '45px', height: '45px', top: '0px', left: '0px', opacity: 0.95 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '58px', height: '58px', top: '8px', left: '28px', opacity: 0.99 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '42px', height: '42px', top: '14px', left: '70px', opacity: 0.93 }}></div>
-            </div>
-          </div>
-          
-          {/* Cloud 7 - Far Right */}
-          <div className="absolute animate-float" style={{ top: '125px', right: '8%', animationDelay: '0.5s', zIndex: 1 }}>
-            <div className="relative" style={{ width: '135px', height: '78px' }}>
-              <div className="absolute rounded-full bg-white" style={{ width: '47px', height: '47px', top: '0px', left: '0px', opacity: 0.97 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '60px', height: '60px', top: '9px', left: '29px', opacity: 1 }}></div>
-              <div className="absolute rounded-full bg-white" style={{ width: '44px', height: '44px', top: '15px', left: '72px', opacity: 0.95 }}></div>
-            </div>
-          </div>
-        </div>
-        
         {/* Hero Section - Split Left and Right */}
         <div 
           className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden z-10"
@@ -250,18 +202,16 @@ const Home = () => {
                 ? 'polygon(0 0, 100% 0, 100% 28%, 0 28%)'
                 : 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
               transition: 'background 2s ease-in-out, clip-path 0.3s ease-in-out',
-              background: isNightMode 
-                ? (isMobile
-                  ? 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 25%, #16213e 45%, #0f1419 65%, #0a0a1a 85%, #000000 100%)'
-                  : 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 20%, #16213e 40%, #0f1419 60%, #0a0a1a 80%, #000000 100%)')
-                : (isMobile
-                  ? 'linear-gradient(to bottom, #87CEEB 0%, #5BA3D0 25%, #4A90C2 45%, #3A7DB4 65%, #2E6BA6 85%, #2e3dd3 100%)'
+              background: isMobile 
+                ? 'transparent'
+                : (isNightMode 
+                  ? 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 20%, #16213e 40%, #0f1419 60%, #0a0a1a 80%, #000000 100%)'
                   : 'linear-gradient(to bottom, #87CEEB 0%, #5BA3D0 20%, #4A90C2 40%, #3A7DB4 60%, #2E6BA6 80%, #2e3dd3 100%)'),
               opacity: 1
             }}
           >
-            {/* Day Mode - Sunlight Effect */}
-            {!isNightMode && (
+            {/* Day Mode - Sunlight Effect - Hidden on mobile */}
+            {!isNightMode && !isMobile && (
               <>
                 {/* Sunlight Effect - Radial gradient in the center */}
                 <div className="absolute inset-0 flex items-center justify-center" style={{
@@ -285,8 +235,8 @@ const Home = () => {
               </>
             )}
             
-            {/* Night Mode - Stars and Moon */}
-            {isNightMode && (
+            {/* Night Mode - Stars and Moon - Hidden on mobile */}
+            {isNightMode && !isMobile && (
               <>
                 {/* Stars - Responsive */}
                 <div className="absolute top-12 xs:top-16 sm:top-20 left-1/4 w-1.5 h-1.5 xs:w-2 xs:h-2 bg-white rounded-full shadow-[0_0_6px_2px_rgba(255,255,255,0.8)] animate-pulse" style={{ animationDelay: '0s' }}></div>
@@ -317,12 +267,14 @@ const Home = () => {
             )}
           </div>
           {/* Unified Lower part with white background */}
-          <div className="absolute inset-0 bg-white" style={{
+          <div className="absolute inset-0" style={{
+            backgroundColor: isMobile ? 'transparent' : 'white',
             clipPath: isMobile 
               ? 'polygon(0 28%, 100% 28%, 100% 100%, 0 100%)'
               : 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)'
           }}></div>
-          {/* Animated Brand Color Orbs - Reduced for right side */}
+          {/* Animated Brand Color Orbs - Reduced for right side - Hidden on mobile */}
+          {!isMobile && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {/* Primary Blue Orbs - Only left side */}
             <div className="absolute top-20 left-10 w-72 h-72 bg-[#2E3DD3] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
@@ -330,14 +282,180 @@ const Home = () => {
             {/* Secondary Accents - Only left side */}
             <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-[#00E5FF] rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-float" style={{animationDelay: '1s'}}></div>
           </div>
+          )}
 
           {/* Geometric Pattern Overlay - Removed for cleaner look */}
           
           {/* Right Side - Home Structure (swapped from left) - Reduced margins for mobile */}
           <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-0 xs:pt-0 sm:pt-2 md:pt-5 lg:pt-0 pb-0 xs:pb-0 sm:pb-1 md:pb-2 lg:pb-0">
 
-             {/* House Container - Responsive - Increased size for mobile */}
-             <div className="relative mx-auto w-[420px] xs:w-[460px] sm:w-[480px] md:w-[520px] lg:w-[680px] h-[240px] xs:h-[260px] sm:h-[260px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2" style={{
+            {/* Mobile House Structure - Only visible on mobile */}
+            {isMobile && (
+              <div className="w-full h-full flex flex-col items-center justify-center px-4 py-6">
+                {/* House Container */}
+                <div className="relative w-full max-w-sm flex flex-col items-center justify-center" style={{ perspective: '1000px' }}>
+                  
+                  {/* Roof Section - Two diagonal images forming /\ peak */}
+                  <div className="relative w-full flex items-start justify-center mb-0" style={{ height: '140px', overflow: 'hidden' }}>
+                    {/* Left Roof Panel - Diagonal sloping down from center */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '140px',
+                        transform: 'skewY(-15deg)',
+                        transformOrigin: 'bottom right',
+                        borderTop: '1px solid #2E3DD3',
+                        borderLeft: '1px solid #2E3DD3',
+                        borderBottom: 'none',
+                        borderRight: 'none',
+                        borderTopLeftRadius: '8px',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0"
+                        style={{
+                          transform: 'skewY(15deg)',
+                          backgroundImage: 'url(/wrench.png)',
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                          opacity: 0.3
+                        }}
+                      ></div>
+                    </div>
+
+                    {/* Right Roof Panel - Diagonal sloping down from center */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '140px',
+                        transform: 'skewY(15deg)',
+                        transformOrigin: 'bottom left',
+                        borderTop: '1px solid #2E3DD3',
+                        borderRight: '1px solid #2E3DD3',
+                        borderBottom: 'none',
+                        borderLeft: 'none',
+                        borderTopRightRadius: '8px',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0"
+                        style={{
+                          transform: 'skewY(-15deg)',
+                          backgroundImage: 'url(/broom.png)',
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                          opacity: 0.3
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Walls Section - Two vertical images */}
+                  <div className="relative w-full flex items-start justify-center" style={{ height: '160px' }}>
+                    {/* Left Wall */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '100%',
+                        borderTop: 'none',
+                        borderLeft: '1px solid #2E3DD3',
+                        borderBottom: '1px solid #2E3DD3',
+                        borderRight: 'none',
+                        borderBottomLeftRadius: '8px',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: 'url(/bell-boy.png)',
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                          opacity: 0.3,
+                          padding: '2px 16px'
+                        }}
+                      ></div>
+                    </div>
+
+                    {/* Right Wall */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '100%',
+                        borderTop: 'none',
+                        borderRight: '1px solid #2E3DD3',
+                        borderBottom: '1px solid #2E3DD3',
+                        borderLeft: 'none',
+                        borderBottomRightRadius: '8px',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: 'url(/yoga.png)',
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                          opacity: 0.3,
+                          padding: '2px 16px'
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Heading centered in images */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] text-center px-2 z-20">
+                    <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold leading-tight" style={{
+                      color: '#2E3DD3',
+                      textShadow: '2px 2px 4px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8)'
+                    }}>
+                      Home Services, Redefined & Delivered
+                    </h1>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="w-full max-w-xs mt-6">
+                    <button 
+                      onClick={() => navigate('/signup')}
+                      className="w-full group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
+                      style={{
+                        background: 'linear-gradient(135deg, #2E3DD3 0%, #00AEEF 50%, #F7931E 100%)',
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                        boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <span className="relative z-10 flex items-center justify-center">
+                        Become a Provider
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+             {/* House Container - Responsive - Hidden on mobile, visible on desktop */}
+             <div className={`relative mx-auto w-[420px] xs:w-[460px] sm:w-[480px] md:w-[520px] lg:w-[680px] h-[240px] xs:h-[260px] sm:h-[260px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2 ${isMobile ? 'hidden' : ''}`} style={{
                gap: '0',
                lineHeight: '0'
              }}>
@@ -639,36 +757,16 @@ const Home = () => {
                 </p>
               </div>
               
-              {/* Category Grid - Responsive - Pattern: 1, 3, 2 on mobile, 3x2 on desktop */}
+              {/* Category Grid - Responsive - 3 columns, 2 rows on all screens */}
               <div className="grid grid-cols-3 gap-2 xs:gap-2.5 sm:gap-2 lg:gap-2.5 w-full max-w-full">
                 {serviceCategories.map((category, index) => {
                   const IconComponent = category.icon;
-                  // Mobile pattern: first item spans 3 columns (1 service), items 2-4 normal (3 services), items 5-6 (2 services balanced)
-                  // Desktop: all items span 1 column (3x2 grid)
-                  let colSpan = '';
-                  let colStart = '';
-                  
-                  if (index === 0) {
-                    // Mobile: First row: 1 service (full width), Desktop: normal 1 column
-                    colSpan = 'col-span-3 sm:col-span-1';
-                  } else if (index >= 1 && index <= 3) {
-                    // Second row: 3 services (1 column each) - same for all screens
-                    colSpan = 'col-span-1';
-                  } else if (index === 4) {
-                    // Mobile: Third row: first of 2 services, Desktop: normal 1 column
-                    colSpan = 'col-span-1';
-                    colStart = 'col-start-1 sm:col-start-auto';
-                  } else if (index === 5) {
-                    // Mobile: Third row: second of 2 services, Desktop: normal 1 column
-                    colSpan = 'col-span-1';
-                    colStart = 'col-start-3 sm:col-start-auto';
-                  }
                   
                   return (
                     <div
                       key={category.name}
                       onClick={() => handleCategoryClick(index)}
-                      className={`group relative cursor-pointer transition-all duration-300 transform hover:scale-105 ${colSpan} ${colStart}`}
+                      className="group relative cursor-pointer transition-all duration-300 transform hover:scale-105 col-span-1"
                     >
                       {/* Enhanced Category Card with Brand Colors - Responsive - Increased size for mobile */}
                       <div className={`relative overflow-hidden rounded-lg xs:rounded-xl p-2 xs:p-2.5 sm:p-2 lg:p-2.5 xl:p-3 transition-all duration-300 border-2 h-full flex flex-col backdrop-blur-sm group-hover:scale-105`}
@@ -1142,6 +1240,41 @@ const Home = () => {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Build Your Reputation</h3>
                 <p className="text-gray-600 text-sm">
                   Earn reviews, build your profile, and establish yourself as a trusted service provider.
+                </p>
+              </div>
+
+              {/* Feature 4 - Premium Community Membership */}
+              <div 
+                onClick={() => {
+                  // Navigate to membership section or page
+                  navigate('/membership-plans');
+                }}
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Premium Community Membership</h3>
+                <p className="text-gray-600 text-sm">
+                  Unlock exclusive access to premium services, priority booking, and advanced platform features.
+                </p>
+              </div>
+
+              {/* Feature 5 - Invest / Partner With Us */}
+              <div 
+                onClick={() => navigate('/invest-partner')}
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Invest / Partner With Us</h3>
+                <p className="text-gray-600 text-sm">
+                  Explore investment opportunities and strategic partnerships to grow with HomeHub.
                 </p>
               </div>
             </div>
