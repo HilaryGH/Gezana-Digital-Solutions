@@ -84,6 +84,7 @@ const Home = () => {
   const [loadingCategoryServices, setLoadingCategoryServices] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [imageRotationIndex, setImageRotationIndex] = useState(0);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -111,6 +112,15 @@ const Home = () => {
     }, 6000);
     return () => clearInterval(interval);
   }, []);
+
+  // Rotate images in mobile view every 3 seconds
+  useEffect(() => {
+    if (!isMobile) return;
+    const interval = setInterval(() => {
+      setImageRotationIndex(prev => (prev + 1) % 4);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isMobile]);
 
   // Fetch recently added services
   useEffect(() => {
@@ -290,169 +300,183 @@ const Home = () => {
           <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-0 xs:pt-0 sm:pt-2 md:pt-5 lg:pt-0 pb-0 xs:pb-0 sm:pb-1 md:pb-2 lg:pb-0">
 
             {/* Mobile House Structure - Only visible on mobile */}
-            {isMobile && (
-              <div className="w-full h-full flex flex-col items-center justify-center px-4 py-6">
-                {/* House Container */}
-                <div className="relative w-full max-w-sm flex flex-col items-center justify-center" style={{ perspective: '1000px' }}>
-                  
-                  {/* Roof Section - Two diagonal images forming /\ peak */}
-                  <div className="relative w-full flex items-start justify-center mb-0" style={{ height: '140px', overflow: 'hidden' }}>
-                    {/* Left Roof Panel - Diagonal sloping down from center */}
-                    <div 
-                      className="relative"
-                      style={{
-                        width: '50%',
-                        height: '140px',
-                        transform: 'skewY(-15deg)',
-                        transformOrigin: 'bottom right',
-                        borderTop: '1px solid #2E3DD3',
-                        borderLeft: '1px solid #2E3DD3',
-                        borderBottom: 'none',
-                        borderRight: 'none',
-                        borderTopLeftRadius: '8px',
-                        overflow: 'hidden',
-                        background: 'transparent'
-                      }}
-                    >
+            {isMobile && (() => {
+              // Image rotation combinations: [roofLeft, roofRight, wallLeft, wallRight]
+              const imageSets = [
+                ['/wrench.png', '/broom.png', '/bell-boy.png', '/yoga.png'],
+                ['/broom.png', '/yoga.png', '/wrench.png', '/bell-boy.png'],
+                ['/yoga.png', '/wrench.png', '/broom.png', '/bell-boy.png'],
+                ['/bell-boy.png', '/yoga.png', '/wrench.png', '/broom.png']
+              ];
+              const currentImages = imageSets[imageRotationIndex];
+              
+              return (
+                <div className="w-full h-full flex flex-col items-center justify-center px-4 py-6">
+                  {/* House Container */}
+                  <div className="relative w-full max-w-sm flex flex-col items-center justify-center" style={{ perspective: '1000px' }}>
+                    
+                    {/* Roof Section - Two diagonal images forming /\ peak */}
+                    <div className="relative w-full flex items-start justify-center mb-0 mt-4" style={{ height: '140px', overflow: 'hidden' }}>
+                      {/* Left Roof Panel - Diagonal sloping down from center */}
                       <div 
-                        className="absolute inset-0"
+                        className="relative"
                         style={{
-                          transform: 'skewY(15deg)',
-                          backgroundImage: 'url(/wrench.png)',
-                          backgroundSize: 'contain',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'center',
-                          opacity: 0.3
-                        }}
-                      ></div>
-                    </div>
-
-                    {/* Right Roof Panel - Diagonal sloping down from center */}
-                    <div 
-                      className="relative"
-                      style={{
-                        width: '50%',
-                        height: '140px',
-                        transform: 'skewY(15deg)',
-                        transformOrigin: 'bottom left',
-                        borderTop: '1px solid #2E3DD3',
-                        borderRight: '1px solid #2E3DD3',
-                        borderBottom: 'none',
-                        borderLeft: 'none',
-                        borderTopRightRadius: '8px',
-                        overflow: 'hidden',
-                        background: 'transparent'
-                      }}
-                    >
-                      <div 
-                        className="absolute inset-0"
-                        style={{
+                          width: '50%',
+                          height: '140px',
                           transform: 'skewY(-15deg)',
-                          backgroundImage: 'url(/broom.png)',
-                          backgroundSize: 'contain',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'center',
-                          opacity: 0.3
+                          transformOrigin: 'bottom right',
+                          borderTop: '3px solid #2E3DD3',
+                          borderLeft: '3px solid #2E3DD3',
+                          borderBottom: 'none',
+                          borderRight: 'none',
+                          borderTopLeftRadius: '8px',
+                          overflow: 'hidden',
+                          background: 'transparent'
                         }}
-                      ></div>
-                    </div>
-                  </div>
+                      >
+                        <div 
+                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
+                          style={{
+                            transform: 'skewY(15deg)',
+                            backgroundImage: `url(${currentImages[0]})`,
+                            backgroundSize: '60%',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                            opacity: 0.3
+                          }}
+                        ></div>
+                      </div>
 
-                  {/* Walls Section - Two vertical images */}
-                  <div className="relative w-full flex items-start justify-center" style={{ height: '160px' }}>
-                    {/* Left Wall */}
-                    <div 
-                      className="relative"
-                      style={{
-                        width: '50%',
-                        height: '100%',
-                        borderTop: 'none',
-                        borderLeft: '1px solid #2E3DD3',
-                        borderBottom: '1px solid #2E3DD3',
-                        borderRight: 'none',
-                        borderBottomLeftRadius: '8px',
-                        overflow: 'hidden',
-                        background: 'transparent'
-                      }}
-                    >
+                      {/* Right Roof Panel - Diagonal sloping down from center */}
                       <div 
-                        className="absolute inset-0"
+                        className="relative"
                         style={{
-                          backgroundImage: 'url(/bell-boy.png)',
-                          backgroundSize: 'contain',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'center',
-                          opacity: 0.3,
-                          padding: '2px 16px'
+                          width: '50%',
+                          height: '140px',
+                          transform: 'skewY(15deg)',
+                          transformOrigin: 'bottom left',
+                          borderTop: '3px solid #2E3DD3',
+                          borderRight: '3px solid #2E3DD3',
+                          borderBottom: 'none',
+                          borderLeft: 'none',
+                          borderTopRightRadius: '8px',
+                          overflow: 'hidden',
+                          background: 'transparent'
                         }}
-                      ></div>
+                      >
+                        <div 
+                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
+                          style={{
+                            transform: 'skewY(-15deg)',
+                            backgroundImage: `url(${currentImages[1]})`,
+                            backgroundSize: '60%',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                            opacity: 0.3
+                          }}
+                        ></div>
+                      </div>
                     </div>
 
-                    {/* Right Wall */}
-                    <div 
-                      className="relative"
-                      style={{
-                        width: '50%',
-                        height: '100%',
-                        borderTop: 'none',
-                        borderRight: '1px solid #2E3DD3',
-                        borderBottom: '1px solid #2E3DD3',
-                        borderLeft: 'none',
-                        borderBottomRightRadius: '8px',
-                        overflow: 'hidden',
-                        background: 'transparent'
-                      }}
-                    >
+                    {/* Walls Section - Two vertical images */}
+                    <div className="relative w-full flex items-start justify-center" style={{ height: '160px' }}>
+                      {/* Left Wall */}
                       <div 
-                        className="absolute inset-0"
+                        className="relative"
                         style={{
-                          backgroundImage: 'url(/yoga.png)',
-                          backgroundSize: 'contain',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'center',
-                          opacity: 0.3,
-                          padding: '2px 16px'
+                          width: '50%',
+                          height: '100%',
+                          borderTop: 'none',
+                          borderLeft: '3px solid #2E3DD3',
+                          borderBottom: '3px solid #2E3DD3',
+                          borderRight: 'none',
+                          borderBottomLeftRadius: '8px',
+                          overflow: 'hidden',
+                          background: 'transparent'
                         }}
-                      ></div>
+                      >
+                        <div 
+                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
+                          style={{
+                            backgroundImage: `url(${currentImages[2]})`,
+                            backgroundSize: '60%',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                            opacity: 0.3
+                          }}
+                        ></div>
+                      </div>
+
+                      {/* Right Wall */}
+                      <div 
+                        className="relative"
+                        style={{
+                          width: '50%',
+                          height: '100%',
+                          borderTop: 'none',
+                          borderRight: '3px solid #2E3DD3',
+                          borderBottom: '3px solid #2E3DD3',
+                          borderLeft: 'none',
+                          borderBottomRightRadius: '8px',
+                          overflow: 'hidden',
+                          background: 'transparent'
+                        }}
+                      >
+                        <div 
+                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
+                          style={{
+                            backgroundImage: `url(${currentImages[3]})`,
+                            backgroundSize: '60%',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                            opacity: 0.3
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Heading centered in images */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] text-center px-2 z-20">
+                      <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold leading-tight" style={{
+                        color: '#2E3DD3',
+                        textShadow: '2px 2px 4px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8)'
+                      }}>
+                        Home Services, Redefined & Delivered
+                      </h1>
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="w-full max-w-xs mt-6">
+                      <button 
+                        onClick={() => navigate('/signup')}
+                        className="w-full group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
+                        style={{
+                          background: '#2E3DD3 !important',
+                          backgroundColor: '#2E3DD3 !important',
+                          borderColor: 'rgba(255, 255, 255, 0.3)',
+                          boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)',
+                          color: '#FFFFFF !important'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.setProperty('background-color', '#1e2db8', 'important');
+                          e.currentTarget.style.setProperty('background', '#1e2db8', 'important');
+                          e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.setProperty('background-color', '#2E3DD3', 'important');
+                          e.currentTarget.style.setProperty('background', '#2E3DD3', 'important');
+                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
+                        }}
+                      >
+                        <span className="relative z-10 flex items-center justify-center" style={{ color: '#FFFFFF' }}>
+                          Become a Provider
+                        </span>
+                      </button>
                     </div>
                   </div>
-
-                  {/* Heading centered in images */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] text-center px-2 z-20">
-                    <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold leading-tight" style={{
-                      color: '#2E3DD3',
-                      textShadow: '2px 2px 4px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8)'
-                    }}>
-                      Home Services, Redefined & Delivered
-                    </h1>
                   </div>
-
-                  {/* CTA Button */}
-                  <div className="w-full max-w-xs mt-6">
-                    <button 
-                      onClick={() => navigate('/signup')}
-                      className="w-full group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
-                      style={{
-                        background: 'linear-gradient(135deg, #2E3DD3 0%, #00AEEF 50%, #F7931E 100%)',
-                        borderColor: 'rgba(255, 255, 255, 0.3)',
-                        boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      <span className="relative z-10 flex items-center justify-center">
-                        Become a Provider
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+                );
+              })()}
 
              {/* House Container - Responsive - Hidden on mobile, visible on desktop */}
              <div className={`relative mx-auto w-[420px] xs:w-[460px] sm:w-[480px] md:w-[520px] lg:w-[680px] h-[240px] xs:h-[260px] sm:h-[260px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2 ${isMobile ? 'hidden' : ''}`} style={{
