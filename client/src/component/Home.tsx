@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ServiceSearch from "./ServiceSearch";
 import ServiceCard from "./ServiceCard";
 import { ChevronDown, X, Star } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
@@ -84,6 +83,7 @@ const Home = () => {
   const [loadingBanners, setLoadingBanners] = useState(false);
   const [loadingCategoryServices, setLoadingCategoryServices] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -92,6 +92,16 @@ const Home = () => {
     if (search) {
       setSearchQuery(search);
     }
+  }, []);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Auto-toggle between day and night mode every 6 seconds
@@ -232,15 +242,21 @@ const Home = () => {
           onMouseEnter={() => setIsNightMode(true)}
           onMouseLeave={() => setIsNightMode(false)}
         >
-          {/* Unified Background - Day (Blue Sky) or Night (Dark Sky) - Upper Part */}
+          {/* Unified Background - Day (Blue Sky) or Night (Dark Sky) - Upper Part - Responsive */}
           <div 
             className="absolute inset-0" 
                 style={{ 
-              clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
-              transition: 'background 2s ease-in-out',
+              clipPath: isMobile 
+                ? 'polygon(0 0, 100% 0, 100% 35%, 0 35%)'
+                : 'polygon(0 0, 100% 0, 100% 50%, 0 50%)',
+              transition: 'background 2s ease-in-out, clip-path 0.3s ease-in-out',
               background: isNightMode 
-                ? 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 20%, #16213e 40%, #0f1419 60%, #0a0a1a 80%, #000000 100%)'
-                : 'linear-gradient(to bottom, #87CEEB 0%, #5BA3D0 20%, #4A90C2 40%, #3A7DB4 60%, #2E6BA6 80%, #2e3dd3 100%)',
+                ? (isMobile
+                  ? 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 25%, #16213e 45%, #0f1419 65%, #0a0a1a 85%, #000000 100%)'
+                  : 'linear-gradient(to bottom, #0a0a1a 0%, #1a1a2e 20%, #16213e 40%, #0f1419 60%, #0a0a1a 80%, #000000 100%)')
+                : (isMobile
+                  ? 'linear-gradient(to bottom, #87CEEB 0%, #5BA3D0 25%, #4A90C2 45%, #3A7DB4 65%, #2E6BA6 85%, #2e3dd3 100%)'
+                  : 'linear-gradient(to bottom, #87CEEB 0%, #5BA3D0 20%, #4A90C2 40%, #3A7DB4 60%, #2E6BA6 80%, #2e3dd3 100%)'),
               opacity: 1
             }}
           >
@@ -302,7 +318,9 @@ const Home = () => {
           </div>
           {/* Unified Lower part with white background */}
           <div className="absolute inset-0 bg-white" style={{
-            clipPath: 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)'
+            clipPath: isMobile 
+              ? 'polygon(0 35%, 100% 35%, 100% 100%, 0 100%)'
+              : 'polygon(0 50%, 100% 50%, 100% 100%, 0 100%)'
           }}></div>
           {/* Animated Brand Color Orbs - Reduced for right side */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -319,12 +337,17 @@ const Home = () => {
           <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-0 xs:pt-0 sm:pt-2 md:pt-5 lg:pt-0 pb-0 xs:pb-0 sm:pb-1 md:pb-2 lg:pb-0">
 
              {/* House Container - Responsive - Increased size for mobile */}
-             <div className="relative mx-auto w-[360px] xs:w-[400px] sm:w-[420px] md:w-[520px] lg:w-[680px] h-[200px] xs:h-[220px] sm:h-[240px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2">
+             <div className="relative mx-auto w-[420px] xs:w-[460px] sm:w-[480px] md:w-[520px] lg:w-[680px] h-[240px] xs:h-[260px] sm:h-[260px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2" style={{
+               gap: '0',
+               lineHeight: '0'
+             }}>
 
                {/* Roof - Made of thin rods/lines in spiral pattern - Responsive - Increased for mobile */}
-              <div className="relative w-[360px] xs:w-[400px] sm:w-[480px] md:w-[600px] lg:w-[760px] h-[60px] xs:h-[65px] sm:h-[80px] md:h-[90px] lg:h-[110px]" style={{
-                filter: 'drop-shadow(0 10px 30px rgba(247, 147, 30, 0.4))',
-                transition: 'all 0.3s ease'
+              <div className="relative w-[420px] xs:w-[460px] sm:w-[480px] md:w-[600px] lg:w-[760px] h-[70px] xs:h-[75px] sm:h-[80px] md:h-[90px] lg:h-[110px]" style={{
+                filter: 'drop-shadow(0 12px 25px rgba(247, 147, 30, 0.4)) drop-shadow(0 6px 15px rgba(247, 147, 30, 0.3))',
+                transition: 'all 0.3s ease',
+                marginBottom: '0',
+                marginTop: '0'
               }}>
                 <svg 
                   className="w-full h-full"
@@ -336,7 +359,30 @@ const Home = () => {
                     <clipPath id="roofClip">
                       <polygon points="0,80 240,0 480,80" />
                     </clipPath>
+                    
+                    {/* Shadow filter for roof - using roof color */}
+                    <filter id="roofShadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+                      <feOffset dx="0" dy="8" result="offsetblur"/>
+                      <feFlood floodColor="#F7931E" floodOpacity="0.4"/>
+                      <feComposite in2="offsetblur" operator="in"/>
+                      <feMerge>
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
                   </defs>
+                  
+                  {/* Roof shadow - positioned behind the roof structure */}
+                  <g>
+                    <polygon 
+                      points="0,80 240,0 480,80" 
+                      fill="rgba(247, 147, 30, 0.3)"
+                      transform="translate(0, 8)"
+                      filter="url(#roofShadow)"
+                      opacity="0.7"
+                    />
+                  </g>
                   
                   {/* Spiral/radial rods pattern - CBE logo style */}
                   <g clipPath="url(#roofClip)">
@@ -346,8 +392,13 @@ const Home = () => {
                       {Array.from({ length: 32 }).map((_, i) => {
                         const baseAngle = (i * 11.25) - 90; // Start from top, spread downward
                         const angleRad = (baseAngle * Math.PI) / 180;
+                        // Check if this is a vertical rod (pointing straight down, close to -90°)
+                        // Only extend rods that are within 10 degrees of -90° (straight down)
+                        const isVertical = Math.abs(baseAngle - (-90)) < 10 || Math.abs(baseAngle - 270) < 10;
                         // Increased length to extend beyond bottom horizontal frame
-                        const length = 400 + (Math.sin(i * 0.5) * 40);
+                        // Extend vertical rods more to make them poke out like construction rods
+                        const baseLength = 400 + (Math.sin(i * 0.5) * 40);
+                        const length = isVertical ? baseLength + 80 : baseLength; // Add 80 units to vertical rods
                         const x2 = Math.cos(angleRad) * length;
                         const y2 = Math.sin(angleRad) * length;
                         return (
@@ -401,11 +452,61 @@ const Home = () => {
                       strokeLinejoin="round"
                     />
                   </g>
+                  
+                  {/* Diagonal rods extending slightly forward - outside clip path */}
+                  <g>
+                    <g transform="translate(240, 0)">
+                      {Array.from({ length: 32 }).map((_, i) => {
+                        const baseAngle = (i * 11.25) - 90; // Start from top, spread downward
+                        const angleRad = (baseAngle * Math.PI) / 180;
+                        // Only extend diagonal rods (not vertical or horizontal)
+                        const isVertical = Math.abs(Math.abs(baseAngle) - 90) < 10;
+                        const isHorizontal = Math.abs(Math.abs(baseAngle)) < 10 || Math.abs(Math.abs(baseAngle) - 180) < 10;
+                        const isDiagonal = !isVertical && !isHorizontal;
+                        
+                        if (isDiagonal) {
+                          const sinAngle = Math.sin(angleRad);
+                          const cosAngle = Math.cos(angleRad);
+                          
+                          if (Math.abs(sinAngle) > 0.01) { // Not horizontal
+                            const distanceToBottom = 80 / Math.abs(sinAngle);
+                            const intersectX = cosAngle * distanceToBottom;
+                            
+                            // Check if intersection is within roof base
+                            const actualX = 240 + intersectX;
+                            if (actualX >= 0 && actualX <= 480) {
+                              // Extend the rod slightly forward (just a little bit)
+                              const extensionLength = 20; // Small extension
+                              const extendX = cosAngle * extensionLength;
+                              const extendY = Math.abs(sinAngle) * extensionLength; // Always extend downward
+                              
+                              return (
+                                <line
+                                  key={`diagonal-extension-${i}`}
+                                  x1={intersectX}
+                                  y1={80}
+                                  x2={intersectX + extendX}
+                                  y2={80 + extendY}
+                                  stroke="#F7931E"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  opacity={0.85}
+                                />
+                              );
+                            }
+                          }
+                        }
+                        return null;
+                      })}
+                    </g>
+                  </g>
                 </svg>
               </div>
-                  
-                      {/* Walls Section - Narrower than roof - Responsive - Increased for mobile */}
-              <div className="relative w-[280px] xs:w-[310px] sm:w-[320px] md:w-[400px] lg:w-[520px] h-[130px] xs:h-[145px] sm:h-[150px] md:h-[190px] lg:h-[240px] flex mx-auto">
+              {/* Walls Section - Narrower than roof - Responsive - Increased for mobile */}
+              <div className="relative w-[320px] xs:w-[360px] sm:w-[360px] md:w-[400px] lg:w-[520px] h-[160px] xs:h-[175px] sm:h-[180px] md:h-[190px] lg:h-[240px] flex mx-auto" style={{
+                marginTop: '0',
+                marginBottom: '0'
+              }}>
 
                 {/* Walls Frame - Enhanced glassmorphism with brand colors */}
                 <div className="w-full backdrop-blur-md border-l-[6px] border-r-[6px] rounded-xl relative overflow-hidden shadow-2xl" style={{
@@ -439,8 +540,8 @@ const Home = () => {
                </div>
                 
                {/* Heading centered in walls - Brand blue color - Responsive - Increased font size */}
-               <div className="absolute top-[70px] xs:top-[80px] sm:top-[110px] md:top-[130px] lg:top-[170px] left-1/2 transform -translate-x-1/2 w-[280px] xs:w-[310px] sm:w-[320px] md:w-[400px] lg:w-[520px] text-center px-2 xs:px-3">
-                 <h1 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-4xl font-bold leading-tight" style={{
+               <div className="absolute top-[110px] xs:top-[120px] sm:top-[110px] md:top-[130px] lg:top-[170px] left-1/2 transform -translate-x-1/2 w-[320px] xs:w-[360px] sm:w-[360px] md:w-[400px] lg:w-[520px] text-center px-2 xs:px-3">
+                 <h1 className="text-2xl xs:text-3xl sm:text-2xl md:text-2xl lg:text-4xl font-bold leading-tight" style={{
                    color: '#2E3DD3',
                    filter: 'drop-shadow(0 4px 8px rgba(46, 61, 211, 0.3))',
                    textShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
@@ -450,7 +551,7 @@ const Home = () => {
                </div>
 
               {/* Call-to-Action Button - Enhanced with brand colors - Responsive */}
-               <div className="absolute top-[145px] xs:top-[155px] sm:top-[190px] md:top-[220px] lg:top-[285px] left-1/2 transform -translate-x-1/2 w-[280px] xs:w-[310px] sm:w-[320px] md:w-[400px] lg:w-[520px] px-2 xs:px-4">
+               <div className="absolute top-[200px] xs:top-[220px] sm:top-[190px] md:top-[220px] lg:top-[285px] left-1/2 transform -translate-x-1/2 w-[320px] xs:w-[360px] sm:w-[320px] md:w-[400px] lg:w-[520px] px-2 xs:px-4">
                 <div className="flex justify-center">
                   <button 
                     onClick={() => navigate('/signup')}
@@ -969,30 +1070,76 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Featured Services Section */}
-        <div className="relative w-full bg-gradient-to-b from-white via-orange-50/30 to-white py-12">
+        {/* Join Community & Find Jobs Section */}
+        <div className="relative w-full bg-gradient-to-b from-white via-blue-50/30 to-white py-12">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
-            <div className="text-left mb-8">
+            <div className="text-center mb-8">
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Featured <span className="text-orange-600">Services</span>
+                Join Our <span className="text-blue-600">Community</span>
               </h2>
-              <p className="text-sm md:text-base text-gray-600">
-                Discover top-rated services from verified providers in your area
+              <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+                Connect with skilled professionals and find exciting job opportunities. Be part of a growing community of service providers.
               </p>
             </div>
 
-            {/* Services Search and Display */}
-            <ServiceSearch
-              initialQuery={searchQuery}
-              onServiceSelect={(service) => {
-                console.log('Service selected:', service);
-                // Navigate to service details page
-                navigate(`/service/${service.id}`);
-              }}
-              showFilters={true}
-              layout="grid"
-            />
+            {/* Community Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {/* Feature 1 */}
+              <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Connect with Professionals</h3>
+                <p className="text-gray-600 text-sm">
+                  Network with experienced service providers and learn from the best in the industry.
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Find Job Opportunities</h3>
+                <p className="text-gray-600 text-sm">
+                  Discover new job opportunities that match your skills and grow your career with us.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Build Your Reputation</h3>
+                <p className="text-gray-600 text-sm">
+                  Earn reviews, build your profile, and establish yourself as a trusted service provider.
+                </p>
+              </div>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button 
+                onClick={() => navigate('/signup')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Join the Community
+              </button>
+              <button 
+                onClick={() => navigate('/jobs')}
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 transform hover:scale-105"
+              >
+                Find a Job
+              </button>
+            </div>
           </div>
         </div>
       </section>
