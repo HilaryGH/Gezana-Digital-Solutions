@@ -113,6 +113,9 @@ const Home = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Array of images for rotation
+  const mobileBackgroundImages = ['/wrench.png', '/broom.png', '/bell-boy.png', '/yoga.png'];
+
   // Rotate images in mobile view every 3 seconds
   useEffect(() => {
     if (!isMobile) return;
@@ -300,183 +303,148 @@ const Home = () => {
           <div className="relative w-full lg:w-[58.33%] min-h-[45vh] md:min-h-[55vh] lg:h-screen bg-transparent flex items-center justify-center overflow-hidden pt-0 xs:pt-0 sm:pt-2 md:pt-5 lg:pt-0 pb-0 xs:pb-0 sm:pb-1 md:pb-2 lg:pb-0">
 
             {/* Mobile House Structure - Only visible on mobile */}
-            {isMobile && (() => {
-              // Image rotation combinations: [roofLeft, roofRight, wallLeft, wallRight]
-              const imageSets = [
-                ['/wrench.png', '/broom.png', '/bell-boy.png', '/yoga.png'],
-                ['/broom.png', '/yoga.png', '/wrench.png', '/bell-boy.png'],
-                ['/yoga.png', '/wrench.png', '/broom.png', '/bell-boy.png'],
-                ['/bell-boy.png', '/yoga.png', '/wrench.png', '/broom.png']
-              ];
-              const currentImages = imageSets[imageRotationIndex];
-              
-              return (
-                <div className="w-full h-full flex flex-col items-center justify-center px-4 py-6">
-                  {/* House Container */}
-                  <div className="relative w-full max-w-sm flex flex-col items-center justify-center" style={{ perspective: '1000px' }}>
-                    
-                    {/* Roof Section - Two diagonal images forming /\ peak */}
-                    <div className="relative w-full flex items-start justify-center mb-0 mt-4" style={{ height: '140px', overflow: 'hidden' }}>
-                      {/* Left Roof Panel - Diagonal sloping down from center */}
-                      <div 
-                        className="relative"
-                        style={{
-                          width: '50%',
-                          height: '140px',
-                          transform: 'skewY(-15deg)',
-                          transformOrigin: 'bottom right',
-                          borderTop: '3px solid #2E3DD3',
-                          borderLeft: '3px solid #2E3DD3',
-                          borderBottom: 'none',
-                          borderRight: 'none',
-                          borderTopLeftRadius: '8px',
-                          overflow: 'hidden',
-                          background: 'transparent'
-                        }}
-                      >
-                        <div 
-                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
-                          style={{
-                            transform: 'skewY(15deg)',
-                            backgroundImage: `url(${currentImages[0]})`,
-                            backgroundSize: '60%',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center',
-                            opacity: 0.3
-                          }}
-                        ></div>
-                      </div>
+            {isMobile && (
+              <div className="w-full h-full flex flex-col items-center justify-center px-4 py-6 relative">
+                {/* Single rotating background image covering entire house */}
+                <div 
+                  className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+                  style={{ 
+                    backgroundImage: `url("${mobileBackgroundImages[imageRotationIndex]}")`,
+                    backgroundSize: '60%',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    opacity: 0.3,
+                    zIndex: 0
+                  }}
+                ></div>
+                
+                {/* Blue Background Header with Heading */}
+                <div 
+                  className="relative w-full max-w-sm mb-6 rounded-2xl overflow-hidden shadow-2xl z-20"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '24px 20px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  {/* Decorative elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12 blur-xl"></div>
+                  
+                  {/* Heading */}
+                  <h1 
+                    className="relative z-10 text-2xl xs:text-3xl font-bold leading-tight text-center text-white"
+                    style={{
+                      textShadow: '0 2px 10px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.2)',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    Home Services, Redefined & Delivered
+                  </h1>
+                  
+                  {/* Subtitle */}
+                  <p className="relative z-10 text-center text-white/90 text-sm mt-2 font-medium">
+                    Your trusted service partner
+                  </p>
+                </div>
 
-                      {/* Right Roof Panel - Diagonal sloping down from center */}
-                      <div 
-                        className="relative"
-                        style={{
-                          width: '50%',
-                          height: '140px',
-                          transform: 'skewY(15deg)',
-                          transformOrigin: 'bottom left',
-                          borderTop: '3px solid #2E3DD3',
-                          borderRight: '3px solid #2E3DD3',
-                          borderBottom: 'none',
-                          borderLeft: 'none',
-                          borderTopRightRadius: '8px',
-                          overflow: 'hidden',
-                          background: 'transparent'
-                        }}
-                      >
-                        <div 
-                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
-                          style={{
-                            transform: 'skewY(-15deg)',
-                            backgroundImage: `url(${currentImages[1]})`,
-                            backgroundSize: '60%',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center',
-                            opacity: 0.3
-                          }}
-                        ></div>
-                      </div>
+                {/* House Container - No borders */}
+                <div 
+                  className="relative w-full max-w-sm flex flex-col items-center justify-center z-10" 
+                  style={{ 
+                    perspective: '1000px'
+                  }}
+                >
+                  {/* Roof Section - Two diagonal images forming /\ peak */}
+                  <div className="relative w-full flex items-start justify-center mb-0" style={{ height: '140px', overflow: 'hidden' }}>
+                    {/* Left Roof Panel - Diagonal sloping down from center */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '140px',
+                        transform: 'skewY(-15deg)',
+                        transformOrigin: 'bottom right',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
                     </div>
 
-                    {/* Walls Section - Two vertical images */}
-                    <div className="relative w-full flex items-start justify-center" style={{ height: '160px' }}>
-                      {/* Left Wall */}
-                      <div 
-                        className="relative"
-                        style={{
-                          width: '50%',
-                          height: '100%',
-                          borderTop: 'none',
-                          borderLeft: '3px solid #2E3DD3',
-                          borderBottom: '3px solid #2E3DD3',
-                          borderRight: 'none',
-                          borderBottomLeftRadius: '8px',
-                          overflow: 'hidden',
-                          background: 'transparent'
-                        }}
-                      >
-                        <div 
-                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
-                          style={{
-                            backgroundImage: `url(${currentImages[2]})`,
-                            backgroundSize: '60%',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center',
-                            opacity: 0.3
-                          }}
-                        ></div>
-                      </div>
-
-                      {/* Right Wall */}
-                      <div 
-                        className="relative"
-                        style={{
-                          width: '50%',
-                          height: '100%',
-                          borderTop: 'none',
-                          borderRight: '3px solid #2E3DD3',
-                          borderBottom: '3px solid #2E3DD3',
-                          borderLeft: 'none',
-                          borderBottomRightRadius: '8px',
-                          overflow: 'hidden',
-                          background: 'transparent'
-                        }}
-                      >
-                        <div 
-                          className="absolute inset-0 transition-all duration-1000 ease-in-out"
-                          style={{
-                            backgroundImage: `url(${currentImages[3]})`,
-                            backgroundSize: '60%',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center',
-                            opacity: 0.3
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Heading centered in images */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] text-center px-2 z-20">
-                      <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold leading-tight" style={{
-                        color: '#2E3DD3',
-                        textShadow: '2px 2px 4px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8)'
-                      }}>
-                        Home Services, Redefined & Delivered
-                      </h1>
-                    </div>
-
-                    {/* CTA Button */}
-                    <div className="w-full max-w-xs mt-6">
-                      <button 
-                        onClick={() => navigate('/signup')}
-                        className="w-full group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
-                        style={{
-                          background: '#2E3DD3 !important',
-                          backgroundColor: '#2E3DD3 !important',
-                          borderColor: 'rgba(255, 255, 255, 0.3)',
-                          boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)',
-                          color: '#FFFFFF !important'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.setProperty('background-color', '#1e2db8', 'important');
-                          e.currentTarget.style.setProperty('background', '#1e2db8', 'important');
-                          e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.setProperty('background-color', '#2E3DD3', 'important');
-                          e.currentTarget.style.setProperty('background', '#2E3DD3', 'important');
-                          e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
-                        }}
-                      >
-                        <span className="relative z-10 flex items-center justify-center" style={{ color: '#FFFFFF' }}>
-                          Become a Provider
-                        </span>
-                      </button>
+                    {/* Right Roof Panel - Diagonal sloping down from center */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '140px',
+                        transform: 'skewY(15deg)',
+                        transformOrigin: 'bottom left',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
                     </div>
                   </div>
+
+                  {/* Walls Section - Two vertical images */}
+                  <div className="relative w-full flex items-start justify-center" style={{ height: '160px' }}>
+                    {/* Left Wall */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '100%',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
+                    </div>
+
+                    {/* Right Wall */}
+                    <div 
+                      className="relative"
+                      style={{
+                        width: '50%',
+                        height: '100%',
+                        overflow: 'hidden',
+                        background: 'transparent'
+                      }}
+                    >
+                    </div>
                   </div>
-                );
-              })()}
+
+                  {/* CTA Button */}
+                  <div className="w-full max-w-xs mt-6">
+                    <button 
+                      onClick={() => navigate('/signup')}
+                      className="w-full group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
+                      style={{
+                        background: '#2E3DD3 !important',
+                        backgroundColor: '#2E3DD3 !important',
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                        boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)',
+                        color: '#FFFFFF !important'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.setProperty('background-color', '#1e2db8', 'important');
+                        e.currentTarget.style.setProperty('background', '#1e2db8', 'important');
+                        e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.setProperty('background-color', '#2E3DD3', 'important');
+                        e.currentTarget.style.setProperty('background', '#2E3DD3', 'important');
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
+                      }}
+                    >
+                      <span className="relative z-10 flex items-center justify-center" style={{ color: '#FFFFFF' }}>
+                        Become a Provider
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
              {/* House Container - Responsive - Hidden on mobile, visible on desktop */}
              <div className={`relative mx-auto w-[420px] xs:w-[460px] sm:w-[480px] md:w-[520px] lg:w-[680px] h-[240px] xs:h-[260px] sm:h-[260px] md:h-[280px] lg:h-[340px] flex flex-col items-center justify-end perspective-[1200px] px-2 ${isMobile ? 'hidden' : ''}`} style={{
@@ -954,9 +922,10 @@ const Home = () => {
             </div>
           </div>
         )}
+      </section>
 
-        {/* Recently Added Services Section */}
-        <section className="relative w-full py-12 bg-gradient-to-br from-white via-orange-50/30 to-white overflow-hidden">
+      {/* Recently Added Services Section */}
+      <section className="relative w-full py-12 bg-gradient-to-br from-white via-orange-50/30 to-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
             <div className="text-left mb-8">
@@ -1214,7 +1183,7 @@ const Home = () => {
         </section>
 
         {/* Join Community & Find Jobs Section */}
-        <div className="relative w-full bg-gradient-to-b from-white via-blue-50/30 to-white py-12">
+        <section className="relative w-full bg-gradient-to-b from-white via-blue-50/30 to-white py-12">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
             <div className="text-center mb-8">
@@ -1319,8 +1288,7 @@ const Home = () => {
               </button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 to-orange-700 relative overflow-hidden">
