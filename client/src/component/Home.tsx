@@ -304,7 +304,19 @@ const Home = () => {
 
             {/* Mobile House Structure - Only visible on mobile */}
             {isMobile && (
-              <div className="w-full h-full flex flex-col items-center justify-center py-6 relative">
+              <div 
+                className="w-full h-full flex flex-col items-center justify-center pt-6 pb-3 relative"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.05) 0%, rgba(0, 174, 239, 0.08) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 174, 239, 0.08) 75%, rgba(46, 61, 211, 0.05) 100%)',
+                  backgroundImage: `
+                    radial-gradient(circle at 20% 30%, rgba(46, 61, 211, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 70%, rgba(0, 174, 239, 0.08) 0%, transparent 50%),
+                    linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%)
+                  `,
+                  backgroundSize: '100% 100%, 100% 100%, 60px 60px',
+                  backgroundPosition: '0 0, 0 0, 0 0'
+                }}
+              >
                 {/* Single rotating background image covering entire house */}
                 <div 
                   className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
@@ -320,11 +332,11 @@ const Home = () => {
                 
                 {/* Blue Background Header with Heading - Full Width */}
                 <div 
-                  className="relative w-full mb-6 rounded-none overflow-hidden shadow-2xl z-20"
+                  className="relative w-full mb-4 rounded-none overflow-visible shadow-2xl z-20"
                   style={{
                     background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)',
                     backdropFilter: 'blur(10px)',
-                    padding: '24px 20px',
+                    padding: '24px 16px',
                     border: '1px solid rgba(255, 255, 255, 0.2)'
                   }}
                 >
@@ -337,7 +349,9 @@ const Home = () => {
                     className="relative z-10 text-2xl xs:text-3xl font-bold leading-tight text-center text-white"
                     style={{
                       textShadow: '0 2px 10px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.2)',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.5px',
+                      paddingTop: '4px',
+                      paddingBottom: '4px'
                     }}
                   >
                     Home Services, Redefined & Delivered
@@ -352,13 +366,13 @@ const Home = () => {
                   }}
                 >
                   {/* Roof Section - Two diagonal images forming /\ peak */}
-                  <div className="relative w-full flex items-start justify-center mb-0" style={{ height: '140px', overflow: 'hidden' }}>
+                  <div className="relative w-full flex items-start justify-center mb-0" style={{ height: '120px', overflow: 'hidden' }}>
                     {/* Left Roof Panel - Diagonal sloping down from center */}
                     <div 
                       className="relative"
                       style={{
                         width: '50%',
-                        height: '140px',
+                        height: '120px',
                         transform: 'skewY(-15deg)',
                         transformOrigin: 'bottom right',
                         overflow: 'hidden',
@@ -372,7 +386,7 @@ const Home = () => {
                       className="relative"
                       style={{
                         width: '50%',
-                        height: '140px',
+                        height: '120px',
                         transform: 'skewY(15deg)',
                         transformOrigin: 'bottom left',
                         overflow: 'hidden',
@@ -383,7 +397,7 @@ const Home = () => {
                   </div>
 
                   {/* Walls Section - Two vertical images */}
-                  <div className="relative w-full flex items-start justify-center" style={{ height: '160px' }}>
+                  <div className="relative w-full flex items-start justify-center" style={{ height: '140px' }}>
                     {/* Left Wall */}
                     <div 
                       className="relative"
@@ -410,7 +424,7 @@ const Home = () => {
                   </div>
 
                   {/* CTA Button - At the bottom of the background image with same background as header */}
-                  <div className="w-full flex justify-center mt-6 z-20">
+                  <div className="w-full flex justify-center mt-0 z-20">
                     <button 
                       onClick={() => navigate('/signup')}
                       className="group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"

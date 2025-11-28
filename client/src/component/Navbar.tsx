@@ -325,7 +325,7 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Search Bar - Below Navbar - Same as Desktop */}
-        <div className="lg:hidden container mx-auto px-4 lg:px-8 pb-3">
+        <div className="lg:hidden container mx-auto px-4 lg:px-8 pt-4 pb-4">
           <div className="relative">
             <button
               onClick={toggleSearch}
@@ -376,7 +376,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+            <div className="flex-1 px-6 pt-8 pb-8 space-y-4 overflow-y-auto">
               <div className="space-y-3">
                 <Link
                   to="/services"
