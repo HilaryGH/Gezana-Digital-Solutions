@@ -304,13 +304,13 @@ const Home = () => {
 
             {/* Mobile House Structure - Only visible on mobile */}
             {isMobile && (
-              <div className="w-full h-full flex flex-col items-center justify-center px-4 py-6 relative">
+              <div className="w-full h-full flex flex-col items-center justify-center py-6 relative">
                 {/* Single rotating background image covering entire house */}
                 <div 
                   className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
                   style={{ 
                     backgroundImage: `url("${mobileBackgroundImages[imageRotationIndex]}")`,
-                    backgroundSize: '60%',
+                    backgroundSize: '40%',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
                     opacity: 0.3,
@@ -318,9 +318,9 @@ const Home = () => {
                   }}
                 ></div>
                 
-                {/* Blue Background Header with Heading */}
+                {/* Blue Background Header with Heading - Full Width */}
                 <div 
-                  className="relative w-full max-w-sm mb-6 rounded-2xl overflow-hidden shadow-2xl z-20"
+                  className="relative w-full mb-6 rounded-none overflow-hidden shadow-2xl z-20"
                   style={{
                     background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)',
                     backdropFilter: 'blur(10px)',
@@ -342,11 +342,6 @@ const Home = () => {
                   >
                     Home Services, Redefined & Delivered
                   </h1>
-                  
-                  {/* Subtitle */}
-                  <p className="relative z-10 text-center text-white/90 text-sm mt-2 font-medium">
-                    Your trusted service partner
-                  </p>
                 </div>
 
                 {/* House Container - No borders */}
@@ -414,26 +409,26 @@ const Home = () => {
                     </div>
                   </div>
 
-                  {/* CTA Button */}
-                  <div className="w-full max-w-xs mt-6">
+                  {/* CTA Button - At the bottom of the background image with same background as header */}
+                  <div className="w-full flex justify-center mt-6 z-20">
                     <button 
                       onClick={() => navigate('/signup')}
-                      className="w-full group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
+                      className="group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
                       style={{
-                        background: '#2E3DD3 !important',
-                        backgroundColor: '#2E3DD3 !important',
+                        width: '200px',
+                        background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)',
+                        backgroundColor: 'rgba(46, 61, 211, 0.85)',
                         borderColor: 'rgba(255, 255, 255, 0.3)',
                         boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)',
-                        color: '#FFFFFF !important'
+                        color: '#FFFFFF !important',
+                        backdropFilter: 'blur(10px)'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.setProperty('background-color', '#1e2db8', 'important');
-                        e.currentTarget.style.setProperty('background', '#1e2db8', 'important');
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(46, 61, 211, 0.95) 0%, rgba(0, 174, 239, 0.90) 50%, rgba(46, 61, 211, 0.95) 100%)';
                         e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.setProperty('background-color', '#2E3DD3', 'important');
-                        e.currentTarget.style.setProperty('background', '#2E3DD3', 'important');
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)';
                         e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
                       }}
                     >
@@ -505,10 +500,25 @@ const Home = () => {
                         // Check if this is a vertical rod (pointing straight down, close to -90°)
                         // Only extend rods that are within 10 degrees of -90° (straight down)
                         const isVertical = Math.abs(baseAngle - (-90)) < 10 || Math.abs(baseAngle - 270) < 10;
-                        // Increased length to extend beyond bottom horizontal frame
-                        // Extend vertical rods more to make them poke out like construction rods
-                        const baseLength = 400 + (Math.sin(i * 0.5) * 40);
-                        const length = isVertical ? baseLength + 80 : baseLength; // Add 80 units to vertical rods
+                        
+                        // Calculate how much the rod points toward the bottom/front
+                        // Angles closer to -90° (straight down) should extend more
+                        const angleFromVertical = Math.abs(Math.abs(baseAngle) - 90);
+                        const forwardFactor = 1 + (1 - angleFromVertical / 90) * 1.5; // 1.0 to 2.5x multiplier
+                        
+                        // Significantly increased base length for longer 3D perspective
+                        const baseLength = 500 + (Math.sin(i * 0.5) * 50);
+                        // Extend rods pointing toward bottom/front much more
+                        let length = baseLength * forwardFactor;
+                        // Vertical rods get extra extension
+                        if (isVertical) {
+                          length += 150; // Increased from 80 to 150
+                        }
+                        // Additional extension for rods in the lower portion (angles between -60° and -120°)
+                        if (baseAngle >= -120 && baseAngle <= -60) {
+                          length += 100; // Extra extension for forward-pointing rods
+                        }
+                        
                         const x2 = Math.cos(angleRad) * length;
                         const y2 = Math.sin(angleRad) * length;
                         return (
@@ -563,51 +573,145 @@ const Home = () => {
                     />
                   </g>
                   
-                  {/* Diagonal rods extending slightly forward - outside clip path */}
+                  {/* 3D Cap Effect - Extended diagonal rods with connecting cap edge */}
                   <g>
                     <g transform="translate(240, 0)">
+                      {/* Forward-extending rods using the SAME angles as the main roof rods */}
                       {Array.from({ length: 32 }).map((_, i) => {
-                        const baseAngle = (i * 11.25) - 90; // Start from top, spread downward
+                        // Use the EXACT same angle calculation as the main roof rods
+                        const baseAngle = (i * 11.25) - 90; // Same as main rods
                         const angleRad = (baseAngle * Math.PI) / 180;
-                        // Only extend diagonal rods (not vertical or horizontal)
-                        const isVertical = Math.abs(Math.abs(baseAngle) - 90) < 10;
-                        const isHorizontal = Math.abs(Math.abs(baseAngle)) < 10 || Math.abs(Math.abs(baseAngle) - 180) < 10;
-                        const isDiagonal = !isVertical && !isHorizontal;
                         
-                        if (isDiagonal) {
                           const sinAngle = Math.sin(angleRad);
                           const cosAngle = Math.cos(angleRad);
                           
-                          if (Math.abs(sinAngle) > 0.01) { // Not horizontal
-                            const distanceToBottom = 80 / Math.abs(sinAngle);
-                            const intersectX = cosAngle * distanceToBottom;
-                            
-                            // Check if intersection is within roof base
-                            const actualX = 240 + intersectX;
-                            if (actualX >= 0 && actualX <= 480) {
-                              // Extend the rod slightly forward (just a little bit)
-                              const extensionLength = 20; // Small extension
-                              const extendX = cosAngle * extensionLength;
-                              const extendY = Math.abs(sinAngle) * extensionLength; // Always extend downward
+                        // Find where this rod intersects the roof edge
+                        let intersectX = 0;
+                        let intersectY = 0;
+                        let found = false;
+                        
+                        // Find intersection by testing distances along the rod
+                        const maxDistance = 300;
+                        for (let d = 20; d < maxDistance; d += 5) {
+                          const testX = cosAngle * d;
+                          const testY = sinAngle * d;
+                          const edgeY = Math.abs(testX) * (80 / 240);
+                          
+                          // Check if test point is on or very close to the edge
+                          if (testY >= edgeY - 2 && testY <= edgeY + 2 && testY <= 80) {
+                            intersectX = testX;
+                            intersectY = testY;
+                            found = true;
+                            break;
+                          }
+                        }
+                        
+                        if (!found) return null;
+                        
+                        // Only extend rods that are near the front/bottom area (for 3D cap effect)
+                        // Focus on rods in the lower 60% of roof height
+                        if (intersectY < 30) return null; // Skip top area
+                        
+                        // Extend forward in the SAME direction as the rod - significantly longer for 3D perspective
+                        // Much longer extension to create extended cap effect that continues toward viewer
+                        // Longer extension for rods closer to the bottom (more forward)
+                        const depthFactor = 1 + ((intersectY - 30) / 50) * 1.5; // 1.0 to 2.5x for bottom rods
+                        const forwardExtension = (150 + (i % 8) * 20) * depthFactor; // 150-310px+ extension (much longer)
+                        const forwardX = cosAngle * forwardExtension;
+                        const forwardY = sinAngle * forwardExtension;
+                        const liftY = -12 - (i % 4) * 5; // More lift for better 3D cap effect
+                        
+                        const endX = intersectX + forwardX;
+                        const endY = intersectY + forwardY + liftY;
                               
                               return (
                                 <line
-                                  key={`diagonal-extension-${i}`}
+                            key={`forward-cap-${i}`}
                                   x1={intersectX}
-                                  y1={80}
-                                  x2={intersectX + extendX}
-                                  y2={80 + extendY}
+                            y1={intersectY}
+                            x2={endX}
+                            y2={endY}
                                   stroke="#F7931E"
                                   strokeWidth="2"
                                   strokeLinecap="round"
-                                  opacity={0.85}
-                                />
-                              );
+                            opacity={0.8}
+                            style={{
+                              filter: 'drop-shadow(0 1px 3px rgba(247, 147, 30, 0.4))'
+                            }}
+                          />
+                        );
+                      })}
+                      
+                      {/* Connecting cap edge - connects extended rod endpoints to form closed tip */}
+                      {(() => {
+                        // Collect all extended rod endpoints
+                        const endpoints: Array<{x: number, y: number, angle: number}> = [];
+                        
+                        Array.from({ length: 32 }).forEach((_, i) => {
+                          const baseAngle = (i * 11.25) - 90;
+                          const angleRad = (baseAngle * Math.PI) / 180;
+                          const sinAngle = Math.sin(angleRad);
+                          const cosAngle = Math.cos(angleRad);
+                          
+                          let intersectX = 0;
+                          let intersectY = 0;
+                          let found = false;
+                          
+                          const maxDistance = 300;
+                          for (let d = 20; d < maxDistance; d += 5) {
+                            const testX = cosAngle * d;
+                            const testY = sinAngle * d;
+                            const edgeY = Math.abs(testX) * (80 / 240);
+                            
+                            if (testY >= edgeY - 2 && testY <= edgeY + 2 && testY <= 80) {
+                              intersectX = testX;
+                              intersectY = testY;
+                              found = true;
+                              break;
                             }
                           }
-                        }
-                        return null;
-                      })}
+                          
+                          if (!found || intersectY < 30) return;
+                          
+                          // Longer extension for rods closer to the bottom (more forward)
+                          const depthFactor = 1 + ((intersectY - 30) / 50) * 1.5; // 1.0 to 2.5x for bottom rods
+                          const forwardExtension = (150 + (i % 8) * 20) * depthFactor; // 150-310px+ extension (much longer)
+                          const forwardX = cosAngle * forwardExtension;
+                          const forwardY = sinAngle * forwardExtension;
+                          const liftY = -12 - (i % 4) * 5; // More lift for better 3D cap effect
+                          
+                          endpoints.push({
+                            x: intersectX + forwardX,
+                            y: intersectY + forwardY + liftY,
+                            angle: baseAngle
+                          });
+                        });
+                        
+                        // Sort endpoints by x coordinate to connect them in order
+                        const sortedEndpoints = [...endpoints].sort((a, b) => a.x - b.x);
+                        
+                        // Draw connecting lines between adjacent endpoints to form cap edge
+                        return sortedEndpoints.map((point, idx) => {
+                          if (idx === 0) return null;
+                          const prevPoint = sortedEndpoints[idx - 1];
+                          return (
+                            <line
+                              key={`cap-edge-${idx}`}
+                              x1={prevPoint.x}
+                              y1={prevPoint.y}
+                              x2={point.x}
+                              y2={point.y}
+                              stroke="#F7931E"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              opacity={0.75}
+                              style={{
+                                filter: 'drop-shadow(0 1px 2px rgba(247, 147, 30, 0.3))'
+                              }}
+                            />
+                          );
+                        });
+                      })()}
                     </g>
                   </g>
                 </svg>
@@ -924,8 +1028,8 @@ const Home = () => {
         )}
       </section>
 
-      {/* Recently Added Services Section */}
-      <section className="relative w-full py-12 bg-gradient-to-br from-white via-orange-50/30 to-white overflow-hidden">
+        {/* Recently Added Services Section */}
+        <section className="relative w-full py-12 bg-gradient-to-br from-white via-orange-50/30 to-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
             <div className="text-left mb-8">
@@ -1286,9 +1390,9 @@ const Home = () => {
               >
                 Find a Job
               </button>
-            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 to-orange-700 relative overflow-hidden">
