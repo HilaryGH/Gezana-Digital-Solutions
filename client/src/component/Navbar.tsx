@@ -376,22 +376,30 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex-1 px-6 pt-8 pb-8 space-y-4 overflow-y-auto">
-              <div className="space-y-3">
+            <div className="flex-1 px-6 pt-8 pb-8 space-y-3 overflow-y-auto">
+              <div className="space-y-2">
                 <Link
                   to="/services"
                   onClick={toggleMenu}
-                  className="block p-5 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                  className="block p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-semibold text-lg">Our Services</span>
+                  <span className="font-semibold text-base">Our Services</span>
                 </Link>
                 
                 <Link
                   to="/about"
                   onClick={toggleMenu}
-                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                  className="block p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-medium">About Us</span>
+                  <span className="font-semibold text-base">About Us</span>
+                </Link>
+                
+                <Link
+                  to="/contact"
+                  onClick={toggleMenu}
+                  className="block p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                >
+                  <span className="font-semibold text-base">Contact Us</span>
                 </Link>
               </div>
 

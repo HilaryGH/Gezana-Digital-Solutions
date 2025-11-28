@@ -317,6 +317,28 @@ const Home = () => {
                   backgroundPosition: '0 0, 0 0, 0 0'
                 }}
               >
+                {/* Subtle curved shapes on top edges */}
+                <div className="absolute top-0 left-0 w-full h-32 overflow-hidden pointer-events-none z-5">
+                  <svg className="absolute top-0 left-0 w-full h-full" viewBox="0 0 400 120" preserveAspectRatio="none">
+                    <path 
+                      d="M 0,120 Q 100,80 200,90 T 400,85 L 400,120 Z" 
+                      fill="rgba(46, 61, 211, 0.03)"
+                    />
+                    <path 
+                      d="M 0,120 Q 150,70 300,85 T 400,80 L 400,120 Z" 
+                      fill="rgba(0, 174, 239, 0.03)"
+                    />
+                  </svg>
+                </div>
+                <div className="absolute top-0 right-0 w-full h-28 overflow-hidden pointer-events-none z-5">
+                  <svg className="absolute top-0 right-0 w-full h-full" viewBox="0 0 400 110" preserveAspectRatio="none">
+                    <path 
+                      d="M 400,110 Q 300,75 200,85 T 0,80 L 0,110 Z" 
+                      fill="rgba(46, 61, 211, 0.025)"
+                    />
+                  </svg>
+                </div>
+                
                 {/* Single rotating background image covering entire house */}
                 <div 
                   className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
