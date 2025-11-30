@@ -324,9 +324,9 @@ const ServiceDetails = () => {
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-900">{service.providerName}</h4>
                     <div className="flex items-center space-x-1 mt-1">
-                      <Star size={16} className={`${getRatingColor(service.providerRating)} fill-current`} />
-                      <span className={`text-sm font-semibold ${getRatingColor(service.providerRating)}`}>
-                        {service.providerRating.toFixed(1)}
+                      <Star size={16} className={`${getRatingColor(service.providerRating || 0)} fill-current`} />
+                      <span className={`text-sm font-semibold ${getRatingColor(service.providerRating || 0)}`}>
+                        {(service.providerRating || 0).toFixed(1)}
                       </span>
                       <span className="text-gray-500 text-sm">(Verified)</span>
                     </div>

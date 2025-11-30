@@ -17,6 +17,8 @@ import LoginPage from "./component/Pages/LoginPage";
 import SupportForm from "./component/Pages/SupportForm";
 import DiasporaCommunityForm from "./component/Pages/DiasporaCommunityForm";
 import CommunityPage from "./component/Pages/CommunityPage";
+import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
+import WomenInitiativeForm from "./component/Pages/WomenInitiativeForm";
 import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
 import SeekerDashboard from "./component/seeker/SeekerDashboard";
@@ -43,8 +45,6 @@ import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
 import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
-import InvestPartnerPage from "./component/Pages/InvestPartnerPage";
-import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
 import AuthSuccess from "./component/AuthSuccess";
@@ -60,6 +60,8 @@ const noNavbarRoutes = [
     "/login",
     "/support",
     "/diaspora",
+    "/premium-membership",
+    "/women-initiative",
     "/auth/success",
     "/auth/error",
     "/seeker-dashboard",
@@ -101,10 +103,10 @@ const noNavbarRoutes = [
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/community" element={<CommunityPage />} />
-        <Route path="/invest-partner" element={<InvestPartnerPage />} />
-        <Route path="/membership-plans" element={<PremiumMembershipPage />} />
         <Route path="/support" element={<SupportForm />} />
         <Route path="/diaspora" element={<DiasporaCommunityForm />} />
+        <Route path="/premium-membership" element={<PremiumMembershipPage />} />
+        <Route path="/women-initiative" element={<WomenInitiativeForm />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />

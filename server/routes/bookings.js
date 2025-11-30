@@ -23,21 +23,14 @@ router.get("/all", authMiddleware, async (req, res) => {
    const bookings = await Booking.find()
   .populate("user", "name email")
   .populate({
-  path: "service",
-  populate: [
-    { path: "provider", select: "name email" },
-    { path: "category", select: "name" }, // ✅ this is required for category to show
-  ],
-})
-
-  .populate("serviceType", "name")
-  .populate({
     path: "service",
-    populate: {
-      path: "provider",
-      select: "name email",
-    },
+    select: "name price photos description location", // Include price and other important fields
+    populate: [
+      { path: "provider", select: "name email" },
+      { path: "category", select: "name" }, // ✅ this is required for category to show
+    ],
   })
+  .populate("serviceType", "name")
   .sort("-createdAt");
 
 

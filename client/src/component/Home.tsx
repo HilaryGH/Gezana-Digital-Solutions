@@ -274,11 +274,11 @@ const Home = () => {
                       background: 'radial-gradient(ellipse at 30% 50%, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.4) 40%, transparent 70%)',
                       clipPath: 'polygon(0 0, 50% 0, 50% 100%, 0 100%)'
                     }}></div>
-                  </div>
-                </div>
+            </div>
+          </div>
               </>
             )}
-          </div>
+            </div>
           {/* Unified Lower part with white background */}
           <div className="absolute inset-0" style={{
             backgroundColor: isMobile ? 'transparent' : 'white',
@@ -329,7 +329,7 @@ const Home = () => {
                       fill="rgba(0, 174, 239, 0.03)"
                     />
                   </svg>
-                </div>
+            </div>
                 <div className="absolute top-0 right-0 w-full h-28 overflow-hidden pointer-events-none z-5">
                   <svg className="absolute top-0 right-0 w-full h-full" viewBox="0 0 400 110" preserveAspectRatio="none">
                     <path 
@@ -337,8 +337,8 @@ const Home = () => {
                       fill="rgba(46, 61, 211, 0.025)"
                     />
                   </svg>
-                </div>
-                
+        </div>
+        
                 {/* Single rotating background image covering entire house */}
                 <div 
                   className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
@@ -383,16 +383,16 @@ const Home = () => {
                 {/* House Container - No borders */}
                 <div 
                   className="relative w-full max-w-sm flex flex-col items-center justify-center z-10" 
-                  style={{ 
+                style={{ 
                     perspective: '1000px'
-                  }}
+                }}
                 >
                   {/* Roof Section - Two diagonal images forming /\ peak */}
                   <div className="relative w-full flex items-start justify-center mb-0" style={{ height: '120px', overflow: 'hidden' }}>
                     {/* Left Roof Panel - Diagonal sloping down from center */}
-                    <div 
+              <div
                       className="relative"
-                      style={{
+                style={{ 
                         width: '50%',
                         height: '120px',
                         transform: 'skewY(-15deg)',
@@ -406,7 +406,7 @@ const Home = () => {
                     {/* Right Roof Panel - Diagonal sloping down from center */}
                     <div 
                       className="relative"
-                      style={{
+                style={{ 
                         width: '50%',
                         height: '120px',
                         transform: 'skewY(15deg)',
@@ -423,14 +423,14 @@ const Home = () => {
                     {/* Left Wall */}
                     <div 
                       className="relative"
-                      style={{
+                style={{ 
                         width: '50%',
                         height: '100%',
                         overflow: 'hidden',
                         background: 'transparent'
                       }}
                     >
-                    </div>
+          </div>
 
                     {/* Right Wall */}
                     <div 
@@ -484,7 +484,7 @@ const Home = () => {
              }}>
 
                {/* Roof - Made of thin rods/lines in spiral pattern - Responsive - Increased for mobile */}
-              <div className="relative w-[420px] xs:w-[460px] sm:w-[480px] md:w-[600px] lg:w-[760px] h-[70px] xs:h-[75px] sm:h-[80px] md:h-[90px] lg:h-[110px]" style={{
+              <div className="relative z-20 w-[420px] xs:w-[460px] sm:w-[480px] md:w-[600px] lg:w-[760px] h-[70px] xs:h-[75px] sm:h-[80px] md:h-[90px] lg:h-[110px]" style={{
                 filter: 'drop-shadow(0 12px 25px rgba(247, 147, 30, 0.4)) drop-shadow(0 6px 15px rgba(247, 147, 30, 0.3))',
                 transition: 'all 0.3s ease',
                 marginBottom: '0',
@@ -752,9 +752,8 @@ const Home = () => {
                   </g>
                 </svg>
               </div>
-              {/* Walls Section - Narrower than roof - Responsive - Increased for mobile */}
-              <div className="relative w-[320px] xs:w-[360px] sm:w-[360px] md:w-[400px] lg:w-[520px] h-[160px] xs:h-[175px] sm:h-[180px] md:h-[190px] lg:h-[240px] flex mx-auto" style={{
-                marginTop: '0',
+              {/* Walls Section - Narrower than roof - Responsive - Increased for mobile - Roof covers 10% of wall height */}
+              <div className="relative z-10 w-[320px] xs:w-[360px] sm:w-[360px] md:w-[400px] lg:w-[520px] h-[160px] xs:h-[175px] sm:h-[180px] md:h-[190px] lg:h-[240px] flex mx-auto -mt-4 xs:-mt-[18px] sm:-mt-[18px] md:-mt-[19px] lg:-mt-6" style={{
                 marginBottom: '0'
               }}>
 
@@ -763,7 +762,8 @@ const Home = () => {
                   background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 250, 245, 0.92), rgba(240, 248, 255, 0.95))',
                   borderLeftColor: '#F7931E',
                   borderRightColor: '#F7931E',
-                  boxShadow: '0 30px 60px rgba(46, 61, 211, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+                  filter: 'drop-shadow(0 12px 25px rgba(247, 147, 30, 0.4)) drop-shadow(0 6px 15px rgba(247, 147, 30, 0.3))',
+                  boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.1) inset'
                 }}>
                   {/* Static gradient overlay - animation removed */}
                   <div className="absolute inset-0" style={{
@@ -790,18 +790,19 @@ const Home = () => {
                </div>
                 
                {/* Heading centered in walls - Brand blue color - Responsive - Increased font size */}
-               <div className="absolute top-[110px] xs:top-[120px] sm:top-[110px] md:top-[130px] lg:top-[170px] left-1/2 transform -translate-x-1/2 w-[320px] xs:w-[360px] sm:w-[360px] md:w-[400px] lg:w-[520px] text-center px-2 xs:px-3">
+               <div className="absolute top-[110px] xs:top-[120px] sm:top-[110px] md:top-[130px] lg:top-[170px] left-1/2 transform -translate-x-1/2 w-[320px] xs:w-[360px] sm:w-[360px] md:w-[400px] lg:w-[520px] text-center px-2 xs:px-3 z-30">
                  <h1 className="text-2xl xs:text-3xl sm:text-2xl md:text-2xl lg:text-4xl font-bold leading-tight" style={{
-                   color: '#2E3DD3',
-                   filter: 'drop-shadow(0 4px 8px rgba(46, 61, 211, 0.3))',
-                   textShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+                   color: '#FFFFFF',
+                   filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4))',
+                   textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(46, 61, 211, 0.6)',
+                   WebkitTextStroke: '1px rgba(46, 61, 211, 0.3)'
                  }}>
                     Home Services, Redefined & Delivered
                   </h1>
                </div>
 
               {/* Call-to-Action Button - Enhanced with brand colors - Responsive */}
-               <div className="absolute top-[200px] xs:top-[220px] sm:top-[190px] md:top-[220px] lg:top-[285px] left-1/2 transform -translate-x-1/2 w-[320px] xs:w-[360px] sm:w-[320px] md:w-[400px] lg:w-[520px] px-2 xs:px-4">
+               <div className="absolute top-[200px] xs:top-[220px] sm:top-[190px] md:top-[220px] lg:top-[285px] left-1/2 transform -translate-x-1/2 w-[320px] xs:w-[360px] sm:w-[320px] md:w-[400px] lg:w-[520px] px-2 xs:px-4 z-30">
                 <div className="flex justify-center">
                   <button 
                     onClick={() => navigate('/signup')}
@@ -810,18 +811,19 @@ const Home = () => {
                       background: '#2E3DD3',
                       backgroundColor: '#2E3DD3 !important',
                       color: '#FFFFFF',
-                      boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4), 0 0 0 0 rgba(46, 61, 211, 0.3)',
-                      borderColor: 'rgba(255, 255, 255, 0.3)'
+                      boxShadow: '0 8px 25px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(46, 61, 211, 0.5), 0 0 20px rgba(46, 61, 211, 0.4)',
+                      borderColor: 'rgba(255, 255, 255, 0.5)',
+                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5))'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.setProperty('background-color', '#1e2db8', 'important');
                       e.currentTarget.style.color = '#FFFFFF';
-                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5), 0 0 20px rgba(46, 61, 211, 0.4)';
+                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(0, 0, 0, 0.7), 0 6px 15px rgba(46, 61, 211, 0.6), 0 0 25px rgba(46, 61, 211, 0.5)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.setProperty('background-color', '#2E3DD3', 'important');
                       e.currentTarget.style.color = '#FFFFFF';
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4), 0 0 0 0 rgba(46, 61, 211, 0.3)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(46, 61, 211, 0.5), 0 0 20px rgba(46, 61, 211, 0.4)';
                     }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
@@ -1322,6 +1324,87 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Women's Initiative, Diaspora & Premium Sections */}
+        <section className="relative w-full bg-gradient-to-br from-pink-50/50 via-white to-purple-50/50 py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            {/* Section Header */}
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                Special <span className="text-pink-600">Programs</span>
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+                Join our specialized programs designed to empower and connect communities.
+              </p>
+            </div>
+
+            {/* Three Column Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {/* Women's Initiative */}
+              <div 
+                onClick={() => navigate('/women-initiative')}
+                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-pink-100 hover:border-pink-300 cursor-pointer group"
+              >
+                <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
+                  Women's Initiative
+                </h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Empowering women in the service industry. Join our community of female entrepreneurs and service providers.
+                </p>
+                <button className="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:from-pink-600 hover:to-pink-700 transition-all">
+                  Join Now
+                </button>
+              </div>
+
+              {/* Diaspora Community */}
+              <div 
+                onClick={() => navigate('/diaspora')}
+                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-300 cursor-pointer group"
+              >
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
+                  Diaspora Community
+                </h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Connect with your community abroad. Share experiences and discover opportunities to contribute back home.
+                </p>
+                <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all">
+                  Join Now
+                </button>
+              </div>
+
+              {/* Premium Membership */}
+              <div 
+                onClick={() => navigate('/premium-membership')}
+                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-blue-100 hover:border-blue-300 cursor-pointer group"
+              >
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  Premium Membership
+                </h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  Unlock exclusive access to premium services, priority booking, and advanced platform features.
+                </p>
+                <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 transition-all">
+                  Join Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Join Community & Find Jobs Section */}
         <section className="relative w-full bg-gradient-to-b from-white via-blue-50/30 to-white py-12">
           <div className="max-w-7xl mx-auto px-6">
@@ -1378,10 +1461,7 @@ const Home = () => {
 
               {/* Feature 4 - Premium Community Membership */}
               <div 
-                onClick={() => {
-                  // Navigate to membership section or page
-                  navigate('/membership-plans');
-                }}
+                onClick={() => navigate('/premium-membership')}
                 className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">

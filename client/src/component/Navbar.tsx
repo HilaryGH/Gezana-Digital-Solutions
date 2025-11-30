@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";                            
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
@@ -179,8 +179,8 @@ const Navbar = () => {
           ? "bg-white/98 backdrop-blur-xl shadow-lg border-b border-gray-200" 
           : "bg-white shadow-md"
       } ${menuOpen ? 'lg:z-50' : ''}`}>
-        {/* Top Announcement Bar - Hidden on mobile */}
-        <div className={`hidden lg:block w-full transition-all duration-500 ${
+        {/* Top Announcement Bar */}
+        <div className={`w-full transition-all duration-500 ${
           scrolled ? 'h-0 overflow-hidden' : 'h-12'
         }`}>
           <div className="bg-black text-white relative overflow-hidden">
@@ -251,8 +251,8 @@ const Navbar = () => {
                   <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span className="text-xs lg:text-sm font-medium whitespace-nowrap font-mono max-w-[220px] lg:max-w-[260px] truncate">
                     {t('common.search')}{" "}
-                    <span className="text-gray-500">{typedText}</span>
-                    <span className="ml-0.5 inline-block w-[2px] h-4 bg-gray-500 align-middle animate-pulse"></span>
+                    <span className="text-brand-primary">{typedText}</span>
+                    <span className="ml-0.5 inline-block w-[2px] h-4 bg-brand-primary align-middle animate-pulse"></span>
                   </span>
                 </button>
               </div>
@@ -289,19 +289,7 @@ const Navbar = () => {
               {/* Login Button */}
               <Link
                 to="/login"
-                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group text-white`}
-                style={{
-                  background: '#F7931E',
-                  backgroundColor: '#F7931E'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#e6821a';
-                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(247, 147, 30, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#F7931E';
-                  e.currentTarget.style.boxShadow = '';
-                }}
+                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900`}
               >
                 <span>Login</span>
               </Link>
@@ -309,6 +297,22 @@ const Navbar = () => {
 
             {/* Mobile Actions */}
             <div className="flex items-center space-x-2 lg:hidden">
+              <div className="language-switcher">
+                <LanguageSwitcher />
+              </div>
+              
+              <button
+                onClick={toggleSearch}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  scrolled 
+                    ? 'text-gray-700 hover:bg-gray-100' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                aria-label="Search"
+              >
+                <IoSearchOutline size={20} />
+              </button>
+              
               <button
                 onClick={toggleMenu}
                 className={`p-2 rounded-lg transition-all duration-300 ${
@@ -321,23 +325,6 @@ const Navbar = () => {
                 {menuOpen ? <FaTimes size={22} /> : <HiMenuAlt3 size={22} />}
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile Search Bar - Below Navbar - Same as Desktop */}
-        <div className="lg:hidden container mx-auto px-4 lg:px-8 pt-4 pb-4">
-          <div className="relative">
-            <button
-              onClick={toggleSearch}
-              className="flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300 group border w-full bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
-            >
-              <IoSearchOutline className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="text-sm font-medium whitespace-nowrap font-mono flex-1 text-left truncate">
-                {t('common.search')}{" "}
-                <span className="text-gray-500">{typedText}</span>
-                <span className="ml-0.5 inline-block w-[2px] h-4 bg-gray-500 align-middle animate-pulse"></span>
-              </span>
-            </button>
           </div>
         </div>
 
@@ -376,30 +363,30 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex-1 px-6 pt-8 pb-8 space-y-3 overflow-y-auto">
+            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
               <div className="space-y-2">
-                <Link
-                  to="/services"
-                  onClick={toggleMenu}
-                  className="block p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
-                >
-                  <span className="font-semibold text-base">Our Services</span>
-                </Link>
-                
                 <Link
                   to="/about"
                   onClick={toggleMenu}
-                  className="block p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-semibold text-base">About Us</span>
+                  <span className="font-medium">About Us</span>
+                </Link>
+                
+                <Link
+                  to="/services"
+                  onClick={toggleMenu}
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                >
+                  <span className="font-medium">Our Services</span>
                 </Link>
                 
                 <Link
                   to="/contact"
                   onClick={toggleMenu}
-                  className="block p-4 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-semibold text-base">Contact Us</span>
+                  <span className="font-medium">Contact Us</span>
                 </Link>
               </div>
 
@@ -423,43 +410,22 @@ const Navbar = () => {
               </div>
             </div>
 
+            {/* Mobile Language Switcher */}
+            <div className="px-6 py-4 border-t border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Language / ቋንቋ</h3>
+              <div className="flex justify-center">
+                <LanguageSwitcher />
+              </div>
+            </div>
+
             {/* Mobile CTA */}
             <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
               <Link
                 to="/login"
                 onClick={toggleMenu}
-                className="w-full text-white py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
-                style={{
-                  background: '#F7931E',
-                  backgroundColor: '#F7931E'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#e6821a';
-                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(247, 147, 30, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#F7931E';
-                  e.currentTarget.style.boxShadow = '';
-                }}
+                className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
                 <span>Login</span>
-              </Link>
-              
-              <Link
-                to="/community"
-                onClick={toggleMenu}
-                className="w-full bg-white text-black border-2 border-gray-300 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:border-[#F7931E] flex items-center justify-center space-x-2"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#F7931E';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(247, 147, 30, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '';
-                  e.currentTarget.style.boxShadow = '';
-                }}
-              >
-                <MdConnectWithoutContact className="w-5 h-5" />
-                <span>Join Community</span>
               </Link>
             </div>
           </div>
@@ -471,28 +437,18 @@ const Navbar = () => {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 transform transition-all duration-300 animate-in slide-in-from-top-4 max-h-[80vh] overflow-hidden flex flex-col">
               <div className="p-6 border-b border-gray-200">
                 <form onSubmit={handleSearchSubmit} className="flex items-center space-x-3">
-                  <IoSearchOutline className="w-6 h-6 text-gray-500" />
+                  <IoSearchOutline className="w-6 h-6 text-gray-600" />
                   <input
                     type="text"
                     placeholder="Search for services, providers, or categories..."
-                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-gray-500"
+                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-gray-400"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 text-white rounded-lg transition-all duration-300"
-                    style={{
-                      background: '#F7931E',
-                      backgroundColor: '#F7931E'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#e6821a';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#F7931E';
-                    }}
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors"
                   >
                     <FaSearch className="w-4 h-4" />
                   </button>

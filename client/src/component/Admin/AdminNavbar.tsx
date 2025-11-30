@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, X, Shield, ChevronRight } from "lucide-react";
-import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft, FaBullhorn } from "react-icons/fa";
+import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft, FaBullhorn, FaCrown } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { HiSparkles } from "react-icons/hi";
 
@@ -58,6 +58,12 @@ const AdminNavbar = () => {
       label: "Promotional Banners", 
       icon: FaBullhorn,
       description: "Manage Banners"
+    },
+    { 
+      to: "/admin/premium-memberships", 
+      label: "Premium Memberships", 
+      icon: FaCrown,
+      description: "Manage Memberships"
     },
   ];
 

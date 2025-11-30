@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Calendar, X } from 'lucide-react';
+import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Calendar, X, Tag } from 'lucide-react';
 import { getMyServices, deleteService, type Service } from '../../api/services';
 import { getProviderBookings } from '../../api/bookings';
 import AddService from './AddService';
+import SpecialOffers from './SpecialOffers';
 
 const ProviderDashboard: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -12,6 +13,7 @@ const ProviderDashboard: React.FC = () => {
   const [editServiceOpen, setEditServiceOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showBookings, setShowBookings] = useState(false);
+  const [showOffers, setShowOffers] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [stats, setStats] = useState({
@@ -70,8 +72,17 @@ const ProviderDashboard: React.FC = () => {
         // Calculate stats
         const activeServices = servicesData.filter(service => service.isAvailable).length;
         const totalEarnings = servicesData.reduce((sum, service) => sum + service.price, 0);
-        const averageRating = servicesData.length > 0 
-          ? servicesData.reduce((sum, service) => sum + (service.providerRating || 4.5), 0) / servicesData.length 
+        
+        // Calculate average rating from services that actually have ratings
+        const servicesWithRatings = servicesData.filter(service => 
+          (service.providerRating && service.providerRating > 0) || 
+          (service.serviceRating && service.serviceRating > 0)
+        );
+        const averageRating = servicesWithRatings.length > 0
+          ? servicesWithRatings.reduce((sum, service) => {
+              const rating = service.serviceRating || service.providerRating || 0;
+              return sum + rating;
+            }, 0) / servicesWithRatings.length
           : 0;
         
         if (!isMounted) return;
@@ -126,8 +137,17 @@ const ProviderDashboard: React.FC = () => {
       
       const activeServices = servicesData.filter(service => service.isAvailable).length;
       const totalEarnings = servicesData.reduce((sum, service) => sum + service.price, 0);
-      const averageRating = servicesData.length > 0 
-        ? servicesData.reduce((sum, service) => sum + (service.providerRating || 4.5), 0) / servicesData.length 
+      
+      // Calculate average rating from services that actually have ratings
+      const servicesWithRatings = servicesData.filter(service => 
+        (service.providerRating && service.providerRating > 0) || 
+        (service.serviceRating && service.serviceRating > 0)
+      );
+      const averageRating = servicesWithRatings.length > 0
+        ? servicesWithRatings.reduce((sum, service) => {
+            const rating = service.serviceRating || service.providerRating || 0;
+            return sum + rating;
+          }, 0) / servicesWithRatings.length
         : 0;
       
       setStats(prev => ({
@@ -198,16 +218,23 @@ const ProviderDashboard: React.FC = () => {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowBookings(false)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${!showBookings ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                onClick={() => { setShowBookings(false); setShowOffers(false); }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${!showBookings && !showOffers ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 My Services
               </button>
               <button
-                onClick={() => setShowBookings(true)}
+                onClick={() => { setShowBookings(true); setShowOffers(false); }}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${showBookings ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 Bookings ({stats.totalBookings})
+              </button>
+              <button
+                onClick={() => { setShowBookings(false); setShowOffers(true); }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${showOffers ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                <Tag className="w-4 h-4" />
+                Special Offers
               </button>
             <button
               onClick={() => setAddServiceOpen(true)}
@@ -267,7 +294,7 @@ const ProviderDashboard: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Average Rating</p>
                 <p className="text-3xl font-bold text-yellow-600">
-                  {stats.averageRating.toFixed(1)}
+                  {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
                 </p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -289,8 +316,11 @@ const ProviderDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Services or Bookings Section */}
-        {!showBookings ? (
+        {/* Services, Bookings, or Special Offers Section */}
+        {showOffers ? (
+          /* Special Offers Section */
+          <SpecialOffers />
+        ) : !showBookings ? (
           /* Services Section */
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
           <div className="p-6 border-b border-gray-100">
@@ -545,7 +575,7 @@ const ProviderDashboard: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-orange-100 text-sm">Average Rating</p>
-                  <p className="text-3xl font-bold">{stats.averageRating.toFixed(1)} ⭐</p>
+                  <p className="text-3xl font-bold">{stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'} ⭐</p>
                 </div>
               </div>
             </div>

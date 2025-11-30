@@ -23,7 +23,8 @@ import {
   RefreshCw,
   Download,
   Search,
-  Filter
+  Filter,
+  Briefcase
 } from "lucide-react";
 import { getAllBookings, type BookingWithDetails } from "../../api/bookings";
 import axios from "../../api/axios";
@@ -91,17 +92,42 @@ const SuperadminDashboard = () => {
       // Fetch all bookings
       let bookingsData: BookingWithDetails[] = [];
       try {
-        bookingsData = await getAllBookings();
+        const bookingsResponse = await axios.get("/bookings/all", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // Handle different response formats
+        bookingsData = Array.isArray(bookingsResponse.data) 
+          ? bookingsResponse.data 
+          : bookingsResponse.data?.bookings || bookingsResponse.data?.data || [];
         setBookings(bookingsData);
+        console.log("Fetched bookings:", bookingsData.length);
       } catch (error: any) {
         console.error("Error fetching bookings:", error);
-        setBookings([]);
+        // Try alternative method
+        try {
+          bookingsData = await getAllBookings();
+          setBookings(bookingsData);
+          console.log("Fetched bookings (alternative):", bookingsData.length);
+        } catch (altError) {
+          console.error("Alternative booking fetch also failed:", altError);
+          setBookings([]);
+        }
       }
 
       // Calculate revenue from completed/confirmed bookings with paid status
+      // Also include bookings that are paid regardless of status
       const totalRevenue = bookingsData
-        .filter(b => (b.status === "completed" || b.status === "confirmed") && b.paymentStatus === "paid")
-        .reduce((sum, b) => sum + (b.service?.price || 0), 0);
+        .filter(b => {
+          const isPaid = b.paymentStatus === "paid";
+          const isCompletedOrConfirmed = (b.status === "completed" || b.status === "confirmed");
+          return isPaid && (isCompletedOrConfirmed || b.status === "pending"); // Include pending paid bookings too
+        })
+        .reduce((sum, b) => {
+          const price = b.service?.price || 0;
+          return sum + price;
+        }, 0);
+      
+      console.log("Total revenue calculated:", totalRevenue, "from", bookingsData.filter(b => b.paymentStatus === "paid").length, "paid bookings");
 
       // Fetch all users
       let allUsers: any[] = [];
@@ -150,15 +176,28 @@ const SuperadminDashboard = () => {
         console.error("Error fetching services:", e);
       }
 
+      // Ensure we have valid numbers
+      const finalTotalBookings = Array.isArray(bookingsData) ? bookingsData.length : 0;
+      const finalTotalRevenue = typeof totalRevenue === 'number' ? totalRevenue : 0;
+      const finalPendingBookings = Array.isArray(bookingsData) 
+        ? bookingsData.filter(b => b.status === "pending").length 
+        : 0;
+
+      console.log("Setting stats:", {
+        totalBookings: finalTotalBookings,
+        totalRevenue: finalTotalRevenue,
+        pendingBookings: finalPendingBookings
+      });
+
       setStats({
         totalUsers,
         totalProviders,
         totalAdmins,
         totalSupport,
         totalMarketing,
-        totalBookings: bookingsData.length,
-        totalRevenue,
-        pendingBookings: bookingsData.filter(b => b.status === "pending").length,
+        totalBookings: finalTotalBookings,
+        totalRevenue: finalTotalRevenue,
+        pendingBookings: finalPendingBookings,
         activeServices,
         systemHealth: "healthy",
       });
@@ -535,7 +574,7 @@ const SuperadminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <button
             onClick={() => navigate("/admin/user")}
             className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all text-left group"
@@ -578,6 +617,27 @@ const SuperadminDashboard = () => {
             </div>
             <h3 className="font-bold text-gray-900 mb-2">Team Members</h3>
             <p className="text-sm text-gray-600">Manage team and permissions</p>
+          </button>
+
+          <button
+            onClick={() => navigate("/jobs", { state: { openForm: true } })}
+            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-200 transition-colors">
+              <Briefcase className="w-6 h-6 text-indigo-600" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">Post Jobs</h3>
+            <p className="text-sm text-gray-600">Create and manage job postings</p>
+          </button>
+          <button
+            onClick={() => navigate("/admin/premium-memberships")}
+            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
+              <Shield className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">Premium Memberships</h3>
+            <p className="text-sm text-gray-600">Manage premium membership requests</p>
           </button>
         </div>
 
