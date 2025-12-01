@@ -43,8 +43,57 @@ app.use(express.json());
 
 // Serve uploaded files at /uploads path (use absolute path for reliability)
 const path = require("path");
+const fs = require("fs");
 const uploadsPath = path.join(__dirname, 'uploads');
-app.use('/uploads', express.static(uploadsPath)); // Serve uploaded files at /uploads path
+
+// Ensure uploads directory exists (important for production)
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+  console.log('✅ Created uploads directory:', uploadsPath);
+} else {
+  console.log('✅ Uploads directory exists:', uploadsPath);
+}
+
+// Serve uploaded files at /uploads path (before API routes)
+app.use('/uploads', (req, res, next) => {
+  // Log file requests in production for debugging
+  if (process.env.NODE_ENV === 'production') {
+    const filePath = path.join(uploadsPath, req.path);
+    const exists = fs.existsSync(filePath);
+    if (!exists) {
+      console.warn('⚠️  Production: File not found:', req.path);
+    }
+  }
+  next();
+}, express.static(uploadsPath, {
+  // Set proper headers for file serving
+  setHeaders: (res, filePath) => {
+    // Set cache headers for images
+    if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || 
+        filePath.endsWith('.png') || filePath.endsWith('.gif') || 
+        filePath.endsWith('.webp') || filePath.endsWith('.jfif')) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+    }
+    // Set CORS headers for images
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  },
+  // Allow fallthrough to handle 404s
+  fallthrough: true
+}));
+
+// Handle 404 for missing upload files (after static middleware)
+app.use('/uploads', (req, res) => {
+  console.warn('⚠️  404 - File not found:', req.path);
+  res.status(404).json({ 
+    error: 'File not found',
+    message: 'The requested file does not exist on the server. Note: Files uploaded in development may not exist in production.',
+    path: req.path,
+    suggestion: 'Please re-upload the file in production or configure Cloudinary for persistent storage.'
+  });
+});
+
+console.log('📁 Static file serving configured for:', uploadsPath);
+console.log('📁 Uploads directory contents:', fs.existsSync(uploadsPath) ? fs.readdirSync(uploadsPath).length + ' files' : 'empty');
 
 // Session middleware
 app.use(session({
@@ -134,6 +183,22 @@ app.use("/api/statistics", statisticsRoutes);
 // Root route
 app.get("/", (req, res) => {
   res.send("Gezana backend is running 🚀");
+});
+
+// Diagnostic route to check uploads directory
+app.get("/api/health/uploads", (req, res) => {
+  const uploadsExist = fs.existsSync(uploadsPath);
+  const files = uploadsExist ? fs.readdirSync(uploadsPath) : [];
+  const fileCount = files.length;
+  
+  res.json({
+    uploadsPath,
+    exists: uploadsExist,
+    fileCount,
+    files: files.slice(0, 10), // Show first 10 files
+    environment: process.env.NODE_ENV || 'development',
+    cloudinaryConfigured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+  });
 });
 
 // DB & Server
