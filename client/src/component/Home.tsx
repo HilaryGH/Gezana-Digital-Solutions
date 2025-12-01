@@ -5,6 +5,8 @@ import { ChevronDown, X, Star } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
 import { getRecentServices, getMostBookedServices, getServices, type Service } from "../api/services";
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
+import { getJobs, type Job } from "../api/jobs";
+import { applyForJob, type CreateJobApplicationData } from "../api/jobApplications";
 
 const serviceCategories = [
   {
@@ -85,6 +87,31 @@ const Home = () => {
   const [isNightMode, setIsNightMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [imageRotationIndex, setImageRotationIndex] = useState(0);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [showJobsModal, setShowJobsModal] = useState(false);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [applicationForm, setApplicationForm] = useState({
+    // Personal Information
+    fullName: '',
+    dateOfBirth: '',
+    gender: '',
+    nationality: '',
+    // Contact Information
+    email: '',
+    phone: '',
+    alternativePhone: '',
+    address: '',
+    city: '',
+    country: '',
+    // Application Details
+    coverLetter: '',
+    resume: null as File | null,
+  });
+  const [submittingApplication, setSubmittingApplication] = useState(false);
+  const [applicationError, setApplicationError] = useState<string | null>(null);
+  const [applicationSuccess, setApplicationSuccess] = useState(false);
 
   // Handle search query from URL parameters
   useEffect(() => {
@@ -158,6 +185,23 @@ const Home = () => {
       }
     };
     fetchMostBookedServices();
+  }, []);
+
+  // Fetch jobs
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoadingJobs(true);
+      try {
+        const jobsData = await getJobs();
+        setJobs(jobsData);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        setJobs([]);
+      } finally {
+        setLoadingJobs(false);
+      }
+    };
+    fetchJobs();
   }, []);
 
   // Fetch promotional banners
@@ -1489,7 +1533,10 @@ const Home = () => {
               </div>
 
               {/* Feature 2 - Find Job Opportunities - Orange Theme */}
-              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-400 overflow-hidden">
+              <div 
+                onClick={() => setShowJobsModal(true)}
+                className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-400 overflow-hidden cursor-pointer"
+              >
                 {/* Animated Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
@@ -1508,6 +1555,11 @@ const Home = () => {
                   <p className="text-gray-600 text-sm leading-relaxed">
                     Discover new job opportunities that match your skills and grow your career with us.
                   </p>
+                  {jobs.length > 0 && (
+                    <div className="mt-3 text-xs text-orange-600 font-semibold">
+                      {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} available
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1633,6 +1685,510 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Jobs Modal */}
+      {showJobsModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowJobsModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-600 to-orange-700">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-white">Job Opportunities</h2>
+                <button
+                  onClick={() => setShowJobsModal(false)}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingJobs ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-gray-600 text-lg">No job opportunities available at the moment</p>
+                  <p className="text-gray-500 text-sm mt-2">Check back later for new opportunities</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {jobs.map((job) => (
+                    <div
+                      key={job._id}
+                      className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">{job.title}</h3>
+                          <p className="text-gray-600 mb-4">{job.description}</p>
+                        </div>
+                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                          {job.status}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-2">
+                          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span>{job.location}</span>
+                        </div>
+                        {job.salary && (
+                          <div className="flex items-center space-x-2">
+                            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{job.salary}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-2">
+                          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="capitalize">{job.employmentModel.replace('-', ' ')}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                          </svg>
+                          <span>{job.specialization}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Apply Button */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setSelectedJob(job);
+                            setShowApplicationModal(true);
+                            // Pre-fill user info if logged in
+                            const user = localStorage.getItem('user');
+                            if (user) {
+                              try {
+                                const userData = JSON.parse(user);
+                                setApplicationForm(prev => ({
+                                  ...prev,
+                                  fullName: userData.name || '',
+                                  email: userData.email || '',
+                                }));
+                              } catch (e) {
+                                // Ignore parse errors
+                              }
+                            } else {
+                              // Reset form for guest users
+                              setApplicationForm({
+                                fullName: '',
+                                dateOfBirth: '',
+                                gender: '',
+                                nationality: '',
+                                email: '',
+                                phone: '',
+                                alternativePhone: '',
+                                address: '',
+                                city: '',
+                                country: '',
+                                coverLetter: '',
+                                resume: null,
+                              });
+                            }
+                          }}
+                          className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        >
+                          Apply for this Job
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Job Application Modal */}
+      {showApplicationModal && selectedJob && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={() => {
+          setShowApplicationModal(false);
+          setApplicationError(null);
+          setApplicationSuccess(false);
+          setApplicationForm({
+            fullName: '',
+            dateOfBirth: '',
+            gender: '',
+            nationality: '',
+            email: '',
+            phone: '',
+            alternativePhone: '',
+            address: '',
+            city: '',
+            country: '',
+            coverLetter: '',
+            resume: null,
+          });
+        }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-600 to-orange-700">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Apply for Job</h2>
+                  <p className="text-orange-100 text-sm mt-1">{selectedJob.title}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowApplicationModal(false);
+                    setApplicationError(null);
+                    setApplicationSuccess(false);
+                    setApplicationForm({
+                      coverLetter: '',
+                      resume: null,
+                      fullName: '',
+                      email: '',
+                      phone: '',
+                    });
+                  }}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {applicationSuccess ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
+                  <p className="text-gray-600 mb-6">Thank you for your interest. We'll review your application and get back to you soon.</p>
+                  <button
+                    onClick={() => {
+                      setShowApplicationModal(false);
+                      setApplicationSuccess(false);
+                      setApplicationForm({
+                        coverLetter: '',
+                        resume: null,
+                        fullName: '',
+                        email: '',
+                        phone: '',
+                      });
+                    }}
+                    className="px-6 py-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setApplicationError(null);
+                  setSubmittingApplication(true);
+
+                  try {
+                    const user = localStorage.getItem('user');
+                    let applicationData: CreateJobApplicationData = {
+                      jobId: selectedJob._id,
+                      coverLetter: applicationForm.coverLetter,
+                    };
+
+                    // Add resume if provided
+                    if (applicationForm.resume) {
+                      applicationData.resume = applicationForm.resume;
+                    }
+
+                    // Add personal and contact info (required for guests, optional for logged-in users)
+                    if (!user) {
+                      // Validate required fields for guests
+                      if (!applicationForm.fullName || !applicationForm.email || !applicationForm.phone || 
+                          !applicationForm.dateOfBirth || !applicationForm.gender || !applicationForm.nationality ||
+                          !applicationForm.address || !applicationForm.city || !applicationForm.country) {
+                        setApplicationError('Please fill in all required fields');
+                        setSubmittingApplication(false);
+                        return;
+                      }
+                    }
+                    
+                    // Add all provided information (for both logged-in and guest users)
+                    if (applicationForm.fullName) applicationData.fullName = applicationForm.fullName;
+                    if (applicationForm.email) applicationData.email = applicationForm.email;
+                    if (applicationForm.phone) applicationData.phone = applicationForm.phone;
+                    if (applicationForm.alternativePhone) applicationData.alternativePhone = applicationForm.alternativePhone;
+                    if (applicationForm.dateOfBirth) applicationData.dateOfBirth = applicationForm.dateOfBirth;
+                    if (applicationForm.gender) applicationData.gender = applicationForm.gender;
+                    if (applicationForm.nationality) applicationData.nationality = applicationForm.nationality;
+                    if (applicationForm.address) applicationData.address = applicationForm.address;
+                    if (applicationForm.city) applicationData.city = applicationForm.city;
+                    if (applicationForm.country) applicationData.country = applicationForm.country;
+
+                    await applyForJob(applicationData);
+                    setApplicationSuccess(true);
+                    setApplicationForm({
+                      fullName: '',
+                      dateOfBirth: '',
+                      gender: '',
+                      nationality: '',
+                      email: '',
+                      phone: '',
+                      alternativePhone: '',
+                      address: '',
+                      city: '',
+                      country: '',
+                      coverLetter: '',
+                      resume: null,
+                    });
+                  } catch (error: any) {
+                    console.error('Error applying for job:', error);
+                    setApplicationError(error.response?.data?.message || 'Failed to submit application. Please try again.');
+                  } finally {
+                    setSubmittingApplication(false);
+                  }
+                }} className="space-y-4">
+                  {applicationError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                      {applicationError}
+                    </div>
+                  )}
+
+                  {/* Personal Information Section */}
+                  <div className="border-b border-gray-200 pb-6 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Full Name {!localStorage.getItem('user') && '*'}
+                        </label>
+                        <input
+                          type="text"
+                          required={!localStorage.getItem('user')}
+                          value={applicationForm.fullName}
+                          onChange={(e) => setApplicationForm({ ...applicationForm, fullName: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Date of Birth {!localStorage.getItem('user') && '*'}
+                          </label>
+                          <input
+                            type="date"
+                            required={!localStorage.getItem('user')}
+                            value={applicationForm.dateOfBirth}
+                            onChange={(e) => setApplicationForm({ ...applicationForm, dateOfBirth: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Gender {!localStorage.getItem('user') && '*'}
+                          </label>
+                          <select
+                            required={!localStorage.getItem('user')}
+                            value={applicationForm.gender}
+                            onChange={(e) => setApplicationForm({ ...applicationForm, gender: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Nationality {!localStorage.getItem('user') && '*'}
+                        </label>
+                        <input
+                          type="text"
+                          required={!localStorage.getItem('user')}
+                          value={applicationForm.nationality}
+                          onChange={(e) => setApplicationForm({ ...applicationForm, nationality: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="e.g., Ethiopian, American, etc."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div className="border-b border-gray-200 pb-6 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email Address {!localStorage.getItem('user') && '*'}
+                          </label>
+                          <input
+                            type="email"
+                            required={!localStorage.getItem('user')}
+                            value={applicationForm.email}
+                            onChange={(e) => setApplicationForm({ ...applicationForm, email: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="your.email@example.com"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Phone Number {!localStorage.getItem('user') && '*'}
+                          </label>
+                          <input
+                            type="tel"
+                            required={!localStorage.getItem('user')}
+                            value={applicationForm.phone}
+                            onChange={(e) => setApplicationForm({ ...applicationForm, phone: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="+251 9XX XXX XXX"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Alternative Phone (Optional)
+                        </label>
+                        <input
+                          type="tel"
+                          value={applicationForm.alternativePhone}
+                          onChange={(e) => setApplicationForm({ ...applicationForm, alternativePhone: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="+251 9XX XXX XXX"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Address {!localStorage.getItem('user') && '*'}
+                        </label>
+                        <input
+                          type="text"
+                          required={!localStorage.getItem('user')}
+                          value={applicationForm.address}
+                          onChange={(e) => setApplicationForm({ ...applicationForm, address: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="Street address, P.O. Box, etc."
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            City {!localStorage.getItem('user') && '*'}
+                          </label>
+                          <input
+                            type="text"
+                            required={!localStorage.getItem('user')}
+                            value={applicationForm.city}
+                            onChange={(e) => setApplicationForm({ ...applicationForm, city: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="e.g., Addis Ababa"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Country {!localStorage.getItem('user') && '*'}
+                          </label>
+                          <input
+                            type="text"
+                            required={!localStorage.getItem('user')}
+                            value={applicationForm.country}
+                            onChange={(e) => setApplicationForm({ ...applicationForm, country: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="e.g., Ethiopia"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cover Letter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Cover Letter *
+                    </label>
+                    <textarea
+                      required
+                      rows={6}
+                      value={applicationForm.coverLetter}
+                      onChange={(e) => setApplicationForm({ ...applicationForm, coverLetter: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Tell us why you're interested in this position and what makes you a great fit..."
+                    />
+                  </div>
+
+                  {/* Resume Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Resume/CV (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          // Check file size (max 5MB)
+                          if (file.size > 5 * 1024 * 1024) {
+                            setApplicationError('File size must be less than 5MB');
+                            return;
+                          }
+                          setApplicationForm({ ...applicationForm, resume: file });
+                        }
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                    {applicationForm.resume && (
+                      <p className="text-sm text-gray-600 mt-1">Selected: {applicationForm.resume.name}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX (Max: 5MB)</p>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowApplicationModal(false);
+                        setApplicationError(null);
+                        setApplicationForm({
+                          coverLetter: '',
+                          resume: null,
+                          fullName: '',
+                          email: '',
+                          phone: '',
+                        });
+                      }}
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submittingApplication}
+                      className="px-6 py-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submittingApplication ? 'Submitting...' : 'Submit Application'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

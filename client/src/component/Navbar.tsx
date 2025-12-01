@@ -312,7 +312,7 @@ const Navbar = () => {
               {/* Login Button */}
               <Link
                 to="/login"
-                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-black text-white hover:bg-gray-900`}
+                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800`}
               >
                 <span>Login</span>
               </Link>
@@ -446,7 +446,7 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={toggleMenu}
-                className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white py-3 rounded-xl font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
                 <span>Login</span>
               </Link>
@@ -464,7 +464,7 @@ const Navbar = () => {
                   <input
                     type="text"
                     placeholder="Search for services, providers, or categories..."
-                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-gray-400"
+                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-[#2e3dd3]"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -526,7 +526,7 @@ const Navbar = () => {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-lg font-semibold text-gray-900 truncate">
+                              <h4 className="text-lg font-semibold text-[#2e3dd3] truncate">
                                 {service.title || (service as any).name}
                               </h4>
                               <p className="text-sm text-gray-600 truncate">

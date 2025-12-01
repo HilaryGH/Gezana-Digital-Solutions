@@ -44,6 +44,7 @@ import AdminProvidersList from "./component/Admin/AdminProvidersList";
 import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
 import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
+import AdminJobs from "./component/Admin/AdminJobs";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
@@ -74,6 +75,7 @@ const noNavbarRoutes = [
     "/admin/user",
     "/admin/bookings",
     "/admin/services",
+    "/admin/jobs",
     "/admin/team-members",
     "/admin/testimonials",
     "/admin/promotional-banners",
@@ -142,6 +144,7 @@ const noNavbarRoutes = [
         <Route path="/admin/user" element={<Users />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/services" element={<AdminServices />} />
+        <Route path="/admin/jobs" element={<AdminJobs />} />
         <Route path="/admin/providers-list" element={<AdminProvidersList />} />
         <Route path="/admin/team-members" element={<AdminTeamMembers />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />

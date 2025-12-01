@@ -9,6 +9,40 @@ const { sendServicePublishedNotifications } = require("../utils/notificationServ
 
 const router = express.Router();
 
+// Helper function to build file base URL (works in production behind proxy)
+const buildFileBaseUrl = (req) => {
+  const envBase = process.env.FILE_BASE_URL || process.env.SERVER_URL || process.env.BASE_URL;
+  if (envBase) {
+    return envBase.replace(/\/$/, "");
+  }
+  // In production, use https and proper host
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://gezana-api.onrender.com';
+  }
+  // In development, use localhost with port 5000 (default server port)
+  // Check if we have a custom port from environment
+  const port = process.env.PORT || 5000;
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol || 'http';
+  const host = req.get("host") || `localhost:${port}`;
+  
+  // Ensure we're using the correct host in development
+  if (host.includes('localhost') || host.includes('127.0.0.1')) {
+    return `${protocol}://localhost:${port}`;
+  }
+  
+  return `${protocol}://${host}`;
+};
+
+// Helper function to convert photo path to full URL
+const getPhotoUrl = (req, photo) => {
+  if (!photo) return null;
+  if (photo.startsWith('http')) return photo;
+  // Handle different photo path formats
+  const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '').replace(/^\//, '');
+  const baseUrl = buildFileBaseUrl(req);
+  return `${baseUrl}/uploads/${cleanPhoto}`;
+};
+
 /**
  * GET /api/services/mine
  */
@@ -20,12 +54,7 @@ router.get("/mine", authMiddleware, async (req, res) => {
     // Transform services to include full photo URLs
     const transformedServices = services.map(service => ({
       ...service.toObject(),
-      photos: service.photos.map(photo => {
-        if (photo.startsWith('http')) return photo;
-        // Handle different photo path formats
-        const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
-        return `${req.protocol}://${req.get('host')}/uploads/${cleanPhoto}`;
-      })
+      photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean)
     }));
 
     res.json(transformedServices);
@@ -170,12 +199,7 @@ router.get("/", async (req, res) => {
         subcategory: service.type?.name || service.type,
         price: service.price,
         priceType: service.priceType,
-        photos: service.photos.map(photo => {
-          if (photo.startsWith('http')) return photo;
-          // Handle different photo path formats
-          const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
-          return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
-        }),
+        photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
         providerId: service.provider._id,
         providerName: service.provider.name,
         providerRating: service.provider.rating || 4.5, // Provider's overall rating
@@ -249,11 +273,7 @@ router.get("/recent", async (req, res) => {
         subcategory: service.type?.name || service.type,
         price: service.price,
         priceType: service.priceType,
-        photos: service.photos.map(photo => {
-          if (photo.startsWith('http')) return photo;
-          const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
-          return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
-        }),
+        photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
         providerId: service.provider._id,
         providerName: service.provider.name,
         providerRating: service.provider.rating || 4.5,
@@ -373,11 +393,7 @@ router.get("/most-booked", async (req, res) => {
         subcategory: service.type?.name || service.type,
         price: service.price,
         priceType: service.priceType,
-        photos: service.photos.map(photo => {
-          if (photo.startsWith('http')) return photo;
-          const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
-          return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
-        }),
+        photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
         providerId: service.provider._id,
         providerName: service.provider.name,
         providerRating: service.provider.rating || 4.5,
@@ -433,11 +449,7 @@ router.get("/:id", async (req, res) => {
       subcategory: service.type?.name || service.type,
       price: service.price,
       priceType: service.priceType,
-      photos: service.photos.map(photo => {
-        if (photo.startsWith('http')) return photo;
-        const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '');
-        return `${req.protocol}://${req.get('host')}/${cleanPhoto}`;
-      }),
+      photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
       providerId: service.provider._id,
       providerName: service.provider.name,
       providerRating: service.provider.rating || 4.5, // Provider's overall rating
@@ -724,7 +736,7 @@ router.get("/top-providers", async (req, res) => {
         email: provider.email,
         phone: provider.phone,
         whatsapp: provider.whatsapp,
-        photo: provider.photo ? `${req.protocol}://${req.get('host')}/uploads/${provider.photo}` : null,
+        photo: provider.photo ? getPhotoUrl(req, provider.photo) : null,
         serviceType: provider.serviceType,
         city: provider.city,
         location: provider.location,

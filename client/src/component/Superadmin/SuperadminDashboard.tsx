@@ -620,7 +620,7 @@ const SuperadminDashboard = () => {
           </button>
 
           <button
-            onClick={() => navigate("/jobs", { state: { openForm: true } })}
+            onClick={() => navigate("/admin/jobs", { state: { openForm: true } })}
             className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all text-left group"
           >
             <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-200 transition-colors">

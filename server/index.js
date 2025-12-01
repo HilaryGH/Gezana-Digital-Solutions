@@ -31,7 +31,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static('uploads')); // Serve uploaded files
+app.use('/uploads', express.static('uploads')); // Serve uploaded files at /uploads path
 
 // Session middleware
 app.use(session({
@@ -102,6 +102,12 @@ app.use("/api/support", supportRoutes);
 
 const diasporaRoutes = require("./routes/diaspora");
 app.use("/api/diaspora", diasporaRoutes);
+
+const jobsRoutes = require("./routes/jobs");
+app.use("/api/jobs", jobsRoutes);
+
+const jobApplicationsRoutes = require("./routes/jobApplications");
+app.use("/api/job-applications", jobApplicationsRoutes);
 
 const statisticsRoutes = require("./routes/statistics");
 app.use("/api/statistics", statisticsRoutes);
