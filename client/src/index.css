@@ -461,12 +461,11 @@ body {
 /* Apply to all buttons */
 button {
   position: relative;
-  background-color: white !important;
   overflow: hidden !important;
   transition: all 0.3s ease !important;
 }
 
-/* Inverted V Roof Inside Button - Outer Layer */
+/* Inverted V Roof Inside Button - Outer Layer - Only visible on hover */
 button::before {
   content: '';
   position: absolute;
@@ -484,7 +483,7 @@ button::before {
   filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.4));
 }
 
-/* Inverted V Roof Inside Button - Inner Layer */
+/* Inverted V Roof Inside Button - Inner Layer - Only visible on hover */
 button::after {
   content: '';
   position: absolute;
@@ -501,7 +500,7 @@ button::after {
   z-index: 2;
 }
 
-/* Animate on hover - continuous loop */
+/* Animate on hover only - continuous loop */
 button:hover::before {
   animation: roof-stretch 1.5s ease-out infinite;
 }
@@ -516,45 +515,9 @@ button > * {
   z-index: 10;
 }
 
-/* Special handling for buttons with specific backgrounds - override only on hover */
-button:hover {
-  background-color: white !important;
-}
+/* Shadow effects only apply on hover, not by default */
 
-/* Exclude buttons that should keep their original styles (like icon-only buttons) */
-button[class*="p-2"]:not([class*="bg-"]):hover,
-button[class*="p-1"]:not([class*="bg-"]):hover {
-  background-color: white !important;
-}
-
-/* For buttons with gradient backgrounds, show white on hover */
-button[class*="bg-gradient"]:hover {
-  background: white !important;
-  background-color: white !important;
-}
-
-/* For buttons with colored backgrounds, override to white on hover */
-button[class*="bg-blue"]:hover,
-button[class*="bg-green"]:hover,
-button[class*="bg-red"]:hover,
-button[class*="bg-orange"]:hover,
-button[class*="bg-purple"]:hover,
-button[class*="bg-indigo"]:hover,
-button[class*="bg-pink"]:hover,
-button[class*="bg-yellow"]:hover,
-button[class*="bg-gray"]:hover,
-button[class*="bg-black"]:hover {
-  background-color: white !important;
-}
-
-/* Ensure text is visible on white background */
-button:hover {
-  color: #1f2937 !important;
-}
-
-button[class*="text-white"]:hover {
-  color: #1f2937 !important;
-}
+/* Hover effects are handled by Tailwind classes - no need to apply by default */
 
 /* =========================
    Status Indicators

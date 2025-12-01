@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Calendar, Clock, User, MessageSquare, CreditCard, CheckCircle } from 'lucide-react';
 import { type Service } from '../api/services';
 import axios from '../api/axios';
+import { normalizeImageUrl, handleImageError } from '../utils/imageHelper';
 
 interface BookingModalProps {
   service: Service;
@@ -260,9 +261,17 @@ const BookingModal: React.FC<BookingModalProps> = ({
           <div className="flex items-start space-x-4">
             {service.photos && service.photos.length > 0 ? (
               <img
-                src={service.photos[0]}
+                src={normalizeImageUrl(service.photos[0], {
+                  width: 128,
+                  height: 128,
+                  crop: 'fill',
+                  quality: 'auto',
+                  format: 'auto'
+                }) || service.photos[0]}
                 alt={service.title}
                 className="w-16 h-16 rounded-lg object-cover"
+                loading="lazy"
+                onError={(e) => handleImageError(e)}
               />
             ) : (
               <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center">

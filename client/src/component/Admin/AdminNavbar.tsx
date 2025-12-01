@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, X, Shield, ChevronRight } from "lucide-react";
-import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft, FaBullhorn, FaCrown, FaBriefcase } from "react-icons/fa";
+import { FaUsers, FaCalendarAlt, FaCog, FaUserShield, FaSignOutAlt, FaUserFriends, FaQuoteLeft, FaBullhorn, FaCrown, FaBriefcase, FaHandshake } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { HiSparkles } from "react-icons/hi";
 
@@ -70,6 +70,12 @@ const AdminNavbar = () => {
       label: "Premium Memberships", 
       icon: FaCrown,
       description: "Manage Memberships"
+    },
+    { 
+      to: "/admin/investments", 
+      label: "Investments & Partnerships", 
+      icon: FaHandshake,
+      description: "Manage Applications"
     },
   ];
 

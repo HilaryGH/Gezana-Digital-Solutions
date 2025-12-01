@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Calendar, X, Tag } from 'lucide-react';
 import { getMyServices, deleteService, type Service } from '../../api/services';
 import { getProviderBookings } from '../../api/bookings';
 import AddService from './AddService';
 import SpecialOffers from './SpecialOffers';
+import { getThumbnailUrl, handleImageError } from '../../utils/imageHelper';
 
 const ProviderDashboard: React.FC = () => {
+  const location = useLocation();
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,10 +110,16 @@ const ProviderDashboard: React.FC = () => {
 
     fetchData();
 
+    // Check if navigation state requests to show special offers
+    if (location.state?.showSpecialOffers) {
+      setShowOffers(true);
+      setShowBookings(false);
+    }
+
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [location.state]);
 
   const handleDeleteService = async (serviceId: string) => {
     if (window.confirm('Are you sure you want to delete this service?')) {
@@ -364,9 +373,11 @@ const ProviderDashboard: React.FC = () => {
                         <div className="w-32 h-32 flex-shrink-0">
                           {service.photos && service.photos.length > 0 ? (
                             <img
-                              src={service.photos[0]}
+                              src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
                               alt={service.title}
                               className="w-full h-full object-cover rounded-lg"
+                              loading="lazy"
+                              onError={handleImageError}
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">

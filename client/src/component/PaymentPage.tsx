@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CreditCard, Shield, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { getThumbnailUrl, handleImageError } from '../utils/imageHelper';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -199,9 +200,11 @@ const PaymentPage = () => {
               <div className="space-y-4 mb-6">
                 {service.photos && service.photos.length > 0 && (
                   <img
-                    src={service.photos[0]}
+                    src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
                     alt={service.title}
                     className="w-full h-32 object-cover rounded-lg"
+                    loading="lazy"
+                    onError={handleImageError}
                   />
                 )}
                 <div>

@@ -8,6 +8,7 @@ import {
 import { getServiceById, type Service } from '../api/services';
 import BookingModal from './BookingModal';
 import Reviews from './Reviews';
+import { normalizeImageUrl, handleImageError } from '../utils/imageHelper';
 
 const ServiceDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -115,9 +116,17 @@ const ServiceDetails = () => {
                   {/* Main Image */}
                   <div className="relative aspect-video">
                     <img
-                      src={service.photos[selectedImage]}
+                      src={normalizeImageUrl(service.photos[selectedImage], {
+                        width: 1200,
+                        height: 675,
+                        crop: 'fill',
+                        quality: 'auto',
+                        format: 'auto'
+                      }) || service.photos[selectedImage]}
                       alt={service.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => handleImageError(e)}
                     />
                     
                     {/* Image Navigation */}
@@ -163,7 +172,19 @@ const ServiceDetails = () => {
                             selectedImage === index ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200 hover:border-orange-300'
                           }`}
                         >
-                          <img src={photo} alt={`${service.title} - ${index + 1}`} className="w-full h-full object-cover" />
+                          <img 
+                            src={normalizeImageUrl(photo, {
+                              width: 200,
+                              height: 200,
+                              crop: 'fill',
+                              quality: 'auto',
+                              format: 'auto'
+                            }) || photo} 
+                            alt={`${service.title} - ${index + 1}`} 
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => handleImageError(e)}
+                          />
                         </button>
                       ))}
                     </div>

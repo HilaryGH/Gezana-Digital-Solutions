@@ -24,7 +24,8 @@ import {
   Download,
   Search,
   Filter,
-  Briefcase
+  Briefcase,
+  Handshake
 } from "lucide-react";
 import { getAllBookings, type BookingWithDetails } from "../../api/bookings";
 import axios from "../../api/axios";
@@ -89,28 +90,67 @@ const SuperadminDashboard = () => {
         }
       }
 
-      // Fetch all bookings
+      // Fetch booking counts (more efficient than fetching all bookings)
+      let totalBookingsCount = 0;
+      let pendingBookingsCount = 0;
       let bookingsData: BookingWithDetails[] = [];
+      
+      try {
+        const countResponse = await axios.get("/bookings/count", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (countResponse.data) {
+          totalBookingsCount = countResponse.data.total || 0;
+          pendingBookingsCount = countResponse.data.pending || 0;
+          console.log("Fetched booking counts:", { total: totalBookingsCount, pending: pendingBookingsCount });
+        }
+      } catch (error: any) {
+        console.error("Error fetching booking count:", error);
+        // Fallback: try to fetch all bookings and count them
+        try {
+          const bookingsResponse = await axios.get("/bookings/all", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          // Handle different response formats - backend returns direct array
+          if (Array.isArray(bookingsResponse.data)) {
+            bookingsData = bookingsResponse.data;
+          } else if (bookingsResponse.data?.bookings && Array.isArray(bookingsResponse.data.bookings)) {
+            bookingsData = bookingsResponse.data.bookings;
+          } else if (bookingsResponse.data?.data && Array.isArray(bookingsResponse.data.data)) {
+            bookingsData = bookingsResponse.data.data;
+          }
+          totalBookingsCount = bookingsData.length;
+          pendingBookingsCount = bookingsData.filter((b: BookingWithDetails) => b.status === "pending").length;
+          setBookings(bookingsData);
+          console.log("Fetched bookings (fallback):", bookingsData.length);
+        } catch (fallbackError) {
+          console.error("Fallback booking fetch also failed:", fallbackError);
+          setBookings([]);
+        }
+      }
+
+      // Fetch all bookings for display (if needed)
       try {
         const bookingsResponse = await axios.get("/bookings/all", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Handle different response formats
-        bookingsData = Array.isArray(bookingsResponse.data) 
-          ? bookingsResponse.data 
-          : bookingsResponse.data?.bookings || bookingsResponse.data?.data || [];
+        // Handle different response formats - backend returns direct array
+        if (Array.isArray(bookingsResponse.data)) {
+          bookingsData = bookingsResponse.data;
+        } else if (bookingsResponse.data?.bookings && Array.isArray(bookingsResponse.data.bookings)) {
+          bookingsData = bookingsResponse.data.bookings;
+        } else if (bookingsResponse.data?.data && Array.isArray(bookingsResponse.data.data)) {
+          bookingsData = bookingsResponse.data.data;
+        }
         setBookings(bookingsData);
-        console.log("Fetched bookings:", bookingsData.length);
       } catch (error: any) {
-        console.error("Error fetching bookings:", error);
+        console.error("Error fetching bookings list:", error);
         // Try alternative method
         try {
           bookingsData = await getAllBookings();
           setBookings(bookingsData);
-          console.log("Fetched bookings (alternative):", bookingsData.length);
         } catch (altError) {
           console.error("Alternative booking fetch also failed:", altError);
-          setBookings([]);
         }
       }
 
@@ -176,12 +216,12 @@ const SuperadminDashboard = () => {
         console.error("Error fetching services:", e);
       }
 
-      // Ensure we have valid numbers
-      const finalTotalBookings = Array.isArray(bookingsData) ? bookingsData.length : 0;
+      // Use count from API if available, otherwise use bookingsData length
+      const finalTotalBookings = totalBookingsCount > 0 ? totalBookingsCount : (Array.isArray(bookingsData) ? bookingsData.length : 0);
       const finalTotalRevenue = typeof totalRevenue === 'number' ? totalRevenue : 0;
-      const finalPendingBookings = Array.isArray(bookingsData) 
+      const finalPendingBookings = pendingBookingsCount > 0 ? pendingBookingsCount : (Array.isArray(bookingsData) 
         ? bookingsData.filter(b => b.status === "pending").length 
-        : 0;
+        : 0);
 
       console.log("Setting stats:", {
         totalBookings: finalTotalBookings,
@@ -638,6 +678,17 @@ const SuperadminDashboard = () => {
             </div>
             <h3 className="font-bold text-gray-900 mb-2">Premium Memberships</h3>
             <p className="text-sm text-gray-600">Manage premium membership requests</p>
+          </button>
+
+          <button
+            onClick={() => navigate("/admin/investments")}
+            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:from-orange-200 group-hover:to-blue-200 transition-colors">
+              <Handshake className="w-6 h-6 text-orange-600" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">Investments & Partnerships</h3>
+            <p className="text-sm text-gray-600">Manage investment and partnership applications</p>
           </button>
         </div>
 

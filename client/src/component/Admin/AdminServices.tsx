@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Trash2, Eye, Search, Filter, RefreshCw, AlertTriangle } from 'lucide-react';
 import axios from '../../api/axios';
+import { getThumbnailUrl, handleImageError } from '../../utils/imageHelper';
 
 interface Provider {
   _id: string;
@@ -284,8 +285,10 @@ const AdminServices = () => {
                           {service.photos && service.photos.length > 0 ? (
                             <img
                               className="h-12 w-12 rounded-lg object-cover"
-                              src={service.photos[0]}
+                              src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
                               alt={service.name}
+                              loading="lazy"
+                              onError={handleImageError}
                             />
                           ) : (
                             <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">

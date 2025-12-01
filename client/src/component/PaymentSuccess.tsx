@@ -15,6 +15,8 @@ const PaymentSuccess = () => {
   useEffect(() => {
     if (isPremiumMembership && membership?._id) {
       fetchInvoice();
+      // Set flag to refresh premium status in SpecialOffers component
+      sessionStorage.setItem('premiumPaymentSuccess', 'true');
     }
   }, [isPremiumMembership, membership]);
 
@@ -253,10 +255,15 @@ Thank you for your premium membership!
           </button>
           {isPremiumMembership && (
             <button
-              onClick={() => navigate('/membership-plans')}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              onClick={() => {
+                // Navigate to provider dashboard and show special offers
+                navigate('/provider-dashboard', { 
+                  state: { showSpecialOffers: true } 
+                });
+              }}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold"
             >
-              View Membership Details
+              Create Special Offers
             </button>
           )}
         </div>

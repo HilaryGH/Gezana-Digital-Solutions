@@ -3,6 +3,7 @@ const express = require("express");
 const User = require("../models/User");
 const upload = require("../middleware/upload");
 const { authMiddleware } = require("../middleware/authMiddleware");
+const { getFileUrl } = require("../utils/fileHelper");
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.post("/upload-credentials", authMiddleware, upload.array("files", 5), asy
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    const filenames = req.files.map((file) => file.filename);
+    const filenames = req.files.map((file) => getFileUrl(file));
     const existingCredentials = provider.credentials || [];
 
     provider.credentials = [...existingCredentials, ...filenames];

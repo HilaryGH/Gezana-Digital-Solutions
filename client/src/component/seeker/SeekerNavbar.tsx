@@ -95,7 +95,7 @@ const SeekerNavbar = () => {
               <input 
                 type="text" 
                 placeholder="Quick search..."
-                className="bg-brand-highlight/10 border border-brand-highlight/20 rounded-full py-2 pl-10 pr-4 text-brand-primary placeholder-brand-highlight/80 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent"
+                className="bg-brand-highlight/10 border border-brand-highlight/20 rounded-full py-2 pl-10 pr-4 text-brand-primary placeholder-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent"
               />
             </div>
           </div>
@@ -273,7 +273,7 @@ const SeekerNavbar = () => {
                 <input 
                   type="text" 
                   placeholder="Search services..."
-                  className="w-full bg-brand-highlight/10 border border-brand-highlight/20 rounded-lg py-3 pl-10 pr-4 text-gray-700 placeholder-brand-highlight/70 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
+                  className="w-full bg-brand-highlight/10 border border-brand-highlight/20 rounded-lg py-3 pl-10 pr-4 text-gray-700 placeholder-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
                 />
               </div>
             </div>

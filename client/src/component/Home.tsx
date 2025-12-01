@@ -7,6 +7,7 @@ import { getRecentServices, getMostBookedServices, getServices, type Service } f
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
 import { getJobs, type Job } from "../api/jobs";
 import { applyForJob, type CreateJobApplicationData } from "../api/jobApplications";
+import { getCardImageUrl, handleImageError } from "../utils/imageHelper";
 
 const serviceCategories = [
   {
@@ -1147,9 +1148,11 @@ const Home = () => {
                       {service.photos && service.photos.length > 0 ? (
                         <div className="relative w-full h-64 overflow-hidden">
                           <img
-                            src={service.photos[0]}
+                            src={getCardImageUrl(service.photos[0]) || service.photos[0]}
                             alt={service.title || (service as any).name || 'Service'}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            onError={handleImageError}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
                           
@@ -1638,24 +1641,8 @@ const Home = () => {
                 </div>
               </div>
             </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button 
-                onClick={() => navigate('/signup')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                Join the Community
-              </button>
-              <button 
-                onClick={() => navigate('/jobs')}
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 transform hover:scale-105"
-              >
-                Find a Job
-              </button>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-r from-orange-600 to-orange-700 relative overflow-hidden">

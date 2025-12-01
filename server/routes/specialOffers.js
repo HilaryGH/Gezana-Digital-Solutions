@@ -6,6 +6,7 @@ const PremiumMembership = require("../models/PremiumMembership");
 const Subscription = require("../models/Subscription");
 const User = require("../models/User");
 const upload = require("../middleware/upload");
+const { getFileUrl } = require("../utils/fileHelper");
 
 // Middleware to check if provider has premium membership
 const checkPremiumMembership = async (req, res, next) => {
@@ -21,12 +22,21 @@ const checkPremiumMembership = async (req, res, next) => {
     }
 
     // Check for premium membership (PremiumMembership model)
+    // Accept memberships with paid status, even if status is pending (payment just completed)
     const premiumMembership = await PremiumMembership.findOne({
       user: userId,
-      status: "active",
       paymentStatus: "paid",
-      endDate: { $gte: new Date() },
-    });
+      $or: [
+        { status: "active" },
+        { status: "pending" } // Allow pending if payment is paid (payment just completed)
+      ]
+    }).sort({ createdAt: -1 }); // Get the most recent one
+    
+    // Additional check: if membership exists, verify endDate is valid or doesn't exist yet
+    if (premiumMembership && premiumMembership.endDate && premiumMembership.endDate < new Date()) {
+      // Membership expired, don't use it
+      premiumMembership = null;
+    }
 
     // Check for subscription using the model's method
     const subscription = await Subscription.findActiveForUser(userId);
@@ -98,7 +108,7 @@ router.post("/", authMiddleware, checkPremiumMembership, upload.single("image"),
       originalname: req.file.originalname,
       mimetype: req.file.mimetype,
       size: req.file.size,
-      filename: req.file.filename
+      filename: getFileUrl(req.file)
     } : "NO FILE");
     console.log("Content-Type header:", req.headers['content-type']);
 
@@ -162,9 +172,8 @@ router.post("/", authMiddleware, checkPremiumMembership, upload.single("image"),
       });
     }
 
-    // Create full URL for the uploaded image
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    // Get file URL (Cloudinary or local)
+    const imageUrl = getFileUrl(req.file);
 
     const offer = new SpecialOffer({
       provider: req.user.userId,
@@ -327,7 +336,7 @@ router.put("/:id", authMiddleware, upload.single("image"), async (req, res) => {
       originalname: req.file.originalname,
       mimetype: req.file.mimetype,
       size: req.file.size,
-      filename: req.file.filename
+      filename: getFileUrl(req.file)
     } : "NO FILE (keeping existing)");
 
     const offer = await SpecialOffer.findById(req.params.id);
@@ -363,7 +372,7 @@ router.put("/:id", authMiddleware, upload.single("image"), async (req, res) => {
     let imageUrl = offer.image; // Keep existing image by default
     if (req.file) {
       const baseUrl = `${req.protocol}://${req.get('host')}`;
-      imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      imageUrl = getFileUrl(req.file);
     }
 
     if (title) offer.title = title;
@@ -500,12 +509,21 @@ router.get("/check-premium/status", authMiddleware, async (req, res) => {
     }
 
     // Check for premium membership
-    const premiumMembership = await PremiumMembership.findOne({
+    // Accept memberships with paid status, even if status is pending (payment just completed)
+    let premiumMembership = await PremiumMembership.findOne({
       user: userId,
-      status: "active",
       paymentStatus: "paid",
-      endDate: { $gte: new Date() },
-    });
+      $or: [
+        { status: "active" },
+        { status: "pending" } // Allow pending if payment is paid
+      ]
+    }).sort({ createdAt: -1 }); // Get the most recent one
+    
+    // Additional check: if membership exists, verify endDate is valid or doesn't exist yet
+    if (premiumMembership && premiumMembership.endDate && premiumMembership.endDate < new Date()) {
+      // Membership expired, don't use it
+      premiumMembership = null;
+    }
 
     // Check for subscription using the model's method
     const subscription = await Subscription.findActiveForUser(userId);

@@ -6,41 +6,114 @@ const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const upload = require("../middleware/upload");
 const { sendServicePublishedNotifications } = require("../utils/notificationService");
+const { getFileUrl } = require("../utils/fileHelper");
 
 const router = express.Router();
 
 // Helper function to build file base URL (works in production behind proxy)
 const buildFileBaseUrl = (req) => {
-  const envBase = process.env.FILE_BASE_URL || process.env.SERVER_URL || process.env.BASE_URL;
-  if (envBase) {
-    return envBase.replace(/\/$/, "");
-  }
-  // In production, use https and proper host
-  if (process.env.NODE_ENV === 'production') {
+  // Always prioritize NODE_ENV check first
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // In production, use production URL
+  if (isProduction) {
+    const envBase = process.env.FILE_BASE_URL || process.env.SERVER_URL || process.env.BASE_URL;
+    if (envBase) {
+      return envBase.replace(/\/$/, "");
+    }
     return 'https://gezana-api.onrender.com';
   }
-  // In development, use localhost with port 5000 (default server port)
-  // Check if we have a custom port from environment
+  
+  // In development, ALWAYS use localhost (ignore env vars that might point to production)
   const port = process.env.PORT || 5000;
-  const protocol = req.headers["x-forwarded-proto"] || req.protocol || 'http';
-  const host = req.get("host") || `localhost:${port}`;
+  const devUrl = `http://localhost:${port}`;
   
-  // Ensure we're using the correct host in development
-  if (host.includes('localhost') || host.includes('127.0.0.1')) {
-    return `${protocol}://localhost:${port}`;
-  }
+  console.log('Building file base URL:', { 
+    NODE_ENV: process.env.NODE_ENV, 
+    isProduction, 
+    port, 
+    devUrl 
+  });
   
-  return `${protocol}://${host}`;
+  return devUrl;
+};
+
+// Helper function to check if a URL is a Cloudinary URL
+const isCloudinaryUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  return url.includes('cloudinary.com') || url.includes('res.cloudinary.com');
 };
 
 // Helper function to convert photo path to full URL
+// Handles both Cloudinary URLs (stored as full URLs) and local filenames
 const getPhotoUrl = (req, photo) => {
   if (!photo) return null;
-  if (photo.startsWith('http')) return photo;
-  // Handle different photo path formats
-  const cleanPhoto = photo.replace(/\\/g, '/').replace(/^uploads\//, '').replace(/^\//, '');
+  
+  const photoStr = String(photo).trim();
+  if (!photoStr) return null;
+  
+  // Check if it's already a full URL (Cloudinary or external)
+  if (photoStr.startsWith('http://') || photoStr.startsWith('https://')) {
+    // Verify it's a valid Cloudinary URL
+    if (isCloudinaryUrl(photoStr)) {
+      console.log('✅ Using Cloudinary URL:', photoStr);
+      return photoStr;
+    }
+    
+    // In development, convert production URLs to localhost
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (!isProduction && photoStr.includes('gezana-api.onrender.com')) {
+      // Extract the path from the production URL
+      const urlPath = photoStr.replace(/^https?:\/\/[^/]+/, '');
+      const localhostUrl = `${buildFileBaseUrl(req)}${urlPath}`;
+      console.log('🔄 Converting production URL to localhost:', {
+        original: photoStr,
+        converted: localhostUrl
+      });
+      return localhostUrl;
+    }
+    
+    // Other external URLs (shouldn't happen, but handle gracefully)
+    console.log('⚠️  External URL detected (not Cloudinary):', photoStr);
+    return photoStr;
+  }
+  
+  // At this point, it's a local filename (not a full URL)
+  // Handle local file paths - clean up the filename
+  let cleanPhoto = photoStr;
+  
+  // Remove backslashes and normalize to forward slashes (Windows paths)
+  cleanPhoto = cleanPhoto.replace(/\\/g, '/');
+  
+  // Remove "uploads/" prefix if present (shouldn't be there, but handle it)
+  cleanPhoto = cleanPhoto.replace(/^uploads\//, '');
+  
+  // Remove leading slash if present
+  cleanPhoto = cleanPhoto.replace(/^\//, '');
+  
+  // Trim whitespace again after cleaning
+  cleanPhoto = cleanPhoto.trim();
+  
+  if (!cleanPhoto) {
+    console.warn('⚠️  Empty photo after cleaning:', photo);
+    return null;
+  }
+  
+  // Get base URL for local files
   const baseUrl = buildFileBaseUrl(req);
-  return `${baseUrl}/uploads/${cleanPhoto}`;
+  
+  // Construct full URL for local files
+  const fullUrl = `${baseUrl}/uploads/${cleanPhoto}`;
+  
+  // Log for debugging
+  console.log('📁 Local file URL construction:', { 
+    original: photo, 
+    cleaned: cleanPhoto, 
+    baseUrl, 
+    fullUrl 
+  });
+  
+  return fullUrl;
 };
 
 /**
@@ -98,7 +171,17 @@ router.post(
         price: parseFloat(price),
         provider: req.user.userId,
         // Handle photo uploads
-        photos: req.files?.photos?.map(file => file.path) || [],
+        photos: req.files?.photos?.map(file => {
+          const fileUrl = getFileUrl(file);
+          console.log('Service photo upload:', {
+            fieldname: file.fieldname,
+            originalname: file.originalname,
+            filename: file.filename,
+            path: file.path,
+            url: fileUrl
+          });
+          return fileUrl;
+        }).filter(Boolean) || [],
         // Optional fields
         priceType: priceType || 'fixed',
         location: location || '',
@@ -121,7 +204,31 @@ router.post(
         // Don't fail service creation if notifications fail
       }
 
-      res.status(201).json(newService);
+      // Populate and transform the service to return with proper photo URLs
+      await newService.populate("provider", "name email");
+      
+      // Transform photos to full URLs
+      const transformedPhotos = newService.photos.map(photo => {
+        if (!photo) return null;
+        
+        // If photo is already a full URL (Cloudinary), return as is
+        if (photo.startsWith('http://') || photo.startsWith('https://')) {
+          return photo;
+        }
+        
+        // Otherwise, construct URL for local files
+        const fullUrl = getPhotoUrl(req, photo);
+        console.log('Transforming photo URL:', { original: photo, transformed: fullUrl });
+        return fullUrl;
+      }).filter(Boolean);
+      
+      const transformedService = {
+        ...newService.toObject(),
+        photos: transformedPhotos
+      };
+
+      console.log('Service created with photos:', transformedPhotos);
+      res.status(201).json(transformedService);
     } catch (err) {
       console.error("Service creation error:", err);
       res.status(500).json({ 
@@ -191,6 +298,11 @@ router.get("/", async (req, res) => {
         ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
         : null;
 
+      // Safely handle photos array - ensure it's an array and transform URLs
+      const photos = Array.isArray(service.photos) && service.photos.length > 0
+        ? service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean)
+        : [];
+
       return {
         id: service._id,
         title: service.name, // Map name to title
@@ -199,7 +311,7 @@ router.get("/", async (req, res) => {
         subcategory: service.type?.name || service.type,
         price: service.price,
         priceType: service.priceType,
-        photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
+        photos: photos,
         providerId: service.provider._id,
         providerName: service.provider.name,
         providerRating: service.provider.rating || 4.5, // Provider's overall rating
@@ -238,6 +350,18 @@ router.get("/recent", async (req, res) => {
 
     const availableServices = services.filter((s) => s.provider !== null);
 
+    // Debug: Log raw service data to see what we're working with
+    console.log('📋 Recent services - Raw data check:', {
+      totalServices: availableServices.length,
+      servicesWithPhotos: availableServices.filter(s => s.photos && s.photos.length > 0).length,
+      sampleService: availableServices[0] ? {
+        id: availableServices[0]._id,
+        name: availableServices[0].name,
+        photosCount: availableServices[0].photos?.length || 0,
+        photos: availableServices[0].photos
+      } : null
+    });
+
     // Get service ratings from reviews
     const serviceIds = availableServices.map(s => s._id);
     const reviews = await Review.find({
@@ -265,6 +389,29 @@ router.get("/recent", async (req, res) => {
         ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
         : null;
 
+      // Safely handle photos array - ensure it's an array and transform URLs
+      const photos = Array.isArray(service.photos) && service.photos.length > 0
+        ? service.photos.map(photo => {
+            const photoUrl = getPhotoUrl(req, photo);
+            console.log('🖼️  Recent service photo transformation:', {
+              serviceId: service._id,
+              serviceName: service.name,
+              original: photo,
+              transformed: photoUrl,
+              isCloudinary: photoUrl && (photoUrl.includes('cloudinary.com') || photoUrl.includes('localhost'))
+            });
+            return photoUrl;
+          }).filter(Boolean)
+        : [];
+
+      if (photos.length === 0 && service.photos && service.photos.length > 0) {
+        console.warn('⚠️  Recent service photos were filtered out:', {
+          serviceId: service._id,
+          serviceName: service.name,
+          originalPhotos: service.photos
+        });
+      }
+
       return {
         id: service._id,
         title: service.name,
@@ -273,7 +420,7 @@ router.get("/recent", async (req, res) => {
         subcategory: service.type?.name || service.type,
         price: service.price,
         priceType: service.priceType,
-        photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
+        photos: photos,
         providerId: service.provider._id,
         providerName: service.provider.name,
         providerRating: service.provider.rating || 4.5,
@@ -385,6 +532,19 @@ router.get("/most-booked", async (req, res) => {
         ? parseFloat((ratingData.sum / ratingData.count).toFixed(1))
         : null;
 
+      // Safely handle photos array - ensure it's an array and transform URLs
+      const photos = Array.isArray(service.photos) && service.photos.length > 0
+        ? service.photos.map(photo => {
+            const photoUrl = getPhotoUrl(req, photo);
+            console.log('Most-booked service photo transformation:', {
+              serviceId: service._id,
+              original: photo,
+              transformed: photoUrl
+            });
+            return photoUrl;
+          }).filter(Boolean)
+        : [];
+
       return {
         id: service._id,
         title: service.name,
@@ -393,7 +553,7 @@ router.get("/most-booked", async (req, res) => {
         subcategory: service.type?.name || service.type,
         price: service.price,
         priceType: service.priceType,
-        photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
+        photos: photos,
         providerId: service.provider._id,
         providerName: service.provider.name,
         providerRating: service.provider.rating || 4.5,
@@ -440,6 +600,11 @@ router.get("/:id", async (req, res) => {
       ? parseFloat((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1))
       : null;
 
+    // Safely handle photos array - ensure it's an array and transform URLs
+    const photos = Array.isArray(service.photos) && service.photos.length > 0
+      ? service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean)
+      : [];
+
     // Transform the data to match client expectations
     const transformedService = {
       id: service._id,
@@ -449,7 +614,7 @@ router.get("/:id", async (req, res) => {
       subcategory: service.type?.name || service.type,
       price: service.price,
       priceType: service.priceType,
-      photos: service.photos.map(photo => getPhotoUrl(req, photo)).filter(Boolean),
+      photos: photos,
       providerId: service.provider._id,
       providerName: service.provider.name,
       providerRating: service.provider.rating || 4.5, // Provider's overall rating

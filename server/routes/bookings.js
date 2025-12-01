@@ -12,6 +12,32 @@ const JWT_SECRET = require("../config/jwt");
 
 const router = express.Router();
 
+// Admin: Get count of all bookings
+router.get("/count", authMiddleware, async (req, res) => {
+  if (!["admin", "superadmin", "support", "marketing"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Permission denied" });
+  }
+
+  try {
+    const totalBookings = await Booking.countDocuments();
+    const pendingBookings = await Booking.countDocuments({ status: "pending" });
+    const completedBookings = await Booking.countDocuments({ status: "completed" });
+    const confirmedBookings = await Booking.countDocuments({ status: "confirmed" });
+    const cancelledBookings = await Booking.countDocuments({ status: "cancelled" });
+    
+    res.json({
+      total: totalBookings,
+      pending: pendingBookings,
+      completed: completedBookings,
+      confirmed: confirmedBookings,
+      cancelled: cancelledBookings,
+    });
+  } catch (err) {
+    console.error("Error fetching booking count:", err);
+    res.status(500).json({ message: "Could not fetch booking count", error: err.message });
+  }
+});
+
 // Admin: Get ALL bookings with populated user info
 router.get("/all", authMiddleware, async (req, res) => {
   if (!["admin", "superadmin", "support", "marketing"].includes(req.user.role)) {

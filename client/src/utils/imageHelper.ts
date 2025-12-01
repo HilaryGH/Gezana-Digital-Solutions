@@ -1,0 +1,293 @@
+/**
+ * Checks if a URL is a Cloudinary URL
+ */
+const isCloudinaryUrl = (url: string): boolean => {
+  return url.includes('cloudinary.com') || url.includes('res.cloudinary.com');
+};
+
+/**
+ * Applies Cloudinary transformations for optimized image delivery
+ * @param url - Cloudinary URL
+ * @param options - Transformation options
+ */
+const applyCloudinaryTransformations = (
+  url: string, 
+  options: {
+    width?: number;
+    height?: number;
+    quality?: 'auto' | number;
+    format?: 'auto' | 'webp' | 'jpg' | 'png';
+    crop?: 'fill' | 'fit' | 'scale' | 'thumb';
+  } = {}
+): string => {
+  if (!isCloudinaryUrl(url)) {
+    return url;
+  }
+
+  // Check if URL already has transformations
+  if (url.includes('/upload/')) {
+    const parts = url.split('/upload/');
+    if (parts.length === 2) {
+      const [base, rest] = parts;
+      const restParts = rest.split('/');
+      const firstPart = restParts[0];
+      
+      // Check if the first part after 'upload' looks like transformations
+      // Transformations typically look like: w_800,h_600,c_fill,q_auto,f_auto
+      const hasTransformations = firstPart.includes('_') && 
+        (firstPart.includes('w_') || firstPart.includes('h_') || firstPart.includes('c_') || 
+         firstPart.includes('q_') || firstPart.includes('f_') || firstPart.includes('dpr_'));
+      
+      // If URL already has transformations, return as-is to avoid breaking it
+      if (hasTransformations) {
+        return url;
+      }
+      
+      // Build transformation string only if URL doesn't have transformations
+      const transformations: string[] = [];
+      
+      if (options.width) transformations.push(`w_${options.width}`);
+      if (options.height) transformations.push(`h_${options.height}`);
+      if (options.crop) transformations.push(`c_${options.crop}`);
+      if (options.quality) {
+        transformations.push(`q_${options.quality}`);
+      } else {
+        transformations.push('q_auto'); // Auto quality by default
+      }
+      if (options.format) {
+        transformations.push(`f_${options.format}`);
+      } else {
+        transformations.push('f_auto'); // Auto format by default
+      }
+      
+      // Add device pixel ratio for responsive images
+      transformations.push('dpr_auto');
+      
+      const transformString = transformations.join(',');
+      
+      // Insert transformations before the image path
+      return `${base}/upload/${transformString}/${rest}`;
+    }
+  }
+  
+  return url;
+};
+
+/**
+ * Normalizes image URLs to ensure they're properly formatted
+ * Handles both Cloudinary URLs and local file paths
+ * @param url - Image URL to normalize
+ * @param options - Optional transformation options for Cloudinary images
+ */
+export const normalizeImageUrl = (
+  url: string | undefined | null,
+  options?: {
+    width?: number;
+    height?: number;
+    quality?: 'auto' | number;
+    format?: 'auto' | 'webp' | 'jpg' | 'png';
+    crop?: 'fill' | 'fit' | 'scale' | 'thumb';
+  }
+): string | null => {
+  if (!url) return null;
+  
+  // If it's already a full URL (Cloudinary or external)
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    // In development, ALWAYS convert production URLs to localhost
+    // This handles cases where the database has old production URLs stored
+    if (import.meta.env.DEV && (url.includes('gezana-api.onrender.com') || url.includes('onrender.com'))) {
+      const urlPath = url.replace(/^https?:\/\/[^/]+/, '');
+      const devUrl = `http://localhost:5000${urlPath}`;
+      console.log('Converting production URL to localhost:', { original: url, converted: devUrl });
+      return devUrl;
+    }
+    
+    // If it's a Cloudinary URL, only apply optimizations if options are provided
+    // Otherwise return as-is to avoid breaking working URLs
+    if (isCloudinaryUrl(url)) {
+      // Only apply transformations if we have specific options
+      // This prevents breaking URLs that are already working
+      if (options && (options.width || options.height || options.crop)) {
+        return applyCloudinaryTransformations(url, options);
+      }
+      // Return Cloudinary URL as-is if no specific transformations requested
+      return url;
+    }
+    
+    // Return other external URLs as-is (but log in dev for debugging)
+    if (import.meta.env.DEV) {
+      console.log('Using external URL (not Cloudinary, not production):', url);
+    }
+    return url;
+  }
+  
+  // If it's a relative path, construct full URL
+  const baseURL = import.meta.env.DEV 
+    ? 'http://localhost:5000' 
+    : 'https://gezana-api.onrender.com';
+  
+  // Remove leading slash if present
+  const cleanUrl = url.startsWith('/') ? url.slice(1) : url;
+  
+  // If it doesn't start with 'uploads/', add it
+  if (!cleanUrl.startsWith('uploads/')) {
+    return `${baseURL}/uploads/${cleanUrl}`;
+  }
+  
+  return `${baseURL}/${cleanUrl}`;
+};
+
+/**
+ * Handles image load errors with a fallback
+ * Only uses fallback if the original URL is not the fallback itself (prevents infinite loops)
+ */
+export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>, fallbackSrc: string = '/logo correct.png') => {
+  const target = e.currentTarget;
+  const currentSrc = target.src;
+  
+  // Don't replace if we're already showing the fallback
+  if (currentSrc.includes('logo correct.png') || currentSrc.includes('logo%20correct.png')) {
+    return;
+  }
+  
+  // Log the error for debugging
+  console.error('Image failed to load:', currentSrc);
+  
+  // In development, if it's a production URL, try converting to localhost
+  if (import.meta.env.DEV && (currentSrc.includes('gezana-api.onrender.com') || currentSrc.includes('onrender.com'))) {
+    if (!target.dataset.localhostRetried) {
+      target.dataset.localhostRetried = 'true';
+      const urlPath = currentSrc.replace(/^https?:\/\/[^/]+/, '');
+      const localhostUrl = `http://localhost:5000${urlPath}`;
+      console.log('Retrying with localhost URL:', localhostUrl);
+      target.src = localhostUrl;
+      return;
+    }
+  }
+  
+  // Try the original URL without transformations first (if it was a Cloudinary URL)
+  if (currentSrc.includes('cloudinary.com')) {
+    // Extract the original Cloudinary URL without transformations
+    try {
+      const urlObj = new URL(currentSrc);
+      const pathParts = urlObj.pathname.split('/');
+      const uploadIndex = pathParts.findIndex(part => part === 'upload');
+      
+      if (uploadIndex !== -1 && uploadIndex < pathParts.length - 1) {
+        // Check if there are transformations (next part after 'upload')
+        const afterUpload = pathParts[uploadIndex + 1];
+        if (afterUpload.includes('_')) {
+          // Has transformations, try without them
+          const originalPath = pathParts.slice(0, uploadIndex + 1).concat(pathParts.slice(uploadIndex + 2)).join('/');
+          const originalUrl = `${urlObj.protocol}//${urlObj.host}${originalPath}${urlObj.search}`;
+          
+          // Only try once - set a data attribute to prevent infinite retries
+          if (!target.dataset.retried) {
+            target.dataset.retried = 'true';
+            target.src = originalUrl;
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      // URL parsing failed, continue to fallback
+    }
+  }
+  
+  // If we've already retried or it's not a Cloudinary URL, use fallback
+  if (!target.dataset.fallbackSet) {
+    target.dataset.fallbackSet = 'true';
+    target.src = fallbackSrc;
+  }
+};
+
+/**
+ * Get optimized Cloudinary URL for thumbnails
+ * Returns original URL if it's not a Cloudinary URL or if transformation fails
+ */
+export const getThumbnailUrl = (url: string | undefined | null): string | null => {
+  if (!url) return null;
+  // For Cloudinary URLs, apply transformations
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (isCloudinaryUrl(url)) {
+      return normalizeImageUrl(url, {
+        width: 200,
+        height: 200,
+        crop: 'fill',
+        quality: 'auto',
+        format: 'auto'
+      });
+    }
+    // Return non-Cloudinary URLs as-is
+    return url;
+  }
+  // For relative paths, normalize
+  return normalizeImageUrl(url, {
+    width: 200,
+    height: 200,
+    crop: 'fill',
+    quality: 'auto',
+    format: 'auto'
+  });
+};
+
+/**
+ * Get optimized Cloudinary URL for service cards
+ * Returns original URL if it's not a Cloudinary URL or if transformation fails
+ */
+export const getCardImageUrl = (url: string | undefined | null): string | null => {
+  if (!url) return null;
+  // For Cloudinary URLs, apply transformations
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (isCloudinaryUrl(url)) {
+      return normalizeImageUrl(url, {
+        width: 800,
+        height: 800,
+        crop: 'fill',
+        quality: 'auto',
+        format: 'auto'
+      });
+    }
+    // Return non-Cloudinary URLs as-is
+    return url;
+  }
+  // For relative paths, normalize
+  return normalizeImageUrl(url, {
+    width: 800,
+    height: 800,
+    crop: 'fill',
+    quality: 'auto',
+    format: 'auto'
+  });
+};
+
+/**
+ * Get optimized Cloudinary URL for full-size images
+ * Returns original URL if it's not a Cloudinary URL or if transformation fails
+ */
+export const getFullImageUrl = (url: string | undefined | null): string | null => {
+  if (!url) return null;
+  // For Cloudinary URLs, apply transformations
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (isCloudinaryUrl(url)) {
+      return normalizeImageUrl(url, {
+        width: 1200,
+        height: 675,
+        crop: 'fill',
+        quality: 'auto',
+        format: 'auto'
+      });
+    }
+    // Return non-Cloudinary URLs as-is
+    return url;
+  }
+  // For relative paths, normalize
+  return normalizeImageUrl(url, {
+    width: 1200,
+    height: 675,
+    crop: 'fill',
+    quality: 'auto',
+    format: 'auto'
+  });
+};
+

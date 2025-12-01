@@ -1,11 +1,20 @@
+// Load environment variables FIRST before using them
+const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const session = require("express-session");
 const passport = require("./config/passport");
 
-dotenv.config();
+// Initialize Cloudinary if credentials are provided
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  require("./config/cloudinary");
+  console.log("✅ Cloudinary initialized");
+} else {
+  console.log("⚠️  Cloudinary not configured - using local file storage");
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,7 +40,11 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use('/uploads', express.static('uploads')); // Serve uploaded files at /uploads path
+
+// Serve uploaded files at /uploads path (use absolute path for reliability)
+const path = require("path");
+const uploadsPath = path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath)); // Serve uploaded files at /uploads path
 
 // Session middleware
 app.use(session({
@@ -108,6 +121,12 @@ app.use("/api/jobs", jobsRoutes);
 
 const jobApplicationsRoutes = require("./routes/jobApplications");
 app.use("/api/job-applications", jobApplicationsRoutes);
+
+const investmentsRoutes = require("./routes/investments");
+app.use("/api/investments", investmentsRoutes);
+
+const premiumMembershipsRoutes = require("./routes/premiumMemberships");
+app.use("/api/premium-memberships", premiumMembershipsRoutes);
 
 const statisticsRoutes = require("./routes/statistics");
 app.use("/api/statistics", statisticsRoutes);

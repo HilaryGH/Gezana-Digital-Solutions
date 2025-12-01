@@ -8,6 +8,7 @@ import { IoSearchOutline } from "react-icons/io5";
 import { getServices, type Service } from "../api/services";
 import { getNavbarStatistics } from "../api/statistics";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { getThumbnailUrl, handleImageError } from "../utils/imageHelper";
 
 const SERVICE_PROMPTS = [
   "Home Maintenance pros",
@@ -464,7 +465,7 @@ const Navbar = () => {
                   <input
                     type="text"
                     placeholder="Search for services, providers, or categories..."
-                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-[#2e3dd3]"
+                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-700 placeholder-gray-700"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -513,9 +514,11 @@ const Navbar = () => {
                             <div className="flex-shrink-0">
                               {service.photos && service.photos.length > 0 ? (
                                 <img
-                                  src={service.photos[0]}
+                                  src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
                                   alt={service.title || (service as any).name}
                                   className="w-16 h-16 rounded-lg object-cover"
+                                  loading="lazy"
+                                  onError={handleImageError}
                                 />
                               ) : (
                                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">

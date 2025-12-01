@@ -5,6 +5,7 @@ const Job = require("../models/Job");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/isAdmin");
 const upload = require("../middleware/upload");
+const { getFileUrl } = require("../utils/fileHelper");
 
 /**
  * POST /api/job-applications - Apply for a job
@@ -98,7 +99,7 @@ router.post("/", upload.single("resume"), async (req, res) => {
       applicant: applicantId || undefined,
       guestInfo: guestInfo || undefined,
       coverLetter,
-      resume: req.file ? req.file.filename : undefined,
+      resume: req.file ? getFileUrl(req.file) : undefined,
       status: "pending",
     });
 

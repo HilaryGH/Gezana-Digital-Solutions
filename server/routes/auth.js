@@ -130,27 +130,29 @@ router.post("/register", upload.fields([
       }
 
       // Handle provider file uploads
+      // Use helper to get file URL (works with both Cloudinary and local storage)
+      const { getFileUrl } = require("../utils/fileHelper");
       if (req.files) {
         if (req.files.license) {
-          userData.license = req.files.license[0].filename;
+          userData.license = getFileUrl(req.files.license[0]);
         }
         if (req.files.tradeRegistration) {
-          userData.tradeRegistration = req.files.tradeRegistration[0].filename;
+          userData.tradeRegistration = getFileUrl(req.files.tradeRegistration[0]);
         }
         if (req.files.professionalCertificate) {
-          userData.professionalCertificate = req.files.professionalCertificate[0].filename;
+          userData.professionalCertificate = getFileUrl(req.files.professionalCertificate[0]);
         }
         if (req.files.photo) {
-          userData.photo = req.files.photo[0].filename;
+          userData.photo = getFileUrl(req.files.photo[0]);
         }
         if (req.files.servicePhotos) {
-          userData.servicePhotos = req.files.servicePhotos.map(file => file.filename);
+          userData.servicePhotos = req.files.servicePhotos.map(file => getFileUrl(file));
         }
         if (req.files.video) {
-          userData.video = req.files.video[0].filename;
+          userData.video = getFileUrl(req.files.video[0]);
         }
         if (req.files.priceList) {
-          userData.priceList = req.files.priceList[0].filename;
+          userData.priceList = getFileUrl(req.files.priceList[0]);
         }
       }
     } else if (role === "admin") {

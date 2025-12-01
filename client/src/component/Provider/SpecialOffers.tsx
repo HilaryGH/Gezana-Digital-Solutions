@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "../../api/axios";
 import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, Tag, Calendar, DollarSign, AlertCircle, Crown } from "lucide-react";
 import SpecialOfferForm from "./SpecialOfferForm";
+import { getCardImageUrl, handleImageError } from "../../utils/imageHelper";
 
 interface SpecialOffer {
   _id: string;
@@ -38,6 +39,33 @@ const SpecialOffers = () => {
   useEffect(() => {
     checkPremiumStatus();
     fetchOffers();
+    
+    // Check if user just returned from payment success
+    const checkPaymentReturn = () => {
+      const paymentSuccess = sessionStorage.getItem('premiumPaymentSuccess');
+      if (paymentSuccess === 'true') {
+        // Refresh premium status after payment
+        setTimeout(() => {
+          checkPremiumStatus();
+          sessionStorage.removeItem('premiumPaymentSuccess');
+        }, 1000);
+      }
+    };
+    
+    checkPaymentReturn();
+    
+    // Also listen for storage events (in case payment success happens in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'premiumPaymentSuccess' && e.newValue === 'true') {
+        setTimeout(() => {
+          checkPremiumStatus();
+          sessionStorage.removeItem('premiumPaymentSuccess');
+        }, 1000);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const checkPremiumStatus = async () => {
@@ -179,7 +207,7 @@ const SpecialOffers = () => {
                 You need an active premium membership to create special offers. Upgrade to premium to unlock this feature and attract more customers with exclusive deals.
               </p>
               <a
-                href="/membership-plans"
+                href="/premium-membership"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
               >
                 <Crown className="w-4 h-4" />
@@ -237,9 +265,11 @@ const SpecialOffers = () => {
                 {offer.image || (offer.service.photos && offer.service.photos.length > 0) ? (
                   <div className="h-40 bg-gray-200 overflow-hidden">
                     <img
-                      src={offer.image || offer.service.photos[0]}
+                      src={getCardImageUrl(offer.image || offer.service.photos[0]) || offer.image || offer.service.photos[0]}
                       alt={offer.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={handleImageError}
                     />
                   </div>
                 ) : (

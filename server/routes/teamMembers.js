@@ -4,6 +4,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const isAdmin = require("../middleware/isAdmin");
 const upload = require("../middleware/upload");
 const path = require("path");
+const { getFileUrl } = require("../utils/fileHelper");
 
 const router = express.Router();
 
@@ -103,9 +104,8 @@ router.post("/", authMiddleware, isAdmin, upload.single("photo"), async (req, re
     // Handle photo: use uploaded file if available, otherwise use URL from body
     let photoUrl = photo;
     if (req.file) {
-      // If file was uploaded, use the file path with full URL
-      const baseUrl = req.protocol + '://' + req.get('host');
-      photoUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      // If file was uploaded, get file URL (Cloudinary or local)
+      photoUrl = getFileUrl(req.file);
     } else if (!photoUrl) {
       return res.status(400).json({ message: "Please provide a photo (upload file or URL)" });
     }
@@ -203,8 +203,7 @@ router.put("/:id", authMiddleware, isAdmin, upload.single("photo"), async (req, 
 
     // Handle photo: use uploaded file if available, otherwise use URL from body
     if (req.file) {
-      const baseUrl = req.protocol + '://' + req.get('host');
-      teamMember.photo = `${baseUrl}/uploads/${req.file.filename}`;
+      teamMember.photo = getFileUrl(req.file);
     } else if (photo) {
       teamMember.photo = photo;
     }
