@@ -21,12 +21,23 @@ passport.deserializeUser(async (id, done) => {
 
 // Google OAuth Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  // Determine callback URL based on environment
+  const getCallbackURL = () => {
+    if (process.env.NODE_ENV === 'production') {
+      // In production, use the full server URL
+      const serverUrl = process.env.SERVER_URL || process.env.BASE_URL || 'https://gezana-api.onrender.com';
+      return `${serverUrl}/api/auth/google/callback`;
+    }
+    // In development, use relative URL (will be resolved by server)
+    return "/api/auth/google/callback";
+  };
+
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/auth/google/callback",
+        callbackURL: getCallbackURL(),
       },
     async (accessToken, refreshToken, profile, done) => {
       try {

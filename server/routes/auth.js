@@ -320,11 +320,18 @@ router.get("/google/callback",
       );
 
       // Redirect to frontend with token
-      const redirectUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/success?token=${token}`;
+      // Use production URL in production, otherwise use localhost
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? (process.env.CLIENT_URL || "https://homehubdigital.netlify.app")
+        : (process.env.CLIENT_URL || "http://localhost:5173");
+      const redirectUrl = `${clientUrl}/auth/success?token=${token}`;
       res.redirect(redirectUrl);
     } catch (error) {
       console.error("Google OAuth callback error:", error);
-      const errorUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/error?message=${encodeURIComponent("Authentication failed")}`;
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? (process.env.CLIENT_URL || "https://homehubdigital.netlify.app")
+        : (process.env.CLIENT_URL || "http://localhost:5173");
+      const errorUrl = `${clientUrl}/auth/error?message=${encodeURIComponent("Authentication failed")}`;
       res.redirect(errorUrl);
     }
   }
@@ -349,11 +356,18 @@ router.get("/facebook/callback",
       );
 
       // Redirect to frontend with token
-      const redirectUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/success?token=${token}`;
+      // Use production URL in production, otherwise use localhost
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? (process.env.CLIENT_URL || "https://homehubdigital.netlify.app")
+        : (process.env.CLIENT_URL || "http://localhost:5173");
+      const redirectUrl = `${clientUrl}/auth/success?token=${token}`;
       res.redirect(redirectUrl);
     } catch (error) {
       console.error("Facebook OAuth callback error:", error);
-      const errorUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/auth/error?message=${encodeURIComponent("Authentication failed")}`;
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? (process.env.CLIENT_URL || "https://homehubdigital.netlify.app")
+        : (process.env.CLIENT_URL || "http://localhost:5173");
+      const errorUrl = `${clientUrl}/auth/error?message=${encodeURIComponent("Authentication failed")}`;
       res.redirect(errorUrl);
     }
   }

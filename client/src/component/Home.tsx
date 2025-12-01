@@ -1324,171 +1324,266 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Women's Initiative, Diaspora & Premium Sections */}
-        <section className="relative w-full bg-gradient-to-br from-pink-50/50 via-white to-purple-50/50 py-12">
-          <div className="max-w-7xl mx-auto px-6">
+        {/* Special Programs Section */}
+        <section className="relative w-full bg-gradient-to-br from-blue-50/30 via-white to-orange-50/30 py-16 overflow-hidden">
+          {/* Decorative Background Elements */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-20 left-10 w-72 h-72 bg-blue-600 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-10 w-72 h-72 bg-orange-600 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
             {/* Section Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Special <span className="text-pink-600">Programs</span>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                Special <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600">Programs</span>
               </h2>
-              <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
                 Join our specialized programs designed to empower and connect communities.
               </p>
             </div>
 
-            {/* Three Column Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Women's Initiative */}
+            {/* Three Column Grid with Creative Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Women's Initiative - Brand Blue */}
               <div 
                 onClick={() => navigate('/women-initiative')}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-pink-100 hover:border-pink-300 cursor-pointer group"
+                className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer overflow-hidden border-2 border-blue-100 hover:border-blue-400"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
+                {/* Animated Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Corner Accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-600/10 to-transparent rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  {/* Icon with Brand Blue */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    Women's Initiative
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                    Empowering women in the service industry. Join our community of female entrepreneurs and service providers.
+                  </p>
+                  
+                  <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
+                    Join Now
+                  </button>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
-                  Women's Initiative
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Empowering women in the service industry. Join our community of female entrepreneurs and service providers.
-                </p>
-                <button className="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:from-pink-600 hover:to-pink-700 transition-all">
-                  Join Now
-                </button>
               </div>
 
-              {/* Diaspora Community */}
+              {/* Diaspora Community - Brand Orange */}
               <div 
                 onClick={() => navigate('/diaspora')}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-300 cursor-pointer group"
+                className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer overflow-hidden border-2 border-orange-100 hover:border-orange-400"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                {/* Animated Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Corner Accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-600/10 to-transparent rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  {/* Icon with Brand Orange */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
+                    Diaspora Community
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                    Connect with your community abroad. Share experiences and discover opportunities to contribute back home.
+                  </p>
+                  
+                  <button className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
+                    Join Now
+                  </button>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-                  Diaspora Community
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Connect with your community abroad. Share experiences and discover opportunities to contribute back home.
-                </p>
-                <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:from-orange-600 hover:to-orange-700 transition-all">
-                  Join Now
-                </button>
               </div>
 
-              {/* Premium Membership */}
+              {/* Premium Membership - Brand Gradient */}
               <div 
                 onClick={() => navigate('/premium-membership')}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-blue-100 hover:border-blue-300 cursor-pointer group"
+                className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer overflow-hidden border-2 border-blue-200 hover:border-orange-400"
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
+                {/* Animated Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Corner Accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-600/10 via-orange-600/10 to-transparent rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  {/* Icon with Brand Gradient */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
+                    Premium Membership
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                    Unlock exclusive access to premium services, priority booking, and advanced platform features.
+                  </p>
+                  
+                  <button className="w-full bg-gradient-to-r from-blue-600 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-orange-700 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
+                    Join Now
+                  </button>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                  Premium Membership
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  Unlock exclusive access to premium services, priority booking, and advanced platform features.
-                </p>
-                <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 transition-all">
-                  Join Now
-                </button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Join Community & Find Jobs Section */}
-        <section className="relative w-full bg-gradient-to-b from-white via-blue-50/30 to-white py-12">
-          <div className="max-w-7xl mx-auto px-6">
+        {/* Join Our Community Section */}
+        <section className="relative w-full bg-gradient-to-b from-white via-blue-50/20 to-white py-16 overflow-hidden">
+          {/* Decorative Background Elements */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-10 right-20 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-10 left-20 w-96 h-96 bg-orange-600 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
             {/* Section Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Join Our <span className="text-blue-600">Community</span>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                Join Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600">Community</span>
               </h2>
-              <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
                 Connect with skilled professionals and find exciting job opportunities. Be part of a growing community of service providers.
               </p>
             </div>
 
-            {/* Community Features Grid */}
+            {/* Community Features Grid - Creative Card Designs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {/* Feature 1 */}
-              <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
+              {/* Feature 1 - Connect with Professionals - Blue Theme */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-100 hover:border-blue-400 overflow-hidden">
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    Connect with Professionals
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Network with experienced service providers and learn from the best in the industry.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Connect with Professionals</h3>
-                <p className="text-gray-600 text-sm">
-                  Network with experienced service providers and learn from the best in the industry.
-                </p>
               </div>
 
-              {/* Feature 2 */}
-              <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+              {/* Feature 2 - Find Job Opportunities - Orange Theme */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-400 overflow-hidden">
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-600/5 rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
+                    Find Job Opportunities
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Discover new job opportunities that match your skills and grow your career with us.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Find Job Opportunities</h3>
-                <p className="text-gray-600 text-sm">
-                  Discover new job opportunities that match your skills and grow your career with us.
-                </p>
               </div>
 
-              {/* Feature 3 */}
-              <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
+              {/* Feature 3 - Build Your Reputation - Blue-Orange Gradient */}
+              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-200 hover:border-orange-400 overflow-hidden">
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-600/5 to-orange-600/5 rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
+                    Build Your Reputation
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Earn reviews, build your profile, and establish yourself as a trusted service provider.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Build Your Reputation</h3>
-                <p className="text-gray-600 text-sm">
-                  Earn reviews, build your profile, and establish yourself as a trusted service provider.
-                </p>
               </div>
 
-              {/* Feature 4 - Premium Community Membership */}
+              {/* Feature 4 - Premium Community Membership - Premium Gradient */}
               <div 
                 onClick={() => navigate('/premium-membership')}
-                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
+                className="group relative bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-300 hover:border-orange-400 cursor-pointer overflow-hidden"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-orange-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-600/10 to-orange-600/10 rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600 mb-2">
+                    Premium Community Membership
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Unlock exclusive access to premium services, priority booking, and advanced platform features.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Premium Community Membership</h3>
-                <p className="text-gray-600 text-sm">
-                  Unlock exclusive access to premium services, priority booking, and advanced platform features.
-                </p>
               </div>
 
-              {/* Feature 5 - Invest / Partner With Us */}
+              {/* Feature 5 - Invest / Partner With Us - Purple-Blue Gradient */}
               <div 
                 onClick={() => navigate('/invest-partner')}
-                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 cursor-pointer"
+                className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-200 hover:border-orange-400 cursor-pointer overflow-hidden"
               >
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-600/5 to-orange-600/5 rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
+                    Invest / Partner With Us
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Explore investment opportunities and strategic partnerships to grow with HomeHub.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Invest / Partner With Us</h3>
-                <p className="text-gray-600 text-sm">
-                  Explore investment opportunities and strategic partnerships to grow with HomeHub.
-                </p>
               </div>
             </div>
 

@@ -6,6 +6,7 @@ import { MdConnectWithoutContact } from "react-icons/md";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
 import { getServices, type Service } from "../api/services";
+import { getNavbarStatistics } from "../api/statistics";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const SERVICE_PROMPTS = [
@@ -31,6 +32,11 @@ const Navbar = () => {
   const [typingStage, setTypingStage] = useState<"typing" | "waiting" | "deleting">("typing");
   const [typedText, setTypedText] = useState("");
   const typingTimeoutRef = useRef<number | null>(null);
+  const [statistics, setStatistics] = useState({
+    newProvidersThisWeek: 500,
+    completedBookings: 0,
+    averageRating: 0,
+  });
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -49,6 +55,23 @@ const Navbar = () => {
       setSearchError(null);
     }
   };
+
+  // Fetch navbar statistics
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const stats = await getNavbarStatistics();
+        setStatistics(stats);
+      } catch (error) {
+        console.error("Error fetching navbar statistics:", error);
+        // Keep default values on error
+      }
+    };
+    fetchStatistics();
+    // Refresh statistics every 5 minutes
+    const interval = setInterval(fetchStatistics, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Handle scroll effect
   useEffect(() => {
@@ -198,18 +221,18 @@ const Navbar = () => {
                   <span className="text-sm font-medium">Live</span>
                 </div>
                 <p className="text-sm font-medium">
-                  🎉 <span className="font-bold">500+</span> new service providers joined this week!
+                  🎉 <span className="font-bold">{statistics.newProvidersThisWeek}+</span> new service providers joined this week!
                 </p>
               </div>
               
               <div className="hidden md:flex items-center space-x-6">
                 <div className="flex items-center space-x-2 text-gray-300">
                   <span className="text-xs">⚡</span>
-                  <span className="text-xs">{t('home.stats.bookings')}</span>
+                  <span className="text-xs">Completed Bookings: <span className="font-bold text-white">{statistics.completedBookings.toLocaleString()}</span></span>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-300">
                   <span className="text-xs">🛡️</span>
-                  <span className="text-xs">{t('services.rating')}</span>
+                  <span className="text-xs">Rating: <span className="font-bold text-white">{statistics.averageRating > 0 ? statistics.averageRating.toFixed(1) : 'N/A'}</span></span>
                 </div>
                 <Link 
                   to="/community"
