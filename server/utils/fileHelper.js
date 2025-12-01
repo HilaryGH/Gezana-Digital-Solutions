@@ -73,8 +73,31 @@ const getStoredFileUrl = (req, storedValue) => {
       console.log('☁️  Returning stored Cloudinary URL:', storedStr);
       return storedStr;
     }
+    
+    // In development ONLY, convert production URLs to localhost
+    // In production, return production URLs as-is
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (!isProduction && storedStr.includes('gezana-api.onrender.com')) {
+      const urlPath = storedStr.replace(/^https?:\/\/[^/]+/, '');
+      const port = process.env.PORT || 5000;
+      const localhostUrl = `http://localhost:${port}${urlPath}`;
+      console.log('🔄 Converting stored production URL to localhost (DEV ONLY):', {
+        original: storedStr,
+        converted: localhostUrl
+      });
+      return localhostUrl;
+    }
+    
+    // In production, return production URLs as-is
+    if (isProduction && storedStr.includes('gezana-api.onrender.com')) {
+      console.log('✅ Returning stored production URL:', storedStr);
+      return storedStr;
+    }
+    
     // Other external URLs (shouldn't happen, but handle gracefully)
-    console.warn('⚠️  Stored external URL (not Cloudinary):', storedStr);
+    if (!isProduction) {
+      console.warn('⚠️  Stored external URL (not Cloudinary):', storedStr);
+    }
     return storedStr;
   }
   

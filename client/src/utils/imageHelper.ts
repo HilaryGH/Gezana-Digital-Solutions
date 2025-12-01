@@ -93,12 +93,12 @@ export const normalizeImageUrl = (
   
   // If it's already a full URL (Cloudinary or external)
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    // In development, ALWAYS convert production URLs to localhost
-    // This handles cases where the database has old production URLs stored
+    // In development ONLY, convert production URLs to localhost
+    // In production, return all URLs as-is (don't modify them)
     if (import.meta.env.DEV && (url.includes('gezana-api.onrender.com') || url.includes('onrender.com'))) {
       const urlPath = url.replace(/^https?:\/\/[^/]+/, '');
       const devUrl = `http://localhost:5000${urlPath}`;
-      console.log('Converting production URL to localhost:', { original: url, converted: devUrl });
+      console.log('Converting production URL to localhost (DEV ONLY):', { original: url, converted: devUrl });
       return devUrl;
     }
     
@@ -114,7 +114,8 @@ export const normalizeImageUrl = (
       return url;
     }
     
-    // Return other external URLs as-is (but log in dev for debugging)
+    // In production, return production URLs as-is (don't log or modify)
+    // In development, log for debugging
     if (import.meta.env.DEV) {
       console.log('Using external URL (not Cloudinary, not production):', url);
     }

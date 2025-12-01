@@ -60,21 +60,30 @@ const getPhotoUrl = (req, photo) => {
       return photoStr;
     }
     
-    // In development, convert production URLs to localhost
+    // In development ONLY, convert production URLs to localhost
+    // In production, return production URLs as-is
     const isProduction = process.env.NODE_ENV === 'production';
     if (!isProduction && photoStr.includes('gezana-api.onrender.com')) {
       // Extract the path from the production URL
       const urlPath = photoStr.replace(/^https?:\/\/[^/]+/, '');
       const localhostUrl = `${buildFileBaseUrl(req)}${urlPath}`;
-      console.log('🔄 Converting production URL to localhost:', {
+      console.log('🔄 Converting production URL to localhost (DEV ONLY):', {
         original: photoStr,
         converted: localhostUrl
       });
       return localhostUrl;
     }
     
+    // In production, return production URLs as-is (don't modify them)
+    if (isProduction && photoStr.includes('gezana-api.onrender.com')) {
+      console.log('✅ Using production URL:', photoStr);
+      return photoStr;
+    }
+    
     // Other external URLs (shouldn't happen, but handle gracefully)
-    console.log('⚠️  External URL detected (not Cloudinary):', photoStr);
+    if (!isProduction) {
+      console.log('⚠️  External URL detected (not Cloudinary):', photoStr);
+    }
     return photoStr;
   }
   
