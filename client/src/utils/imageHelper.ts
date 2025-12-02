@@ -93,12 +93,21 @@ export const normalizeImageUrl = (
   
   // If it's already a full URL (Cloudinary or external)
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    // In development ONLY, convert production URLs to localhost
+    // In development ONLY, convert production URLs to current origin
     // In production, return all URLs as-is (don't modify them)
     if (import.meta.env.DEV && (url.includes('gezana-api.onrender.com') || url.includes('onrender.com'))) {
       const urlPath = url.replace(/^https?:\/\/[^/]+/, '');
-      const devUrl = `http://localhost:5000${urlPath}`;
-      console.log('Converting production URL to localhost (DEV ONLY):', { original: url, converted: devUrl });
+      // Use the actual request origin (works for mobile on same network)
+      let devUrl: string;
+      if (typeof window !== 'undefined' && window.location) {
+        const currentHost = window.location.hostname;
+        const currentPort = window.location.port || '5000';
+        const protocol = window.location.protocol;
+        devUrl = `${protocol}//${currentHost}:${currentPort}${urlPath}`;
+      } else {
+        devUrl = `http://localhost:5000${urlPath}`;
+      }
+      console.log('Converting production URL to current origin (DEV ONLY):', { original: url, converted: devUrl });
       return devUrl;
     }
     
@@ -123,9 +132,27 @@ export const normalizeImageUrl = (
   }
   
   // If it's a relative path, construct full URL
-  const baseURL = import.meta.env.DEV 
-    ? 'http://localhost:5000' 
-    : 'https://gezana-api.onrender.com';
+  // Use the axios base URL to get the correct server URL (works for mobile)
+  let baseURL: string;
+  
+  if (import.meta.env.DEV) {
+    // In development, try to use the actual request origin
+    // This works when accessing from mobile on the same network
+    // Fallback to localhost if window.location is not available
+    if (typeof window !== 'undefined' && window.location) {
+      // Extract the host from the current page URL
+      const currentHost = window.location.hostname;
+      const currentPort = window.location.port || '5000';
+      // Use the same protocol as the current page
+      const protocol = window.location.protocol;
+      baseURL = `${protocol}//${currentHost}:${currentPort}`;
+    } else {
+      // Fallback for SSR or when window is not available
+      baseURL = 'http://localhost:5000';
+    }
+  } else {
+    baseURL = 'https://gezana-api.onrender.com';
+  }
   
   // Remove leading slash if present
   const cleanUrl = url.startsWith('/') ? url.slice(1) : url;

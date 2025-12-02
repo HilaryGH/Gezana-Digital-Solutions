@@ -19,6 +19,10 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy - important for proper X-Forwarded-* header handling (critical for mobile)
+// This allows Express to correctly detect protocol and host when behind a proxy
+app.set('trust proxy', true);
+
 // Middleware
 // CORS configuration - allow production and development URLs
 const allowedOrigins = [
@@ -56,6 +60,14 @@ if (!fs.existsSync(uploadsPath)) {
 
 // Serve uploaded files at /uploads path (before API routes)
 app.use('/uploads', (req, res, next) => {
+  // Handle CORS preflight requests (critical for mobile)
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+  
   // Log file requests in production for debugging
   if (process.env.NODE_ENV === 'production') {
     const filePath = path.join(uploadsPath, req.path);
@@ -74,8 +86,21 @@ app.use('/uploads', (req, res, next) => {
         filePath.endsWith('.webp') || filePath.endsWith('.jfif')) {
       res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
     }
-    // Set CORS headers for images
+    // Set comprehensive CORS headers for images (critical for mobile)
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Length, Content-Type');
+    // Ensure proper content type
+    if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.gif')) {
+      res.setHeader('Content-Type', 'image/gif');
+    } else if (filePath.endsWith('.webp')) {
+      res.setHeader('Content-Type', 'image/webp');
+    }
   },
   // Allow fallthrough to handle 404s
   fallthrough: true
@@ -173,6 +198,9 @@ app.use("/api/job-applications", jobApplicationsRoutes);
 
 const investmentsRoutes = require("./routes/investments");
 app.use("/api/investments", investmentsRoutes);
+
+const womenInitiativesRoutes = require("./routes/womenInitiatives");
+app.use("/api/women-initiatives", womenInitiativesRoutes);
 
 const premiumMembershipsRoutes = require("./routes/premiumMemberships");
 app.use("/api/premium-memberships", premiumMembershipsRoutes);

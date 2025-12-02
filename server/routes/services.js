@@ -10,7 +10,7 @@ const { getFileUrl } = require("../utils/fileHelper");
 
 const router = express.Router();
 
-// Helper function to build file base URL (works in production behind proxy)
+// Helper function to build file base URL (works in production behind proxy and mobile)
 const buildFileBaseUrl = (req) => {
   // Always prioritize NODE_ENV check first
   const isProduction = process.env.NODE_ENV === 'production';
@@ -24,14 +24,31 @@ const buildFileBaseUrl = (req) => {
     return 'https://gezana-api.onrender.com';
   }
   
-  // In development, ALWAYS use localhost (ignore env vars that might point to production)
-  const port = process.env.PORT || 5000;
-  const devUrl = `http://localhost:${port}`;
+  // In development, detect the actual request origin (works for mobile on same network)
+  // Check for proxy headers first (X-Forwarded-*)
+  const forwardedProto = req.get('X-Forwarded-Proto') || req.get('x-forwarded-proto');
+  const forwardedHost = req.get('X-Forwarded-Host') || req.get('x-forwarded-host');
   
-  console.log('Building file base URL:', { 
+  // Use forwarded headers if available (behind proxy)
+  if (forwardedProto && forwardedHost) {
+    const devUrl = `${forwardedProto}://${forwardedHost}`;
+    console.log('Building file base URL (proxy headers):', { forwardedProto, forwardedHost, devUrl });
+    return devUrl;
+  }
+  
+  // Fallback: use request protocol and host (works for mobile on same network)
+  const protocol = req.protocol || 'http';
+  const host = req.get('host') || `localhost:${process.env.PORT || 5000}`;
+  
+  // For mobile devices on same network, use the actual host IP/domain
+  // This will work if accessing via IP address or local network domain
+  const devUrl = `${protocol}://${host}`;
+  
+  console.log('Building file base URL (request origin):', { 
     NODE_ENV: process.env.NODE_ENV, 
     isProduction, 
-    port, 
+    protocol,
+    host,
     devUrl 
   });
   

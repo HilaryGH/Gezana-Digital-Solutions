@@ -127,11 +127,11 @@ const AdminInvestments = () => {
   };
 
   const filteredInvestments = investments.filter((inv) => {
-    const matchesSearch = 
+    const matchesSearch =
       inv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (inv.companyName && inv.companyName.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+
     const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
     const matchesType = typeFilter === "all" || inv.type === typeFilter;
 
@@ -172,10 +172,10 @@ const AdminInvestments = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+      {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
+      <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <Handshake className="w-8 h-8 text-orange-600" />
                 Investments & Partnerships
@@ -197,53 +197,53 @@ const AdminInvestments = () => {
                 <span>Refresh</span>
               </button>
             </div>
-          </div>
+      </div>
         </div>
 
-        {/* Filters */}
+      {/* Filters */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
+          <input
+            type="text"
                 placeholder="Search by name, email, or company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-            </div>
+          />
+        </div>
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <select
-                value={statusFilter}
+          <select
+            value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="reviewed">Reviewed</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="reviewed">Reviewed</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <select
-                value={typeFilter}
+          <select
+            value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
-              >
-                <option value="all">All Types</option>
-                <option value="investor">Investor</option>
-                <option value="strategic-partner">Strategic Partner</option>
-                <option value="sponsorship">Sponsorship</option>
-              </select>
-            </div>
-          </div>
+          >
+            <option value="all">All Types</option>
+            <option value="investor">Investor</option>
+            <option value="strategic-partner">Strategic Partner</option>
+            <option value="sponsorship">Sponsorship</option>
+          </select>
+        </div>
+      </div>
         </div>
 
-        {/* Investments List */}
+      {/* Investments List */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {loading ? (
             <div className="p-12 text-center">
@@ -254,8 +254,8 @@ const AdminInvestments = () => {
             <div className="p-12 text-center">
               <Handshake className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 text-lg">No investments found</p>
-            </div>
-          ) : (
+        </div>
+      ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -269,28 +269,28 @@ const AdminInvestments = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInvestments.map((investment) => (
+          {filteredInvestments.map((investment) => (
                     <tr key={investment._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                             {investment.name.substring(0, 2).toUpperCase()}
                           </div>
-                          <div>
+                    <div>
                             <p className="font-medium text-gray-900">{investment.name}</p>
-                            {investment.companyName && (
+                      {investment.companyName && (
                               <p className="text-sm text-gray-500">{investment.companyName}</p>
-                            )}
-                          </div>
-                        </div>
+                      )}
+                    </div>
+                  </div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
                           <div className="text-orange-600">
                             {getTypeIcon(investment.type)}
-                          </div>
+                    </div>
                           <span className="text-gray-700">{getTypeLabel(investment.type)}</span>
-                        </div>
+                    </div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="space-y-1">
@@ -302,7 +302,7 @@ const AdminInvestments = () => {
                             <Phone className="w-4 h-4" />
                             {investment.phone}
                           </p>
-                        </div>
+                      </div>
                       </td>
                       <td className="py-4 px-6">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(investment.status)}`}>
@@ -314,15 +314,15 @@ const AdminInvestments = () => {
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedInvestment(investment);
+                  <button
+                    onClick={() => {
+                      setSelectedInvestment(investment);
                               setShowModal(true);
                               setNotes(investment.notes || "");
-                            }}
+                    }}
                             className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                            title="View Details"
-                          >
+                    title="View Details"
+                  >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
@@ -331,8 +331,8 @@ const AdminInvestments = () => {
                             title="Delete"
                           >
                             <XCircle className="w-4 h-4" />
-                          </button>
-                        </div>
+                  </button>
+                </div>
                       </td>
                     </tr>
                   ))}
@@ -341,7 +341,7 @@ const AdminInvestments = () => {
             </div>
           )}
         </div>
-      </div>
+                </div>
 
       {/* Detail Modal */}
       {showModal && selectedInvestment && (
@@ -366,7 +366,7 @@ const AdminInvestments = () => {
             <div className="p-6 space-y-6">
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                  <div>
                   <label className="text-sm font-medium text-gray-700">Name</label>
                   <p className="text-gray-900 font-semibold">{selectedInvestment.name}</p>
                 </div>
@@ -374,23 +374,23 @@ const AdminInvestments = () => {
                   <label className="text-sm font-medium text-gray-700">Email</label>
                   <p className="text-gray-900">{selectedInvestment.email}</p>
                 </div>
-                <div>
+              <div>
                   <label className="text-sm font-medium text-gray-700">Phone</label>
-                  <p className="text-gray-900">{selectedInvestment.phone}</p>
-                </div>
-                {selectedInvestment.whatsapp && (
-                  <div>
+                    <p className="text-gray-900">{selectedInvestment.phone}</p>
+                  </div>
+                  {selectedInvestment.whatsapp && (
+                    <div>
                     <label className="text-sm font-medium text-gray-700">WhatsApp</label>
-                    <p className="text-gray-900">{selectedInvestment.whatsapp}</p>
-                  </div>
-                )}
-                {selectedInvestment.companyName && (
-                  <div>
+                      <p className="text-gray-900">{selectedInvestment.whatsapp}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.companyName && (
+                    <div>
                     <label className="text-sm font-medium text-gray-700">Company Name</label>
-                    <p className="text-gray-900">{selectedInvestment.companyName}</p>
-                  </div>
-                )}
-                <div>
+                      <p className="text-gray-900">{selectedInvestment.companyName}</p>
+                    </div>
+                  )}
+                    <div>
                   <label className="text-sm font-medium text-gray-700">Type</label>
                   <p className="text-gray-900">{getTypeLabel(selectedInvestment.type)}</p>
                 </div>
@@ -399,18 +399,18 @@ const AdminInvestments = () => {
               {/* Type-specific fields */}
               {selectedInvestment.type === "investor" && (
                 <>
-                  {selectedInvestment.sector && (
-                    <div>
+                    {selectedInvestment.sector && (
+                      <div>
                       <label className="text-sm font-medium text-gray-700">Sector</label>
-                      <p className="text-gray-900">{selectedInvestment.sector}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.investmentType && (
-                    <div>
+                        <p className="text-gray-900">{selectedInvestment.sector}</p>
+                      </div>
+                    )}
+                    {selectedInvestment.investmentType && (
+                      <div>
                       <label className="text-sm font-medium text-gray-700">Investment Type</label>
-                      <p className="text-gray-900">{selectedInvestment.investmentType}</p>
-                    </div>
-                  )}
+                        <p className="text-gray-900">{selectedInvestment.investmentType}</p>
+                      </div>
+                    )}
                 </>
               )}
 
@@ -424,41 +424,41 @@ const AdminInvestments = () => {
               {selectedInvestment.type === "sponsorship" && (
                 <>
                   {selectedInvestment.officePhone && (
-                    <div>
+                <div>
                       <label className="text-sm font-medium text-gray-700">Office Phone</label>
                       <p className="text-gray-900">{selectedInvestment.officePhone}</p>
                     </div>
                   )}
-                  {selectedInvestment.motto && (
-                    <div>
+                    {selectedInvestment.motto && (
+                      <div>
                       <label className="text-sm font-medium text-gray-700">Motto</label>
-                      <p className="text-gray-900">{selectedInvestment.motto}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.specialPackages && (
-                    <div>
+                        <p className="text-gray-900">{selectedInvestment.motto}</p>
+                      </div>
+                    )}
+                    {selectedInvestment.specialPackages && (
+                      <div>
                       <label className="text-sm font-medium text-gray-700">Special Packages</label>
-                      <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.specialPackages}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.messages && (
-                    <div>
+                        <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.specialPackages}</p>
+                      </div>
+                    )}
+                    {selectedInvestment.messages && (
+                      <div>
                       <label className="text-sm font-medium text-gray-700">Messages</label>
-                      <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.messages}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.effectiveDate && (
-                    <div>
+                        <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.messages}</p>
+                      </div>
+                    )}
+                        {selectedInvestment.effectiveDate && (
+                          <div>
                       <label className="text-sm font-medium text-gray-700">Effective Date</label>
                       <p className="text-gray-900">{new Date(selectedInvestment.effectiveDate).toLocaleDateString()}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.expiryDate && (
-                    <div>
+                          </div>
+                        )}
+                        {selectedInvestment.expiryDate && (
+                          <div>
                       <label className="text-sm font-medium text-gray-700">Expiry Date</label>
                       <p className="text-gray-900">{new Date(selectedInvestment.expiryDate).toLocaleDateString()}</p>
-                    </div>
-                  )}
+                          </div>
+                        )}
                 </>
               )}
 
@@ -478,17 +478,17 @@ const AdminInvestments = () => {
                               {key.replace(/([A-Z])/g, " $1").trim()}
                             </p>
                             {url && (
-                              <a
+                        <a
                                 href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                          target="_blank"
+                          rel="noopener noreferrer"
                                 className="text-xs text-blue-600 hover:underline"
-                              >
-                                View File
-                              </a>
-                            )}
-                          </div>
-                        </div>
+                        >
+                          View File
+                        </a>
+                    )}
+                      </div>
+                      </div>
                       );
                     })}
                   </div>

@@ -61,6 +61,7 @@ const getFileUrl = (file) => {
 
 // Helper function to get file URL from stored value (database)
 // Handles both Cloudinary URLs (stored as full URLs) and local filenames
+// req parameter is optional but recommended for proper URL construction on mobile
 const getStoredFileUrl = (req, storedValue) => {
   if (!storedValue) return null;
   
@@ -121,11 +122,40 @@ const getStoredFileUrl = (req, storedValue) => {
     return fullUrl;
   }
   
-  // In development, ALWAYS use localhost
-  const port = process.env.PORT || 5000;
-  const baseUrl = `http://localhost:${port}`;
+  // In development, use request origin (works for mobile on same network)
+  // This function is called from routes that have access to req
+  // If req is not available, fallback to localhost
+  if (!req) {
+    const port = process.env.PORT || 5000;
+    const baseUrl = `http://localhost:${port}`;
+    const fullUrl = `${baseUrl}/uploads/${cleanFile}`;
+    console.log('📁 Local file URL (development, no req):', { original: storedValue, cleaned: cleanFile, fullUrl });
+    return fullUrl;
+  }
+  
+  // Use request origin (works for mobile devices on same network)
+  const forwardedProto = req.get('X-Forwarded-Proto') || req.get('x-forwarded-proto');
+  const forwardedHost = req.get('X-Forwarded-Host') || req.get('x-forwarded-host');
+  
+  let protocol = req.protocol || 'http';
+  let host = req.get('host') || `localhost:${process.env.PORT || 5000}`;
+  
+  // Use forwarded headers if available (behind proxy)
+  if (forwardedProto && forwardedHost) {
+    protocol = forwardedProto;
+    host = forwardedHost;
+  }
+  
+  const baseUrl = `${protocol}://${host}`;
   const fullUrl = `${baseUrl}/uploads/${cleanFile}`;
-  console.log('📁 Local file URL (development):', { original: storedValue, cleaned: cleanFile, fullUrl });
+  console.log('📁 Local file URL (development, request origin):', { 
+    original: storedValue, 
+    cleaned: cleanFile, 
+    protocol,
+    host,
+    baseUrl,
+    fullUrl 
+  });
   
   return fullUrl;
 };
