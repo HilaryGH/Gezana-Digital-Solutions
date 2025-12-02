@@ -279,18 +279,20 @@ const InvestPartnerForm = () => {
                   placeholder="Enter your name"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Enter company name"
-                />
-              </div>
+              {(formType === "investor" || formType === "strategic-partner") && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Enter company name"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -354,43 +356,41 @@ const InvestPartnerForm = () => {
             {/* Investor Specific Fields */}
             {formType === "investor" && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Sector *
-                    </label>
-                    <select
-                      required
-                      value={sector}
-                      onChange={(e) => setSector(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    >
-                      <option value="">-- Select Sector --</option>
-                      {sectors.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Investment Type *
-                    </label>
-                    <select
-                      required
-                      value={investmentType}
-                      onChange={(e) => setInvestmentType(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    >
-                      <option value="">-- Select Investment Type --</option>
-                      {investmentTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sector *
+                  </label>
+                  <select
+                    required
+                    value={sector}
+                    onChange={(e) => setSector(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="">-- Select Sector --</option>
+                    {sectors.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Investment Type *
+                  </label>
+                  <select
+                    required
+                    value={investmentType}
+                    onChange={(e) => setInvestmentType(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="">-- Select Investment Type --</option>
+                    {investmentTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-4">
@@ -438,6 +438,8 @@ const InvestPartnerForm = () => {
                     ))}
                   </select>
                 </div>
+                
+                {/* Company Name is already in common fields, but ensure it shows */}
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">Attachments</h3>
@@ -500,7 +502,7 @@ const InvestPartnerForm = () => {
                     value={specialPackages}
                     onChange={(e) => setSpecialPackages(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Describe special packages"
+                    placeholder="Enter special packages"
                   />
                 </div>
 
@@ -527,6 +529,7 @@ const InvestPartnerForm = () => {
                       value={effectiveDate}
                       onChange={(e) => setEffectiveDate(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="mm/dd/yyyy"
                     />
                   </div>
                   <div>
@@ -538,6 +541,7 @@ const InvestPartnerForm = () => {
                       value={expiryDate}
                       onChange={(e) => setExpiryDate(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="mm/dd/yyyy"
                     />
                   </div>
                 </div>

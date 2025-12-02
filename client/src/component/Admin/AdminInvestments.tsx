@@ -1,546 +1,496 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, RefreshCw, Eye, CheckCircle, XCircle, Clock, FileText, Mail, Phone, Building, X } from 'lucide-react';
-import { getInvestments, updateInvestmentStatus, type Investment } from '../../api/investments';
+import { useState, useEffect } from "react";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Eye, 
+  CheckCircle, 
+  XCircle, 
+  Clock,
+  FileText,
+  Mail,
+  Phone,
+  Building,
+  Calendar,
+  MapPin,
+  DollarSign,
+  Briefcase,
+  Handshake,
+  Sparkles
+} from "lucide-react";
+import { getInvestments, updateInvestmentStatus, type Investment } from "../../api/investments";
+import axios from "../../api/axios";
 
 const AdminInvestments = () => {
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'approved' | 'rejected'>('all');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'investor' | 'strategic-partner' | 'sponsorship'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [statusNotes, setStatusNotes] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     fetchInvestments();
   }, []);
 
   const fetchInvestments = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const data = await getInvestments();
       setInvestments(data);
-      setError(null);
-    } catch (err: any) {
-      console.error('Error fetching investments:', err);
-      setError(err.response?.data?.message || 'Failed to fetch investments');
+    } catch (error) {
+      console.error("Error fetching investments:", error);
+      alert("Failed to fetch investments. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusUpdate = async (id: string, status: 'pending' | 'reviewed' | 'approved' | 'rejected') => {
-    setActionLoading(id);
+  const handleStatusUpdate = async (id: string, newStatus: "pending" | "reviewed" | "approved" | "rejected") => {
+    if (!confirm(`Are you sure you want to mark this as ${newStatus}?`)) {
+      return;
+    }
+
     try {
-      await updateInvestmentStatus(id, status, statusNotes || undefined);
+      setUpdating(true);
+      await updateInvestmentStatus(id, newStatus, notes || undefined);
       await fetchInvestments();
-      setStatusNotes('');
-      setError(null);
-    } catch (err: any) {
-      console.error('Error updating status:', err);
-      setError(err.response?.data?.message || 'Failed to update status');
+      setShowModal(false);
+      setNotes("");
+      alert(`Status updated to ${newStatus} successfully!`);
+    } catch (error: any) {
+      console.error("Error updating status:", error);
+      alert(error.response?.data?.message || "Failed to update status. Please try again.");
     } finally {
-      setActionLoading(null);
+      setUpdating(false);
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'investor':
-        return 'Investor';
-      case 'strategic-partner':
-        return 'Strategic Partner';
-      case 'sponsorship':
-        return 'Sponsorship';
-      default:
-        return type;
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this investment application? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/investments/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      await fetchInvestments();
+      alert("Investment application deleted successfully!");
+    } catch (error: any) {
+      console.error("Error deleting investment:", error);
+      alert(error.response?.data?.message || "Failed to delete. Please try again.");
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      case 'reviewed':
-        return 'bg-blue-100 text-blue-800';
+      case "approved":
+        return "bg-green-100 text-green-700";
+      case "rejected":
+        return "bg-red-100 text-red-700";
+      case "reviewed":
+        return "bg-blue-100 text-blue-700";
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return "bg-yellow-100 text-yellow-700";
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "investor":
+        return <DollarSign className="w-5 h-5" />;
+      case "strategic-partner":
+        return <Handshake className="w-5 h-5" />;
+      case "sponsorship":
+        return <Sparkles className="w-5 h-5" />;
+      default:
+        return <Briefcase className="w-5 h-5" />;
+    }
   };
 
-  const filteredInvestments = investments.filter((investment) => {
-    const matchesSearch =
-      investment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investment.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      investment.phone.includes(searchTerm);
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "investor":
+        return "Investor";
+      case "strategic-partner":
+        return "Strategic Partner";
+      case "sponsorship":
+        return "Sponsorship";
+      default:
+        return type;
+    }
+  };
 
-    const matchesStatus = statusFilter === 'all' || investment.status === statusFilter;
-    const matchesType = typeFilter === 'all' || investment.type === typeFilter;
+  const filteredInvestments = investments.filter((inv) => {
+    const matchesSearch = 
+      inv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (inv.companyName && inv.companyName.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
+    const matchesType = typeFilter === "all" || inv.type === typeFilter;
 
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-orange-600" />
-      </div>
-    );
-  }
+  const exportToCSV = () => {
+    const headers = ["Name", "Email", "Phone", "Type", "Status", "Company", "Sector", "Created At"];
+    const rows = filteredInvestments.map(inv => [
+      inv.name,
+      inv.email,
+      inv.phone,
+      getTypeLabel(inv.type),
+      inv.status,
+      inv.companyName || "N/A",
+      inv.sector || "N/A",
+      new Date(inv.createdAt).toLocaleDateString()
+    ]);
+
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `investments-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const getFileUrl = (path: string | undefined) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    return `${axios.defaults.baseURL?.replace("/api", "")}${path}`;
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Investment & Partnership Applications</h2>
-        <p className="text-gray-600 mt-1">Manage investment, partnership, and sponsorship applications</p>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center space-x-2">
-          <XCircle className="w-5 h-5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search by name, email, company..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Filter className="text-gray-400 w-5 h-5" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="reviewed">Reviewed</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-        <div className="flex items-center space-x-2">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-          >
-            <option value="all">All Types</option>
-            <option value="investor">Investor</option>
-            <option value="strategic-partner">Strategic Partner</option>
-            <option value="sponsorship">Sponsorship</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Investments List */}
-      {filteredInvestments.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No applications found</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredInvestments.map((investment) => (
-            <div
-              key={investment._id}
-              className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow"
-            >
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">{investment.name}</h3>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(investment.status)}`}
-                        >
-                          {investment.status}
-                        </span>
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                          {getTypeLabel(investment.type)}
-                        </span>
-                      </div>
-                      {investment.companyName && (
-                        <div className="flex items-center space-x-2 text-gray-600 mb-2">
-                          <Building className="w-4 h-4" />
-                          <span>{investment.companyName}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-4 h-4 text-orange-600" />
-                      <span>{investment.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-4 h-4 text-orange-600" />
-                      <span>{investment.phone}</span>
-                    </div>
-                    {investment.whatsapp && (
-                      <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-green-600" />
-                        <span>WhatsApp: {investment.whatsapp}</span>
-                      </div>
-                    )}
-                    {investment.sector && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-orange-600 font-semibold">Sector:</span>
-                        <span>{investment.sector}</span>
-                      </div>
-                    )}
-                    {investment.investmentType && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-orange-600 font-semibold">Investment Type:</span>
-                        <span>{investment.investmentType}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {investment.enquiries && (
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{investment.enquiries}</p>
-                  )}
-
-                  <div className="text-xs text-gray-500">
-                    Submitted: {formatDate(investment.createdAt)}
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedInvestment(investment);
-                      setShowDetailsModal(true);
-                      setStatusNotes(investment.notes || '');
-                    }}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="View Details"
-                  >
-                    <Eye className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <Handshake className="w-8 h-8 text-orange-600" />
+                Investments & Partnerships
+              </h1>
+              <p className="text-gray-600 mt-2">Manage investment and partnership applications</p>
             </div>
-          ))}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={exportToCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export CSV</span>
+              </button>
+              <button
+                onClick={fetchInvestments}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors"
+              >
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Details Modal */}
-      {showDetailsModal && selectedInvestment && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-600 to-orange-700">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-2xl font-bold text-white">Application Details</h3>
-                  <p className="text-orange-100 text-sm mt-1">
-                    {getTypeLabel(selectedInvestment.type)} - {selectedInvestment.name}
-                  </p>
-                </div>
+        {/* Filters */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, email, or company..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+              >
+                <option value="all">All Types</option>
+                <option value="investor">Investor</option>
+                <option value="strategic-partner">Strategic Partner</option>
+                <option value="sponsorship">Sponsorship</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Investments List */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+              <p className="mt-4 text-gray-600">Loading investments...</p>
+            </div>
+          ) : filteredInvestments.length === 0 ? (
+            <div className="p-12 text-center">
+              <Handshake className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 text-lg">No investments found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Name</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Type</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Contact</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Created</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInvestments.map((investment) => (
+                    <tr key={investment._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {investment.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{investment.name}</p>
+                            {investment.companyName && (
+                              <p className="text-sm text-gray-500">{investment.companyName}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <div className="text-orange-600">
+                            {getTypeIcon(investment.type)}
+                          </div>
+                          <span className="text-gray-700">{getTypeLabel(investment.type)}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-600 flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            {investment.email}
+                          </p>
+                          <p className="text-sm text-gray-600 flex items-center gap-2">
+                            <Phone className="w-4 h-4" />
+                            {investment.phone}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(investment.status)}`}>
+                          {investment.status.charAt(0).toUpperCase() + investment.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-sm text-gray-600">
+                        {new Date(investment.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedInvestment(investment);
+                              setShowModal(true);
+                              setNotes(investment.notes || "");
+                            }}
+                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(investment._id)}
+                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                            title="Delete"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Detail Modal */}
+      {showModal && selectedInvestment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Investment Details</h2>
                 <button
                   onClick={() => {
-                    setShowDetailsModal(false);
+                    setShowModal(false);
                     setSelectedInvestment(null);
-                    setStatusNotes('');
+                    setNotes("");
                   }}
-                  className="text-white hover:text-gray-200 transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <XCircle className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Status Section */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedInvestment.status)}`}>
-                      {selectedInvestment.status}
-                    </span>
-                    <span className="ml-3 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                      {getTypeLabel(selectedInvestment.type)}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {formatDate(selectedInvestment.createdAt)}
-                  </div>
-                </div>
-
-                {/* Status Update */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Update Status
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {(['pending', 'reviewed', 'approved', 'rejected'] as const).map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => handleStatusUpdate(selectedInvestment._id, status)}
-                        disabled={actionLoading === selectedInvestment._id || selectedInvestment.status === status}
-                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                          selectedInvestment.status === status
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                  <textarea
-                    rows={3}
-                    value={statusNotes}
-                    onChange={(e) => setStatusNotes(e.target.value)}
-                    placeholder="Add notes (optional)"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  />
-                </div>
-              </div>
-
-              {/* Contact Information */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">Contact Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Name</label>
-                    <p className="text-gray-900">{selectedInvestment.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Email</label>
-                    <p className="text-gray-900">{selectedInvestment.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Phone</label>
-                    <p className="text-gray-900">{selectedInvestment.phone}</p>
-                  </div>
-                  {selectedInvestment.whatsapp && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">WhatsApp</label>
-                      <p className="text-gray-900">{selectedInvestment.whatsapp}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.companyName && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Company Name</label>
-                      <p className="text-gray-900">{selectedInvestment.companyName}</p>
-                    </div>
-                  )}
-                  {selectedInvestment.officePhone && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Office Phone</label>
-                      <p className="text-gray-900">{selectedInvestment.officePhone}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Type-Specific Fields */}
-              {(selectedInvestment.sector || selectedInvestment.investmentType) && (
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Investment Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedInvestment.sector && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Sector</label>
-                        <p className="text-gray-900">{selectedInvestment.sector}</p>
-                      </div>
-                    )}
-                    {selectedInvestment.investmentType && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Investment Type</label>
-                        <p className="text-gray-900">{selectedInvestment.investmentType}</p>
-                      </div>
-                    )}
+                  <label className="text-sm font-medium text-gray-700">Name</label>
+                  <p className="text-gray-900 font-semibold">{selectedInvestment.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <p className="text-gray-900">{selectedInvestment.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                  <p className="text-gray-900">{selectedInvestment.phone}</p>
+                </div>
+                {selectedInvestment.whatsapp && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">WhatsApp</label>
+                    <p className="text-gray-900">{selectedInvestment.whatsapp}</p>
                   </div>
+                )}
+                {selectedInvestment.companyName && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Company Name</label>
+                    <p className="text-gray-900">{selectedInvestment.companyName}</p>
+                  </div>
+                )}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Type</label>
+                  <p className="text-gray-900">{getTypeLabel(selectedInvestment.type)}</p>
+                </div>
+              </div>
+
+              {/* Type-specific fields */}
+              {selectedInvestment.type === "investor" && (
+                <>
+                  {selectedInvestment.sector && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Sector</label>
+                      <p className="text-gray-900">{selectedInvestment.sector}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.investmentType && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Investment Type</label>
+                      <p className="text-gray-900">{selectedInvestment.investmentType}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {selectedInvestment.type === "strategic-partner" && selectedInvestment.sector && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Sector</label>
+                  <p className="text-gray-900">{selectedInvestment.sector}</p>
                 </div>
               )}
 
-              {/* Sponsorship Specific Fields */}
-              {(selectedInvestment.motto || selectedInvestment.specialPackages || selectedInvestment.messages) && (
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Sponsorship Details</h4>
-                  <div className="space-y-4">
-                    {selectedInvestment.motto && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Motto</label>
-                        <p className="text-gray-900">{selectedInvestment.motto}</p>
-                      </div>
-                    )}
-                    {selectedInvestment.specialPackages && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Special Packages</label>
-                        <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.specialPackages}</p>
-                      </div>
-                    )}
-                    {selectedInvestment.messages && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Messages</label>
-                        <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.messages}</p>
-                      </div>
-                    )}
-                    {(selectedInvestment.effectiveDate || selectedInvestment.expiryDate) && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedInvestment.effectiveDate && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-600">Effective Date</label>
-                            <p className="text-gray-900">
-                              {new Date(selectedInvestment.effectiveDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                        )}
-                        {selectedInvestment.expiryDate && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-600">Expiry Date</label>
-                            <p className="text-gray-900">
-                              {new Date(selectedInvestment.expiryDate).toLocaleDateString()}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {selectedInvestment.type === "sponsorship" && (
+                <>
+                  {selectedInvestment.officePhone && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Office Phone</label>
+                      <p className="text-gray-900">{selectedInvestment.officePhone}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.motto && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Motto</label>
+                      <p className="text-gray-900">{selectedInvestment.motto}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.specialPackages && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Special Packages</label>
+                      <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.specialPackages}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.messages && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Messages</label>
+                      <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.messages}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.effectiveDate && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Effective Date</label>
+                      <p className="text-gray-900">{new Date(selectedInvestment.effectiveDate).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {selectedInvestment.expiryDate && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Expiry Date</label>
+                      <p className="text-gray-900">{new Date(selectedInvestment.expiryDate).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Attachments */}
               {selectedInvestment.attachments && Object.keys(selectedInvestment.attachments).length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Attachments</h4>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Attachments</label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedInvestment.attachments.idPassport && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">ID / Passport / Driving Licence</label>
-                        <a
-                          href={selectedInvestment.attachments.idPassport}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.license && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">License</label>
-                        <a
-                          href={selectedInvestment.attachments.license}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.tradeRegistration && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Trade Registration</label>
-                        <a
-                          href={selectedInvestment.attachments.tradeRegistration}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.businessProposal && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Business Proposal</label>
-                        <a
-                          href={selectedInvestment.attachments.businessProposal}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.businessPlan && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Business Plan</label>
-                        <a
-                          href={selectedInvestment.attachments.businessPlan}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.logo && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Logo</label>
-                        <a
-                          href={selectedInvestment.attachments.logo}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.mouSigned && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">MOU Signed</label>
-                        <a
-                          href={selectedInvestment.attachments.mouSigned}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
-                    {selectedInvestment.attachments.contractSigned && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Contract Signed</label>
-                        <a
-                          href={selectedInvestment.attachments.contractSigned}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:underline block mt-1"
-                        >
-                          View File
-                        </a>
-                      </div>
-                    )}
+                    {Object.entries(selectedInvestment.attachments).map(([key, value]) => {
+                      if (!value) return null;
+                      const url = getFileUrl(value);
+                      return (
+                        <div key={key} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                          <FileText className="w-5 h-5 text-gray-600" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-700 capitalize">
+                              {key.replace(/([A-Z])/g, " $1").trim()}
+                            </p>
+                            {url && (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline"
+                              >
+                                View File
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -548,18 +498,59 @@ const AdminInvestments = () => {
               {/* Enquiries */}
               {selectedInvestment.enquiries && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Enquiries</h4>
-                  <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.enquiries}</p>
+                  <label className="text-sm font-medium text-gray-700">Enquiries / Message</label>
+                  <p className="text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">
+                    {selectedInvestment.enquiries}
+                  </p>
                 </div>
               )}
 
-              {/* Admin Notes */}
-              {selectedInvestment.notes && (
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Admin Notes</h4>
-                  <p className="text-gray-900 whitespace-pre-wrap">{selectedInvestment.notes}</p>
+              {/* Status Update */}
+              <div className="border-t border-gray-200 pt-6">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Admin Notes</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Add notes about this application..."
+                />
+
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    onClick={() => handleStatusUpdate(selectedInvestment._id, "pending")}
+                    disabled={updating || selectedInvestment.status === "pending"}
+                    className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Clock className="w-4 h-4" />
+                    Mark Pending
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(selectedInvestment._id, "reviewed")}
+                    disabled={updating || selectedInvestment.status === "reviewed"}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Mark Reviewed
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(selectedInvestment._id, "approved")}
+                    disabled={updating || selectedInvestment.status === "approved"}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(selectedInvestment._id, "rejected")}
+                    disabled={updating || selectedInvestment.status === "rejected"}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reject
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -569,4 +560,3 @@ const AdminInvestments = () => {
 };
 
 export default AdminInvestments;
-

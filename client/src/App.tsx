@@ -18,6 +18,7 @@ import ForgotPassword from "./component/Pages/ForgotPassword";
 import ResetPassword from "./component/Pages/ResetPassword";
 import SupportForm from "./component/Pages/SupportForm";
 import DiasporaCommunityForm from "./component/Pages/DiasporaCommunityForm";
+import InvestPartnerForm from "./component/Pages/InvestPartnerForm";
 import CommunityPage from "./component/Pages/CommunityPage";
 import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
@@ -44,6 +45,7 @@ import AdminProvidersList from "./component/Admin/AdminProvidersList";
 import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
 import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
+import AdminInvestments from "./component/Admin/AdminInvestments";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
@@ -77,6 +79,7 @@ function AppContent() {
     "/admin/team-members",
     "/admin/testimonials",
     "/admin/promotional-banners",
+    "/admin/investments",
     "/provider/bookings",
     "/provider/service-lists",
   ];
@@ -105,6 +108,7 @@ function AppContent() {
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/support" element={<SupportForm />} />
         <Route path="/diaspora" element={<DiasporaCommunityForm />} />
+        <Route path="/invest-partner" element={<InvestPartnerForm />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -146,6 +150,7 @@ function AppContent() {
         <Route path="/admin/team-members" element={<AdminTeamMembers />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
         <Route path="/admin/promotional-banners" element={<AdminPromotionalBanners />} />
+        <Route path="/admin/investments" element={<AdminInvestments />} />
 
         {/* Support Routes */}
         <Route path="/support-dashboard" element={<CustomerSupportDashboard />} />
