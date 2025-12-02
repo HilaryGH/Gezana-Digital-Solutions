@@ -79,7 +79,7 @@ const getWelcomeEmailTemplate = (userName, userRole) => {
                   `}
                   
                   <div style="margin: 30px 0; text-align: center;">
-                    <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}" 
+                    <a href="https://homehubdigital.netlify.app/" 
                        style="display: inline-block; background: linear-gradient(135deg, #2E3DD3 0%, #00AEEF 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; box-shadow: 0 6px 16px rgba(46, 61, 211, 0.25);">
                       Get Started Now →
                     </a>
@@ -134,7 +134,7 @@ const sendWelcomeEmail = async (userEmail, userName, userRole) => {
       to: userEmail,
           subject: `Welcome to HomeHub! 🎉 Your ${userRole === 'provider' ? 'Provider' : 'Account'} is Ready`,
           html: getWelcomeEmailTemplate(userName, userRole),
-          text: `Welcome to HomeHub, ${userName}! Your ${userRole} account has been successfully created. Visit ${process.env.CLIENT_URL || 'http://localhost:5173'} to get started.`
+          text: `Welcome to HomeHub, ${userName}! Your ${userRole} account has been successfully created. Visit https://homehubdigital.netlify.app/ to get started.`
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -177,7 +177,7 @@ const getVerificationEmailTemplate = (userName, providerName) => {
                   </p>
                   
                   <div style="margin: 30px 0; text-align: center;">
-                    <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/services" 
+                    <a href="https://homehubdigital.netlify.app/services" 
                        style="display: inline-block; background: linear-gradient(135deg, #F7931E 0%, #FFC60B 100%); color: #000000; padding: 15px 40px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px;">
                       View Your Service
                     </a>
@@ -336,7 +336,7 @@ const getBookingConfirmationEmailTemplate = (userName, bookingDetails) => {
       </div>
 
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/my-bookings" class="button">
+        <a href="https://homehubdigital.netlify.app/my-bookings" class="button">
           View My Bookings
         </a>
       </div>
@@ -357,7 +357,7 @@ const getBookingConfirmationEmailTemplate = (userName, bookingDetails) => {
         HomeHub Digital Solutions - Connecting Services, Building Trust 🤝
       </p>
       <p style="margin: 10px 0 0 0;">
-        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}" style="color: #00AEEF;">Visit our website</a>
+        <a href="https://homehubdigital.netlify.app/" style="color: #00AEEF;">Visit our website</a>
       </p>
     </div>
   </div>
@@ -388,10 +388,124 @@ const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails)
   }
 };
 
+// Password reset email template
+const getPasswordResetEmailTemplate = (userName, resetToken) => {
+  const resetUrl = `https://homehubdigital.netlify.app/reset-password?token=${resetToken}`;
+  
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f8ff;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f8ff; padding: 20px;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              
+              <!-- Header with gradient -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #2E3DD3 0%, #00AEEF 100%); padding: 40px 20px; text-align: center;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold;">🔐 Reset Your Password</h1>
+                  <p style="color: #00E5FF; margin: 10px 0 0 0; font-size: 16px;">HomeHub Digital Solutions</p>
+                </td>
+              </tr>
+              
+              <!-- Main Content -->
+              <tr>
+                <td style="padding: 40px 30px;">
+                  <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">Hello, ${userName}!</h2>
+                  
+                  <p style="color: #4b5563; line-height: 1.6; font-size: 16px; margin: 0 0 20px 0;">
+                    We received a request to reset your password for your HomeHub account. If you didn't make this request, you can safely ignore this email.
+                  </p>
+                  
+                  <div style="background: linear-gradient(135deg, rgba(247, 147, 30, 0.12) 0%, rgba(255, 198, 11, 0.18) 100%); border-left: 4px solid #F7931E; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p style="color: #2E3DD3; margin: 0 0 15px 0; font-size: 16px; font-weight: bold;">
+                      ⚠️ Important Security Notice:
+                    </p>
+                    <ul style="color: #4b5563; line-height: 1.8; padding-left: 20px; margin: 0;">
+                      <li>This link will expire in <strong>1 hour</strong></li>
+                      <li>Only use this link if you requested a password reset</li>
+                      <li>Never share this link with anyone</li>
+                    </ul>
+                  </div>
+                  
+                  <div style="margin: 30px 0; text-align: center;">
+                    <a href="${resetUrl}" 
+                       style="display: inline-block; background: linear-gradient(135deg, #F7931E 0%, #FFC60B 100%); color: #000000; padding: 15px 40px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; box-shadow: 0 6px 16px rgba(247, 147, 30, 0.25);">
+                      Reset My Password →
+                    </a>
+                  </div>
+                  
+                  <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">
+                    If the button doesn't work, copy and paste this link into your browser:
+                  </p>
+                  <p style="color: #2E3DD3; font-size: 12px; word-break: break-all; margin: 10px 0 0 0; padding: 10px; background-color: #f3f4f6; border-radius: 5px;">
+                    ${resetUrl}
+                  </p>
+                  
+                  <div style="background-color: rgba(0, 229, 255, 0.08); border-radius: 8px; padding: 20px; margin: 30px 0;">
+                    <h4 style="color: #1f2937; margin: 0 0 10px 0; font-size: 16px;">💡 Need Help?</h4>
+                    <p style="color: #6b7280; margin: 0; font-size: 14px; line-height: 1.6;">
+                      If you're having trouble resetting your password, please contact our support team at 
+                      <a href="mailto:g.fikre2@gmail.com" style="color: #00AEEF; text-decoration: none;">g.fikre2@gmail.com</a>
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #000000; padding: 30px; text-align: center;">
+                  <p style="color: #9ca3af; margin: 0 0 10px 0; font-size: 14px;">
+                    This is an automated email. Please do not reply.
+                  </p>
+                  <p style="color: #6b7280; margin: 0; font-size: 12px;">
+                    © ${new Date().getFullYear()} HomeHub Digital Solutions. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+              
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
+// Send password reset email
+const sendPasswordResetEmail = async (userEmail, userName, resetToken) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      subject: '🔐 Reset Your HomeHub Password',
+      html: getPasswordResetEmailTemplate(userName, resetToken),
+      text: `Hello ${userName}, Please reset your password by clicking this link: https://homehubdigital.netlify.app/reset-password?token=${resetToken}`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Password reset email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Error sending password reset email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendServicePublishedEmail,
   sendBookingConfirmationEmail,
+  sendPasswordResetEmail,
   createTransporter
 };
 

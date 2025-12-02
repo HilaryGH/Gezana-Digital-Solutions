@@ -14,12 +14,11 @@ import AboutPage from "./component/Pages/AboutPage";
 import ServicesPage from "./component/Pages/ServicesPage";
 import ContactPage from "./component/Pages/ContactPage";
 import LoginPage from "./component/Pages/LoginPage";
+import ForgotPassword from "./component/Pages/ForgotPassword";
+import ResetPassword from "./component/Pages/ResetPassword";
 import SupportForm from "./component/Pages/SupportForm";
 import DiasporaCommunityForm from "./component/Pages/DiasporaCommunityForm";
 import CommunityPage from "./component/Pages/CommunityPage";
-import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
-import WomenInitiativeForm from "./component/Pages/WomenInitiativeForm";
-import InvestPartnerForm from "./component/Pages/InvestPartnerForm";
 import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
 import SeekerDashboard from "./component/seeker/SeekerDashboard";
@@ -45,9 +44,6 @@ import AdminProvidersList from "./component/Admin/AdminProvidersList";
 import AdminTeamMembers from "./component/Admin/AdminTeamMembers";
 import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
-import AdminJobs from "./component/Admin/AdminJobs";
-import AdminInvestments from "./component/Admin/AdminInvestments";
-import PremiumMemberships from "./component/Admin/PremiumMemberships";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
@@ -59,14 +55,13 @@ function AppContent() {
   const location = useLocation();
 
   // Routes where Navbar should NOT be shown
-const noNavbarRoutes = [
+  const noNavbarRoutes = [
     "/signup",
     "/login",
+    "/forgot-password",
+    "/reset-password",
     "/support",
     "/diaspora",
-    "/premium-membership",
-    "/women-initiative",
-    "/invest-partner",
     "/auth/success",
     "/auth/error",
     "/seeker-dashboard",
@@ -79,12 +74,9 @@ const noNavbarRoutes = [
     "/admin/user",
     "/admin/bookings",
     "/admin/services",
-    "/admin/jobs",
     "/admin/team-members",
     "/admin/testimonials",
     "/admin/promotional-banners",
-    "/admin/investments",
-    "/admin/premium-memberships",
     "/provider/bookings",
     "/provider/service-lists",
   ];
@@ -113,10 +105,9 @@ const noNavbarRoutes = [
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/support" element={<SupportForm />} />
         <Route path="/diaspora" element={<DiasporaCommunityForm />} />
-        <Route path="/premium-membership" element={<PremiumMembershipPage />} />
-        <Route path="/women-initiative" element={<WomenInitiativeForm />} />
-        <Route path="/invest-partner" element={<InvestPartnerForm />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />
         <Route path="/payment" element={<PaymentPage />} />
@@ -151,13 +142,10 @@ const noNavbarRoutes = [
         <Route path="/admin/user" element={<Users />} />
         <Route path="/admin/bookings" element={<AdminBookings />} />
         <Route path="/admin/services" element={<AdminServices />} />
-        <Route path="/admin/jobs" element={<AdminJobs />} />
-        <Route path="/admin/investments" element={<AdminInvestments />} />
         <Route path="/admin/providers-list" element={<AdminProvidersList />} />
         <Route path="/admin/team-members" element={<AdminTeamMembers />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
         <Route path="/admin/promotional-banners" element={<AdminPromotionalBanners />} />
-        <Route path="/admin/premium-memberships" element={<PremiumMemberships />} />
 
         {/* Support Routes */}
         <Route path="/support-dashboard" element={<CustomerSupportDashboard />} />

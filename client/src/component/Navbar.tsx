@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
 import { MdConnectWithoutContact } from "react-icons/md";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
 import { getServices, type Service } from "../api/services";
-import { getNavbarStatistics } from "../api/statistics";
+import { getNavbarStatistics, type NavbarStatistics } from "../api/statistics";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { getThumbnailUrl, handleImageError } from "../utils/imageHelper";
 
 const SERVICE_PROMPTS = [
   "Home Maintenance pros",
@@ -22,6 +21,7 @@ const SERVICE_PROMPTS = [
 const Navbar = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -33,11 +33,12 @@ const Navbar = () => {
   const [typingStage, setTypingStage] = useState<"typing" | "waiting" | "deleting">("typing");
   const [typedText, setTypedText] = useState("");
   const typingTimeoutRef = useRef<number | null>(null);
-  const [statistics, setStatistics] = useState({
+  const [stats, setStats] = useState<NavbarStatistics>({
     newProvidersThisWeek: 500,
     completedBookings: 0,
     averageRating: 0,
   });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -59,18 +60,19 @@ const Navbar = () => {
 
   // Fetch navbar statistics
   useEffect(() => {
-    const fetchStatistics = async () => {
+    const fetchStats = async () => {
       try {
-        const stats = await getNavbarStatistics();
-        setStatistics(stats);
+        const statistics = await getNavbarStatistics();
+        setStats(statistics);
       } catch (error) {
         console.error("Error fetching navbar statistics:", error);
-        // Keep default values on error
+      } finally {
+        setStatsLoading(false);
       }
     };
-    fetchStatistics();
-    // Refresh statistics every 5 minutes
-    const interval = setInterval(fetchStatistics, 5 * 60 * 1000);
+    fetchStats();
+    // Refresh stats every 5 minutes
+    const interval = setInterval(fetchStats, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -221,20 +223,33 @@ const Navbar = () => {
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-sm font-medium">Live</span>
                 </div>
-                <p className="text-sm font-medium">
-                  🎉 <span className="font-bold">{statistics.newProvidersThisWeek}+</span> new service providers joined this week!
-                </p>
+                <button
+                  onClick={() => navigate('/register?role=provider')}
+                  className="text-sm font-medium hover:text-orange-400 transition-colors cursor-pointer"
+                >
+                  🎉 <span className="font-bold">{stats.newProvidersThisWeek >= 500 ? `${stats.newProvidersThisWeek}+` : stats.newProvidersThisWeek}</span> new service providers joined this week!
+                </button>
               </div>
               
               <div className="hidden md:flex items-center space-x-6">
-                <div className="flex items-center space-x-2 text-gray-300">
+                <button
+                  onClick={() => navigate('/services')}
+                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                >
                   <span className="text-xs">⚡</span>
-                  <span className="text-xs">Completed Bookings: <span className="font-bold text-white">{statistics.completedBookings.toLocaleString()}</span></span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-300">
+                  <span className="text-xs font-medium">
+                    {statsLoading ? '...' : `${stats.completedBookings.toLocaleString()}`} Completed Bookings
+                  </span>
+                </button>
+                <button
+                  onClick={() => navigate('/services')}
+                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                >
                   <span className="text-xs">🛡️</span>
-                  <span className="text-xs">Rating: <span className="font-bold text-white">{statistics.averageRating > 0 ? statistics.averageRating.toFixed(1) : 'N/A'}</span></span>
-                </div>
+                  <span className="text-xs font-medium">
+                    {statsLoading ? '...' : `${stats.averageRating.toFixed(1)}⭐`} Rating
+                  </span>
+                </button>
                 <Link 
                   to="/community"
                   className="bg-white text-black hover:bg-gray-100 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
@@ -275,8 +290,8 @@ const Navbar = () => {
                   <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span className="text-xs lg:text-sm font-medium whitespace-nowrap font-mono max-w-[220px] lg:max-w-[260px] truncate">
                     {t('common.search')}{" "}
-                    <span className="text-brand-primary">{typedText}</span>
-                    <span className="ml-0.5 inline-block w-[2px] h-4 bg-brand-primary align-middle animate-pulse"></span>
+                    <span className="text-gray-700">{typedText}</span>
+                    <span className="ml-0.5 inline-block w-[2px] h-4 bg-gray-700 align-middle animate-pulse"></span>
                   </span>
                 </button>
               </div>
@@ -313,7 +328,7 @@ const Navbar = () => {
               {/* Login Button */}
               <Link
                 to="/login"
-                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800`}
+                className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-orange-600 text-white hover:bg-orange-700`}
               >
                 <span>Login</span>
               </Link>
@@ -447,7 +462,7 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={toggleMenu}
-                className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white py-3 rounded-xl font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
+                className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
                 <span>Login</span>
               </Link>
@@ -465,7 +480,7 @@ const Navbar = () => {
                   <input
                     type="text"
                     placeholder="Search for services, providers, or categories..."
-                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-700 placeholder-gray-700"
+                    className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-gray-400"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -514,11 +529,9 @@ const Navbar = () => {
                             <div className="flex-shrink-0">
                               {service.photos && service.photos.length > 0 ? (
                                 <img
-                                  src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
+                                  src={service.photos[0]}
                                   alt={service.title || (service as any).name}
                                   className="w-16 h-16 rounded-lg object-cover"
-                                  loading="lazy"
-                                  onError={handleImageError}
                                 />
                               ) : (
                                 <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
@@ -529,7 +542,7 @@ const Navbar = () => {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-lg font-semibold text-[#2e3dd3] truncate">
+                              <h4 className="text-lg font-semibold text-gray-900 truncate">
                                 {service.title || (service as any).name}
                               </h4>
                               <p className="text-sm text-gray-600 truncate">

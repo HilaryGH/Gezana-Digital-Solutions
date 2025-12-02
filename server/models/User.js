@@ -64,6 +64,14 @@ const userSchema = new mongoose.Schema(
     city: { type: String },
     location: { type: String },
     tin: { type: String },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+    },
+    femaleLedOrOwned: {
+      type: String,
+      enum: ["female-led", "female-owned", "non-female"],
+    },
     businessStatus: [{ type: String }],
     
     // Provider branches
@@ -116,6 +124,10 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subscription",
     }],
+    
+    // Password reset fields
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

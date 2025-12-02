@@ -47,6 +47,8 @@ const RegisterForm = () => {
     city: "",
     location: "",
     tin: "",
+    gender: "",
+    femaleLedOrOwned: "",
     branches: [{ city: "", location: "" }],
     banks: [{ bankName: "", accountNumber: "" }],
     password: "",
@@ -567,6 +569,45 @@ const RegisterForm = () => {
                 <option value="Household & Home Services">Household & Home Services</option>
               </select>
                       </div>
+                      {/* Gender field for Freelancer */}
+                      {providerSubRole === "freelancer" && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-gray-700 font-inter">
+                            Gender *
+                          </label>
+                          <select 
+                            name="gender" 
+                            required 
+                            value={providerForm.gender} 
+                            onChange={handleProviderChange} 
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                          >
+                            <option value="" disabled>Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </select>
+                        </div>
+                      )}
+                      {/* Female-led/Owned field for Small Business & Specialized */}
+                      {(providerSubRole === "smallBusiness" || providerSubRole === "specializedBusiness") && (
+                        <div className="space-y-2">
+                          <label className="block text-sm font-semibold text-gray-700 font-inter">
+                            Business Type *
+                          </label>
+                          <select 
+                            name="femaleLedOrOwned" 
+                            required 
+                            value={providerForm.femaleLedOrOwned} 
+                            onChange={handleProviderChange} 
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                          >
+                            <option value="" disabled>Select Business Type</option>
+                            <option value="female-led">Female Led</option>
+                            <option value="female-owned">Female Owned</option>
+                            <option value="non-female">Non Female</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
                   </div>
 

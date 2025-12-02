@@ -1163,18 +1163,6 @@ const Home = () => {
                             </span>
                           </div>
 
-                          {/* Discover More Button Overlay */}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/service/${service.id}`);
-                              }}
-                              className="bg-white/95 backdrop-blur-sm text-orange-600 px-6 py-3 rounded-full font-bold text-base shadow-xl hover:bg-white hover:scale-105 transition-all duration-300 transform"
-                            >
-                              Discover More
-                            </button>
-                          </div>
 
                           {/* Title and Price Overlay at Bottom */}
                           <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
@@ -1205,18 +1193,6 @@ const Home = () => {
                               New
                             </span>
                           </div>
-                          {/* Discover More Button */}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/service/${service.id}`);
-                              }}
-                              className="bg-white/95 backdrop-blur-sm text-orange-600 px-6 py-3 rounded-full font-bold text-base shadow-xl hover:bg-white hover:scale-105 transition-all duration-300 transform"
-                            >
-                              Discover More
-                            </button>
-                          </div>
                         </div>
                       )}
 
@@ -1237,13 +1213,26 @@ const Home = () => {
                           </div>
                         )}
                         
-                        {/* Location if available */}
-                        {service.location && (
-                          <div className="flex items-center space-x-1 text-gray-600 text-sm">
+                        {/* Location and Discover More Button */}
+                        <div className="flex items-center justify-between gap-2">
+                          {service.location ? (
+                            <div className="flex items-center space-x-1 text-gray-600 text-sm flex-1 min-w-0">
                             <span>📍</span>
                             <span className="truncate">{service.location}</span>
                           </div>
-                        )}
+                          ) : (
+                            <div className="flex-1"></div>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/service/${service.id}`);
+                            }}
+                            className="bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-semibold hover:bg-orange-700 transition-all duration-300 whitespace-nowrap"
+                          >
+                            Discover More
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1270,13 +1259,13 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Services Grid - 4 columns, horizontally scrollable */}
+            {/* Services Grid - 3 columns with creative SVG overlay */}
             {loadingMostBooked ? (
-              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-                {[...Array(8)].map((_, index) => (
-                  <div key={index} className="flex-shrink-0 w-[280px] bg-white rounded-2xl shadow-lg p-4 animate-pulse">
-                    <div className="w-full h-48 bg-gray-200 rounded-xl mb-4"></div>
-                    <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, index) => (
+                  <div key={index} className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
+                    <div className="w-full h-80 bg-gray-200"></div>
+                    <div className="p-4 space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
@@ -1284,13 +1273,129 @@ const Home = () => {
                 ))}
               </div>
             ) : mostBookedServices.length > 0 ? (
-              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-                {mostBookedServices.map((service) => (
-                  <div key={service.id} className="flex-shrink-0 w-[280px]">
-                    <ServiceCard
-                      service={service}
-                      onViewDetails={() => navigate(`/service/${service.id}`)}
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {mostBookedServices.slice(0, 3).map((service, index) => (
+                  <div 
+                    key={service.id} 
+                    className="relative group cursor-pointer"
+                    onClick={() => navigate(`/service/${service.id}`)}
+                  >
+                    <div className="relative w-full h-96 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                      {/* Service Image */}
+                      {service.photos && service.photos.length > 0 ? (
+                        <img
+                          src={getCardImageUrl(service.photos[0]) || service.photos[0]}
+                          alt={service.title || (service as any).name || 'Service'}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          loading="lazy"
+                          onError={handleImageError}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-blue-100 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                              <span className="text-2xl">🔧</span>
+                            </div>
+                            <p className="text-gray-600 text-sm">No image</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Creative SVG Overlay - Narrow at top, full width at bottom */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <svg 
+                          className="w-full h-full" 
+                          viewBox="0 0 100 100" 
+                          preserveAspectRatio="none"
+                          style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
+                        >
+                          <defs>
+                            <linearGradient id={`gradient-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stopColor="rgba(46, 61, 211, 0.75)" stopOpacity="0.8" />
+                              <stop offset="30%" stopColor="rgba(46, 61, 211, 0.8)" stopOpacity="0.85" />
+                              <stop offset="60%" stopColor="rgba(0, 174, 239, 0.85)" stopOpacity="0.9" />
+                              <stop offset="100%" stopColor="rgba(247, 147, 30, 0.95)" stopOpacity="1" />
+                            </linearGradient>
+                          </defs>
+                          {/* SVG Path: Starts narrow at top (15% width), expands smoothly to full width at bottom */}
+                          <path
+                            d="M 0,0 
+                               L 7.5,0 
+                               Q 12,8 18,15
+                               Q 25,25 35,35
+                               Q 50,50 70,65
+                               Q 85,80 100,90
+                               L 100,100 
+                               L 0,100 
+                               Z"
+                            fill={`url(#gradient-${index})`}
+                            className="transition-opacity duration-300 group-hover:opacity-100"
+                          />
+                        </svg>
+                      </div>
+
+                      {/* Content Overlay - Positioned on the SVG overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                        {/* Title */}
+                        <h3 className="text-white font-bold text-xl mb-2 drop-shadow-lg line-clamp-2">
+                          {service.title || (service as any).name}
+                        </h3>
+                        
+                        {/* Category */}
+                        {service.category && (
+                          <div className="mb-3">
+                            <span className="bg-white/30 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
+                              {service.category}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Price and Rating side by side */}
+                        <div className="flex items-center space-x-2 mb-3">
+                          {/* Price */}
+                          <span className="text-white font-bold text-lg drop-shadow-lg">
+                            {service.price ? `${service.price} ETB` : 'Contact'}
+                          </span>
+                          {/* Rating in brackets */}
+                          {service.serviceRating !== null && service.serviceRating !== undefined ? (
+                            <span className="text-white/90 text-sm drop-shadow-lg">
+                              ({service.serviceRating.toFixed(1)}⭐)
+                            </span>
+                          ) : (
+                            <span className="text-white/70 text-sm">
+                              (No rating)
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Location */}
+                        {service.location && (
+                          <div className="flex items-center space-x-1 text-white/90 text-sm mb-3">
+                            <span>📍</span>
+                            <span className="truncate">{service.location}</span>
+                          </div>
+                        )}
+
+                        {/* View Details Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/service/${service.id}`);
+                          }}
+                          className="bg-white/95 backdrop-blur-sm text-orange-600 px-3 py-1.5 rounded-full font-semibold text-xs hover:bg-white hover:scale-105 transition-all duration-300 transform shadow-lg"
+                        >
+                          View Details
+                        </button>
+                      </div>
+
+                      {/* Booking Badge */}
+                      <div className="absolute top-4 right-4 z-20">
+                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center space-x-1">
+                          <span>🔥</span>
+                          <span>Most Booked</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1390,8 +1495,8 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Three Column Grid with Creative Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Two Column Grid with Creative Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Women's Initiative - Brand Blue */}
               <div 
                 onClick={() => navigate('/women-initiative')}
@@ -1424,41 +1529,9 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Diaspora Community - Brand Orange */}
+              {/* Invest / Partner With Us - Brand Gradient */}
               <div 
-                onClick={() => navigate('/diaspora')}
-                className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer overflow-hidden border-2 border-orange-100 hover:border-orange-400"
-              >
-                {/* Animated Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Decorative Corner Accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-600/10 to-transparent rounded-bl-full"></div>
-                
-                <div className="relative z-10">
-                  {/* Icon with Brand Orange */}
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
-                    Diaspora Community
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                    Connect with your community abroad. Share experiences and discover opportunities to contribute back home.
-                  </p>
-                  
-                  <button className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
-                    Join Now
-                  </button>
-                </div>
-              </div>
-
-              {/* Premium Membership - Brand Gradient */}
-              <div 
-                onClick={() => navigate('/premium-membership')}
+                onClick={() => navigate('/invest-partner')}
                 className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer overflow-hidden border-2 border-blue-200 hover:border-orange-400"
               >
                 {/* Animated Background Gradient */}
@@ -1471,15 +1544,15 @@ const Home = () => {
                   {/* Icon with Brand Gradient */}
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
                     <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   
                   <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
-                    Premium Membership
+                    Invest / Partner With Us
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                    Unlock exclusive access to premium services, priority booking, and advanced platform features.
+                    Explore investment opportunities and strategic partnerships to grow with HomeHub.
                   </p>
                   
                   <button className="w-full bg-gradient-to-r from-blue-600 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-orange-700 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
@@ -1510,8 +1583,8 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Community Features Grid - Creative Card Designs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Community Features Grid - Four Items */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {/* Feature 1 - Connect with Professionals - Blue Theme */}
               <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-100 hover:border-blue-400 overflow-hidden">
                 {/* Animated Background */}
@@ -1566,8 +1639,40 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Feature 3 - Build Your Reputation - Blue-Orange Gradient */}
-              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-200 hover:border-orange-400 overflow-hidden">
+              {/* Feature 3 - Diaspora Community - Brand Orange */}
+              <div 
+                onClick={() => navigate('/diaspora')}
+                className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-400 overflow-hidden cursor-pointer"
+              >
+                {/* Animated Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-600/5 rounded-bl-full"></div>
+                
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
+                    Diaspora Community
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Connect with your community abroad. Share experiences and discover opportunities to contribute back home.
+                  </p>
+                  <button className="mt-4 w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform group-hover:scale-105 shadow-md">
+                    Join Now
+                  </button>
+                </div>
+              </div>
+
+              {/* Feature 4 - Premium Membership - Brand Gradient */}
+              <div 
+                onClick={() => navigate('/premium-membership')}
+                className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-200 hover:border-orange-400 overflow-hidden cursor-pointer"
+              >
                 {/* Animated Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
@@ -1576,70 +1681,22 @@ const Home = () => {
                 
                 <div className="relative z-10">
                   <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
-                    Build Your Reputation
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Earn reviews, build your profile, and establish yourself as a trusted service provider.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 4 - Premium Community Membership - Premium Gradient */}
-              <div 
-                onClick={() => navigate('/premium-membership')}
-                className="group relative bg-gradient-to-br from-blue-50 to-orange-50 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-300 hover:border-orange-400 cursor-pointer overflow-hidden"
-              >
-                {/* Animated Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-orange-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Decorative Element */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-600/10 to-orange-600/10 rounded-bl-full"></div>
-                
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
                     <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600 mb-2">
-                    Premium Community Membership
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
+                    Premium Membership
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
                     Unlock exclusive access to premium services, priority booking, and advanced platform features.
                   </p>
+                  <button className="mt-4 w-full bg-gradient-to-r from-blue-600 to-orange-600 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:from-blue-700 hover:to-orange-700 transition-all duration-300 transform group-hover:scale-105 shadow-md">
+                    Join Now
+                  </button>
                 </div>
               </div>
 
-              {/* Feature 5 - Invest / Partner With Us - Purple-Blue Gradient */}
-              <div 
-                onClick={() => navigate('/invest-partner')}
-                className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-200 hover:border-orange-400 cursor-pointer overflow-hidden"
-              >
-                {/* Animated Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Decorative Element */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-600/5 to-orange-600/5 rounded-bl-full"></div>
-                
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-700 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
-                    Invest / Partner With Us
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Explore investment opportunities and strategic partnerships to grow with HomeHub.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </section>

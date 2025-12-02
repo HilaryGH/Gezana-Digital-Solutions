@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Star, MapPin, Clock, Eye, Heart, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { type Service } from '../api/services';
 import BookingModal from './BookingModal';
-import { normalizeImageUrl, handleImageError } from '../utils/imageHelper';
 
 interface ServiceCardProps {
   service: Service;
@@ -23,7 +22,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   const getRatingColor = (rating: number) => {
     if (rating >= 4.5) return 'text-green-600';
@@ -62,24 +60,12 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       onClick={handleCardClick}
     >
       {/* Image Section - Takes all space */}
-      {service.photos && service.photos.length > 0 && !imageError ? (
+      {service.photos && service.photos.length > 0 ? (
         <div className="relative w-full aspect-square overflow-hidden">
           <img
-            src={normalizeImageUrl(service.photos[0], { 
-              width: 800, 
-              height: 800, 
-              crop: 'fill',
-              quality: 'auto',
-              format: 'auto'
-            }) || service.photos[0]}
+            src={service.photos[0]}
             alt={service.title || (service as any).name || 'Service'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-            onError={(e) => {
-              handleImageError(e);
-              setImageError(true);
-            }}
-            onLoad={() => setImageError(false)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           

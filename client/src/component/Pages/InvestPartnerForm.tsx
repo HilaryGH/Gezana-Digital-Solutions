@@ -598,3 +598,5 @@ const InvestPartnerForm = () => {
 export default InvestPartnerForm;
 
 
+
+

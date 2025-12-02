@@ -2,10 +2,12 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const crypto = require("crypto");
 const User = require("../models/User");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 const { sendWelcomeNotifications } = require("../utils/notificationService");
+const { sendPasswordResetEmail } = require("../utils/emailService");
 const JWT_SECRET = require("../config/jwt");
 
 const router = express.Router();
@@ -45,6 +47,8 @@ router.post("/register", upload.fields([
       location,
       tin,
       serviceType,
+      gender,
+      femaleLedOrOwned,
       branches,
       banks,
       businessStatus
@@ -103,6 +107,14 @@ router.post("/register", upload.fields([
       userData.city = city;
       userData.location = location;
       userData.tin = tin;
+      // Add gender for freelancers
+      if (gender) {
+        userData.gender = gender;
+      }
+      // Add female-led/owned for small business and specialized business
+      if (femaleLedOrOwned) {
+        userData.femaleLedOrOwned = femaleLedOrOwned;
+      }
 
       // Parse JSON fields
       if (branches) {
@@ -374,5 +386,96 @@ router.get("/facebook/callback",
     }
   }
 );
+
+// Forgot Password - Send reset email
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    
+    // Always return success message for security (don't reveal if email exists)
+    if (!user) {
+      return res.json({
+        message: "If an account with that email exists, we've sent a password reset link."
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+    
+    // Set token and expiration (1 hour)
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send reset email
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetToken);
+      console.log("Password reset email sent to:", user.email);
+    } catch (emailError) {
+      console.error("Error sending password reset email:", emailError);
+      // Don't fail the request if email fails
+    }
+
+    res.json({
+      message: "If an account with that email exists, we've sent a password reset link."
+    });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// Reset Password - Verify token and update password
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "Token and password are required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Hash the token to compare with stored hash
+    const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find user with valid token
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        message: "Invalid or expired reset token. Please request a new password reset." 
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update password and clear reset token
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({
+      message: "Password has been reset successfully. You can now login with your new password."
+    });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
 
 module.exports = router;
