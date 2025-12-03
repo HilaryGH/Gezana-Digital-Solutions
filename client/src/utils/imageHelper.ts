@@ -93,6 +93,26 @@ export const normalizeImageUrl = (
   
   // If it's already a full URL (Cloudinary or external)
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Check if it's a localhost or network IP URL missing /uploads/ path
+    // Pattern: http://localhost:5000/filename.jpg or http://192.168.1.100:5000/filename.jpg
+    // Should be: http://localhost:5000/uploads/filename.jpg or http://192.168.1.100:5000/uploads/filename.jpg
+    const isLocalDev = url.includes('localhost') || url.includes('127.0.0.1') || 
+                      /^http:\/\/\d+\.\d+\.\d+\.\d+:\d+/.test(url); // Matches http://192.168.1.100:5000
+    
+    if (isLocalDev) {
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+      
+      // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
+      if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
+        // It's likely a filename that needs /uploads/ prefix
+        const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+        urlObj.pathname = `/uploads/${filename}`;
+        console.log('Fixing local URL missing /uploads/ path:', { original: url, fixed: urlObj.toString() });
+        return urlObj.toString();
+      }
+    }
+    
     // In development ONLY, convert production URLs to current origin
     // In production, return all URLs as-is (don't modify them)
     if (import.meta.env.DEV && (url.includes('gezana-api.onrender.com') || url.includes('onrender.com'))) {
@@ -138,14 +158,22 @@ export const normalizeImageUrl = (
   if (import.meta.env.DEV) {
     // In development, try to use the actual request origin
     // This works when accessing from mobile on the same network
-    // Fallback to localhost if window.location is not available
+    // If accessed via http://192.168.1.100:5173, use http://192.168.1.100:5000
     if (typeof window !== 'undefined' && window.location) {
       // Extract the host from the current page URL
       const currentHost = window.location.hostname;
-      const currentPort = window.location.port || '5000';
+      const port = '5000'; // Backend port
       // Use the same protocol as the current page
       const protocol = window.location.protocol;
-      baseURL = `${protocol}//${currentHost}:${currentPort}`;
+      
+      // If hostname is not localhost, use it (mobile device accessing via network IP)
+      if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+        baseURL = `${protocol}//${currentHost}:${port}`;
+        console.log('🌐 Using network IP for images (mobile-friendly):', baseURL);
+      } else {
+        // Desktop: use localhost
+        baseURL = `${protocol}//${currentHost}:${port}`;
+      }
     } else {
       // Fallback for SSR or when window is not available
       baseURL = 'http://localhost:5000';

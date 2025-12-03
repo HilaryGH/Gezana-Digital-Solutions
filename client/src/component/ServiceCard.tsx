@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, MapPin, Clock, Eye, Heart, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { type Service } from '../api/services';
 import BookingModal from './BookingModal';
+import { getCardImageUrl, handleImageError } from '../utils/imageHelper';
 
 interface ServiceCardProps {
   service: Service;
@@ -63,9 +64,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       {service.photos && service.photos.length > 0 ? (
         <div className="relative w-full aspect-square overflow-hidden">
           <img
-            src={service.photos[0]}
+            src={getCardImageUrl(service.photos[0]) || service.photos[0]}
             alt={service.title || (service as any).name || 'Service'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            onError={handleImageError}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           
