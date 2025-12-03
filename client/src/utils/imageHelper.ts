@@ -91,6 +91,11 @@ export const normalizeImageUrl = (
 ): string | null => {
   if (!url) return null;
   
+  // Log the input URL for debugging
+  if (import.meta.env.DEV) {
+    console.log('🖼️  Normalizing image URL:', url);
+  }
+  
   // If it's already a full URL (Cloudinary or external)
   if (url.startsWith('http://') || url.startsWith('https://')) {
     // Check if it's a localhost or network IP URL missing /uploads/ path
@@ -207,7 +212,39 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
   }
   
   // Log the error for debugging
-  console.error('Image failed to load:', currentSrc);
+  console.error('❌ Image failed to load:', currentSrc);
+  
+  // Try to fix common URL issues before using fallback
+  try {
+    const urlObj = new URL(currentSrc);
+    const pathname = urlObj.pathname;
+    
+    // If URL is missing /uploads/ path, try adding it
+    if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
+      if (!target.dataset.uploadsRetried) {
+        target.dataset.uploadsRetried = 'true';
+        const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+        urlObj.pathname = `/uploads/${filename}`;
+        const fixedUrl = urlObj.toString();
+        console.log('🔧 Retrying with /uploads/ path:', fixedUrl);
+        target.src = fixedUrl;
+        return;
+      }
+    }
+    
+    // Try without /uploads/ if it was there (maybe file is in root)
+    if (pathname.startsWith('/uploads/') && !target.dataset.noUploadsRetried) {
+      target.dataset.noUploadsRetried = 'true';
+      const filename = pathname.replace('/uploads/', '/');
+      urlObj.pathname = filename;
+      const fixedUrl = urlObj.toString();
+      console.log('🔧 Retrying without /uploads/ path:', fixedUrl);
+      target.src = fixedUrl;
+      return;
+    }
+  } catch (err) {
+    console.error('Error parsing URL in handleImageError:', err);
+  }
   
   // In development, if it's a production URL, try converting to localhost
   if (import.meta.env.DEV && (currentSrc.includes('gezana-api.onrender.com') || currentSrc.includes('onrender.com'))) {
@@ -215,7 +252,7 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
       target.dataset.localhostRetried = 'true';
       const urlPath = currentSrc.replace(/^https?:\/\/[^/]+/, '');
       const localhostUrl = `http://localhost:5000${urlPath}`;
-      console.log('Retrying with localhost URL:', localhostUrl);
+      console.log('🔧 Retrying with localhost URL:', localhostUrl);
       target.src = localhostUrl;
       return;
     }
@@ -263,8 +300,24 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
  */
 export const getThumbnailUrl = (url: string | undefined | null): string | null => {
   if (!url) return null;
-  // For Cloudinary URLs, apply transformations
+  
+  // If it's already a full URL (from backend), check if it needs fixing
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Check if it's missing /uploads/ path (common issue)
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    
+    // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
+    if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
+      // Fix the URL by adding /uploads/
+      const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+      urlObj.pathname = `/uploads/${filename}`;
+      const fixedUrl = urlObj.toString();
+      console.log('🔧 Fixed thumbnail URL (added /uploads/):', { original: url, fixed: fixedUrl });
+      return fixedUrl;
+    }
+    
+    // For Cloudinary URLs, apply transformations
     if (isCloudinaryUrl(url)) {
       return normalizeImageUrl(url, {
         width: 200,
@@ -274,9 +327,11 @@ export const getThumbnailUrl = (url: string | undefined | null): string | null =
         format: 'auto'
       });
     }
-    // Return non-Cloudinary URLs as-is
+    
+    // Return non-Cloudinary URLs as-is (already correct)
     return url;
   }
+  
   // For relative paths, normalize
   return normalizeImageUrl(url, {
     width: 200,
@@ -293,8 +348,24 @@ export const getThumbnailUrl = (url: string | undefined | null): string | null =
  */
 export const getCardImageUrl = (url: string | undefined | null): string | null => {
   if (!url) return null;
-  // For Cloudinary URLs, apply transformations
+  
+  // If it's already a full URL (from backend), check if it needs fixing
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Check if it's missing /uploads/ path (common issue)
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    
+    // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
+    if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
+      // Fix the URL by adding /uploads/
+      const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+      urlObj.pathname = `/uploads/${filename}`;
+      const fixedUrl = urlObj.toString();
+      console.log('🔧 Fixed card image URL (added /uploads/):', { original: url, fixed: fixedUrl });
+      return fixedUrl;
+    }
+    
+    // For Cloudinary URLs, apply transformations
     if (isCloudinaryUrl(url)) {
       return normalizeImageUrl(url, {
         width: 800,
@@ -304,9 +375,11 @@ export const getCardImageUrl = (url: string | undefined | null): string | null =
         format: 'auto'
       });
     }
-    // Return non-Cloudinary URLs as-is
+    
+    // Return non-Cloudinary URLs as-is (already correct)
     return url;
   }
+  
   // For relative paths, normalize
   return normalizeImageUrl(url, {
     width: 800,

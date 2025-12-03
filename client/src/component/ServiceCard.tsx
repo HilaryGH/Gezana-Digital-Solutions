@@ -64,11 +64,18 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       {service.photos && service.photos.length > 0 ? (
         <div className="relative w-full aspect-square overflow-hidden">
           <img
-            src={getCardImageUrl(service.photos[0]) || service.photos[0]}
+            src={getCardImageUrl(service.photos[0]) || service.photos[0] || ''}
             alt={service.title || (service as any).name || 'Service'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
-            onError={handleImageError}
+            onError={(e) => {
+              console.error('ServiceCard image error:', {
+                originalUrl: service.photos[0],
+                processedUrl: getCardImageUrl(service.photos[0]),
+                currentSrc: e.currentTarget.src
+              });
+              handleImageError(e);
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           
