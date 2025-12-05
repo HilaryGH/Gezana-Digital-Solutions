@@ -57,27 +57,12 @@ const BookingModal: React.FC<BookingModalProps> = ({
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
-      // Try to get user info from localStorage first
-      try {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-          const user = JSON.parse(userData);
-          setUserInfo(user);
-          setFormData(prev => ({
-            ...prev,
-            fullName: user.name || '',
-            email: user.email || '',
-            phone: user.phone || '',
-            address: user.address || ''
-          }));
-        } else {
-          // Fetch user info from API if not in localStorage
-          axios.get('/user/me', {
-            headers: { Authorization: `Bearer ${token}` }
-          }).then(response => {
-            const user = response.data;
+        // Try to get user info from localStorage first
+        try {
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            const user = JSON.parse(userData);
             setUserInfo(user);
-            localStorage.setItem('user', JSON.stringify(user));
             setFormData(prev => ({
               ...prev,
               fullName: user.name || '',
@@ -85,17 +70,53 @@ const BookingModal: React.FC<BookingModalProps> = ({
               phone: user.phone || '',
               address: user.address || ''
             }));
-          }).catch(error => {
-            console.error('Error fetching user info:', error);
-            // If token is invalid, treat as guest
-            setIsLoggedIn(false);
-            localStorage.removeItem('token');
-          });
+          } else {
+            // Fetch user info from API if not in localStorage
+            // Try /user/me first, fallback to /auth/me
+            axios.get('/user/me', {
+              headers: { Authorization: `Bearer ${token}` }
+            }).then(response => {
+              const user = response.data;
+              setUserInfo(user);
+              localStorage.setItem('user', JSON.stringify(user));
+              setFormData(prev => ({
+                ...prev,
+                fullName: user.name || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                address: user.address || ''
+              }));
+            }).catch(async (error) => {
+              // If /user/me fails, try /auth/me
+              console.warn('Error fetching from /user/me, trying /auth/me:', error);
+              try {
+                const response = await axios.get('/auth/me', {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response && response.data) {
+                  const user = response.data;
+                  setUserInfo(user);
+                  localStorage.setItem('user', JSON.stringify(user));
+                  setFormData(prev => ({
+                    ...prev,
+                    fullName: user.name || '',
+                    email: user.email || '',
+                    phone: user.phone || '',
+                    address: user.address || ''
+                  }));
+                }
+              } catch (authError) {
+                console.error('Error fetching user info from both endpoints:', authError);
+                // If token is invalid, treat as guest
+                setIsLoggedIn(false);
+                localStorage.removeItem('token');
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          setIsLoggedIn(false);
         }
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        setIsLoggedIn(false);
-      }
     } else {
       setIsLoggedIn(false);
     }
@@ -130,24 +151,55 @@ const BookingModal: React.FC<BookingModalProps> = ({
         }
       }
 
+      // Validate date and time
+      if (!formData.date || !formData.time) {
+        setError('Please select both date and time');
+        setLoading(false);
+        return;
+      }
+
       // Combine date and time
       const bookingDateTime = new Date(`${formData.date}T${formData.time}`);
       
+      // Validate the date is valid
+      if (isNaN(bookingDateTime.getTime())) {
+        setError('Invalid date or time selected. Please try again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Get service ID - handle both id and _id properties
+      const serviceId = (service as any).id || (service as any)._id || service.id;
+      
+      if (!serviceId) {
+        console.error('Service object:', service);
+        setError('Service ID is missing. Please refresh and try again.');
+        setLoading(false);
+        return;
+      }
+      
       const bookingData = {
-        service: service.id,
+        service: serviceId,
         date: bookingDateTime.toISOString(),
-        note: formData.note,
+        note: formData.note || '',
         paymentMethod: formData.paymentMethod,
         // Guest information (only if not logged in)
         ...(isLoggedIn ? {} : {
           guestInfo: {
-            fullName: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-            address: formData.address
+            fullName: formData.fullName.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
+            address: formData.address.trim()
           }
         })
       };
+
+      console.log('Submitting booking with data:', {
+        serviceId: bookingData.service,
+        date: bookingData.date,
+        hasGuestInfo: !!bookingData.guestInfo,
+        isLoggedIn
+      });
 
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -157,43 +209,68 @@ const BookingModal: React.FC<BookingModalProps> = ({
         headers,
         timeout: 60000, // 60 seconds for production environments
       });
+      
+      console.log('Booking response:', response.data);
 
-      // If online payment is selected, navigate to payment page
-      if (formData.paymentMethod === 'online') {
-        onClose();
-        // Navigate to payment page with booking details
-        navigate('/payment', { 
-          state: { 
-            booking: response.data,
-            service: service,
-            amount: service.price
-          } 
-        });
-      } else {
-        // For cash payment, show success message
-        setSuccess(true);
+      // Prepare booking data with user/guest information
+      const bookingWithUserInfo = {
+        ...response.data,
+        // Ensure guestInfo is included if it's a guest booking
+        guestInfo: response.data.guestInfo || (!isLoggedIn ? {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address
+        } : undefined),
+        // Include user info if logged in (in case server didn't populate it)
+        user: response.data.user || (isLoggedIn && userInfo ? {
+          name: userInfo.name,
+          email: userInfo.email,
+          phone: userInfo.phone,
+          address: userInfo.address
+        } : response.data.user)
+      };
+      
+      // Close modal first
+      onClose();
+      
+      // Small delay to ensure modal closes before navigation
+      setTimeout(() => {
+        // If online payment is selected, navigate to payment page
+        if (formData.paymentMethod === 'online') {
+          console.log('Navigating to payment page with booking:', bookingWithUserInfo);
+          console.log('Service data:', service);
+          console.log('Service price:', service.price);
+          
+          // Navigate to payment page with booking details
+          navigate('/payment', { 
+            state: { 
+              booking: bookingWithUserInfo,
+              service: service,
+              amount: service.price || 0,
+              type: 'booking' // Add type to identify booking payment
+            } 
+          });
+        } else {
+          // For cash payment, navigate directly to invoice/success page
+          console.log('Navigating to invoice page for cash payment:', bookingWithUserInfo);
+          
+          // Navigate to payment success page with invoice (for cash payment)
+          navigate('/payment-success', {
+            state: {
+              booking: bookingWithUserInfo,
+              service: service,
+              amount: service.price || 0,
+              type: 'booking' // This will show the invoice
+            }
+          });
+        }
+        
+        // Call success callback if provided
         if (onBookingSuccess) {
           onBookingSuccess(response.data);
         }
-
-        // Reset form
-        setFormData({
-          date: '',
-          time: '',
-          note: '',
-          paymentMethod: 'cash',
-          fullName: isLoggedIn ? (userInfo?.name || '') : '',
-          email: isLoggedIn ? (userInfo?.email || '') : '',
-          phone: isLoggedIn ? (userInfo?.phone || '') : '',
-          address: isLoggedIn ? (userInfo?.address || '') : ''
-        });
-
-        // Close modal after 2 seconds
-        setTimeout(() => {
-          onClose();
-          setSuccess(false);
-        }, 2000);
-      }
+      }, 100);
 
     } catch (err: any) {
       console.error('Booking error:', err);

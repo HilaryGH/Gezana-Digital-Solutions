@@ -11,6 +11,11 @@ const bookingSchema = new mongoose.Schema({
     enum: ["pending", "paid"],
     default: "pending",
   },
+  paymentMethod: {
+    type: String,
+    enum: ["cash", "online"],
+    default: "cash",
+  },
   note: { type: String },
   status: { type: String, default: "pending" },
   // Guest information for non-logged-in users

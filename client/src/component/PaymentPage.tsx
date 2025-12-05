@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CreditCard, Shield, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { getThumbnailUrl, handleImageError } from '../utils/imageHelper';
+import axios from '../api/axios';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -9,14 +10,21 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { booking, service, amount } = location.state || {};
+  const { booking, service, amount, type } = location.state || {};
 
   useEffect(() => {
     // If no booking data, redirect to home
     if (!booking || !service) {
+      console.warn('PaymentPage: Missing booking or service data, redirecting to home');
+      console.warn('PaymentPage: Received state:', location.state);
       navigate('/');
+    } else {
+      console.log('PaymentPage: Received booking data:', { booking, service, amount, type });
+      console.log('PaymentPage: Booking ID:', booking._id || booking.id);
+      console.log('PaymentPage: Service:', service.title || service.name);
+      console.log('PaymentPage: Amount:', amount);
     }
-  }, [booking, service, navigate]);
+  }, [booking, service, navigate, location.state, amount, type]);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -29,12 +37,29 @@ const PaymentPage = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
 
+      // Update booking payment status on server
+      try {
+        const token = localStorage.getItem('token');
+        if (booking && (booking._id || booking.id)) {
+          await axios.patch(`/bookings/${booking._id || booking.id}/payment`, {
+            paymentStatus: 'paid',
+            paymentMethod: 'online'
+          }, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          });
+        }
+      } catch (err) {
+        console.error('Error updating booking payment status:', err);
+        // Continue to success page even if update fails
+      }
+
       // Navigate to success page
       navigate('/payment-success', {
         state: {
           booking,
           service,
-          amount
+          amount,
+          type: type || 'booking' // Pass type to payment success page
         }
       });
     } catch (err: any) {

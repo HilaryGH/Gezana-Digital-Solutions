@@ -11,6 +11,7 @@ const PaymentSuccess = () => {
 
   const { type, membership, amount, planName, transactionId, booking, service } = location.state || {};
   const isPremiumMembership = type === 'premium-membership';
+  const isBooking = type === 'booking' || (!type && booking && service);
 
   useEffect(() => {
     if (isPremiumMembership && membership?._id) {
@@ -18,7 +19,101 @@ const PaymentSuccess = () => {
       // Set flag to refresh premium status in SpecialOffers component
       sessionStorage.setItem('premiumPaymentSuccess', 'true');
     }
-  }, [isPremiumMembership, membership]);
+    // For bookings, generate invoice data
+    if (isBooking && booking && service) {
+      generateBookingInvoice();
+    }
+  }, [isPremiumMembership, membership, isBooking, booking, service]);
+
+  const generateBookingInvoice = () => {
+    if (!booking || !service) return;
+    
+    // Determine payment method and status
+    const paymentMethod = booking.paymentMethod || (type === 'booking' ? 'cash' : 'online');
+    const paymentStatus = booking.paymentStatus || (paymentMethod === 'online' ? 'pending' : 'pending');
+    
+    // Get customer information - check multiple sources
+    let customerName = 'Guest';
+    let customerEmail = 'N/A';
+    let customerPhone = 'N/A';
+    let customerAddress = 'N/A';
+    
+    // First, try to get from booking guestInfo (for guest bookings)
+    if (booking.guestInfo && booking.guestInfo.fullName) {
+      customerName = booking.guestInfo.fullName;
+      customerEmail = booking.guestInfo.email || 'N/A';
+      customerPhone = booking.guestInfo.phone || 'N/A';
+      customerAddress = booking.guestInfo.address || 'N/A';
+    }
+    // If user is logged in, try to get from booking.user (populated)
+    else if (booking.user) {
+      // Check if user is populated (object) or just an ID (string)
+      if (typeof booking.user === 'object' && booking.user !== null) {
+        customerName = booking.user.name || customerName;
+        customerEmail = booking.user.email || customerEmail;
+        customerPhone = booking.user.phone || customerPhone;
+        customerAddress = booking.user.address || customerAddress;
+      } else if (typeof booking.user === 'string') {
+        // User is just an ID, try to get from localStorage
+        try {
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            const user = JSON.parse(userData);
+            customerName = user.name || customerName;
+            customerEmail = user.email || customerEmail;
+            customerPhone = user.phone || customerPhone;
+            customerAddress = user.address || customerAddress;
+          }
+        } catch (err) {
+          console.error('Error parsing user data from localStorage:', err);
+        }
+      }
+    }
+    
+    console.log('Invoice customer info:', { customerName, customerEmail, customerPhone, customerAddress });
+    console.log('Booking data:', { 
+      hasGuestInfo: !!booking.guestInfo, 
+      hasUser: !!booking.user,
+      userType: typeof booking.user 
+    });
+    
+    const invoiceData = {
+      invoiceNumber: `INV-BKG-${booking._id || booking.id || Date.now()}`,
+      date: new Date().toISOString(),
+      customer: {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+        address: customerAddress
+      },
+      booking: {
+        id: booking._id || booking.id,
+        date: booking.date,
+        status: booking.status || 'pending',
+        note: booking.note || ''
+      },
+      service: {
+        name: service.title || service.name,
+        category: service.category,
+        provider: service.providerName || 'N/A',
+        location: service.location || 'N/A'
+      },
+      amount: {
+        subtotal: amount || service.price || 0,
+        tax: 0,
+        total: amount || service.price || 0,
+        currency: 'ETB'
+      },
+      payment: {
+        status: paymentStatus,
+        method: paymentMethod,
+        transactionId: paymentMethod === 'online' ? `TXN-${Date.now()}` : `CASH-${Date.now()}`,
+        paidAt: paymentMethod === 'cash' ? new Date().toISOString() : (booking.paymentStatus === 'paid' ? new Date().toISOString() : null)
+      }
+    };
+    
+    setInvoice(invoiceData);
+  };
 
   const fetchInvoice = async () => {
     try {
@@ -42,7 +137,57 @@ const PaymentSuccess = () => {
   const handleDownloadInvoice = () => {
     if (!invoice) return;
     
-    const invoiceContent = `
+    let invoiceContent = '';
+    
+    if (isBooking) {
+      // Booking invoice
+      invoiceContent = `
+═══════════════════════════════════════════════════════
+              HOMEHUB DIGITAL SOLUTIONS
+═══════════════════════════════════════════════════════
+
+BOOKING INVOICE
+Invoice Number: ${invoice.invoiceNumber}
+Date: ${new Date(invoice.date).toLocaleDateString()}
+
+CUSTOMER INFORMATION
+Name: ${invoice.customer.name}
+Email: ${invoice.customer.email}
+Phone: ${invoice.customer.phone}
+Address: ${invoice.customer.address}
+
+BOOKING DETAILS
+Booking ID: ${invoice.booking.id}
+Service Date: ${new Date(invoice.booking.date).toLocaleDateString()}
+Service Time: ${new Date(invoice.booking.date).toLocaleTimeString()}
+Status: ${invoice.booking.status}
+${invoice.booking.note ? `Notes: ${invoice.booking.note}` : ''}
+
+SERVICE INFORMATION
+Service: ${invoice.service.name}
+Category: ${invoice.service.category}
+Provider: ${invoice.service.provider}
+Location: ${invoice.service.location}
+
+PAYMENT DETAILS
+Subtotal: ${invoice.amount.subtotal} ${invoice.amount.currency}
+Tax: ${invoice.amount.tax} ${invoice.amount.currency}
+Total: ${invoice.amount.total} ${invoice.amount.currency}
+
+Payment Status: ${invoice.payment.status}
+Payment Method: ${invoice.payment.method || 'N/A'}
+Transaction ID: ${invoice.payment.transactionId || 'N/A'}
+Paid At: ${new Date(invoice.payment.paidAt).toLocaleString()}
+
+Thank you for your booking!
+      `;
+    } else {
+      // Premium membership invoice
+      invoiceContent = `
+═══════════════════════════════════════════════════════
+              HOMEHUB DIGITAL SOLUTIONS
+═══════════════════════════════════════════════════════
+
 INVOICE
 Invoice Number: ${invoice.invoiceNumber}
 Date: ${new Date(invoice.date).toLocaleDateString()}
@@ -74,7 +219,8 @@ Start Date: ${invoice.dates.startDate ? new Date(invoice.dates.startDate).toLoca
 End Date: ${invoice.dates.endDate ? new Date(invoice.dates.endDate).toLocaleDateString() : 'N/A'}
 
 Thank you for your premium membership!
-    `;
+      `;
+    }
 
     const blob = new Blob([invoiceContent], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
@@ -96,11 +242,15 @@ Thank you for your premium membership!
             <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            Payment Successful! 🎉
+            {isBooking && booking?.paymentMethod === 'cash' 
+              ? "Booking Confirmed! 🎉"
+              : "Payment Successful! 🎉"}
       </h1>
           <p className="text-gray-600">
             {isPremiumMembership 
               ? "Your premium membership has been activated successfully."
+              : isBooking && booking?.paymentMethod === 'cash'
+              ? "Your booking has been confirmed. Please pay in cash when the service is completed."
               : "Thank you for your payment. Your booking has been confirmed."}
           </p>
         </div>
@@ -108,10 +258,21 @@ Thank you for your premium membership!
         {isPremiumMembership ? (
           /* Premium Membership Invoice */
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <FileText className="w-6 h-6 text-blue-600" />
-                <h2 className="text-2xl font-bold text-gray-900">Invoice</h2>
+            {/* Invoice Header with Logo */}
+            <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
+              <div className="flex items-center space-x-4">
+                <img 
+                  src="/logo correct.png" 
+                  alt="HomeHub Logo" 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Invoice</h2>
+                  <p className="text-sm text-gray-600">HomeHub Digital Solutions</p>
+                </div>
               </div>
               {invoice && (
                 <button
@@ -229,16 +390,142 @@ Thank you for your premium membership!
             )}
           </div>
         ) : (
-          /* Booking Confirmation */
+          /* Booking Confirmation with Invoice */
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Booking Confirmed</h2>
-            {service && (
+            {/* Invoice Header with Logo */}
+            <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
+              <div className="flex items-center space-x-4">
+                <img 
+                  src="/logo correct.png" 
+                  alt="HomeHub Logo" 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Booking Invoice</h2>
+                  <p className="text-sm text-gray-600">HomeHub Digital Solutions</p>
+                </div>
+              </div>
+              {invoice && (
+                <button
+                  onClick={handleDownloadInvoice}
+                  className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Invoice</span>
+                </button>
+              )}
+            </div>
+
+            {invoice ? (
+              <div className="space-y-6">
+                {/* Invoice Header */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-200">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Invoice Number</p>
+                    <p className="font-semibold text-gray-900">{invoice.invoiceNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Date</p>
+                    <p className="font-semibold text-gray-900">
+                      {new Date(invoice.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Customer Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-orange-600" />
+                    Customer Information
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <p><span className="font-medium">Name:</span> {invoice.customer.name}</p>
+                    <p><span className="font-medium">Email:</span> {invoice.customer.email}</p>
+                    <p><span className="font-medium">Phone:</span> {invoice.customer.phone}</p>
+                    <p><span className="font-medium">Address:</span> {invoice.customer.address}</p>
+                  </div>
+                </div>
+
+                {/* Booking Details */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Calendar className="w-5 h-5 mr-2 text-orange-600" />
+                    Booking Details
+                  </h3>
+                  <div className="bg-orange-50 rounded-lg p-4 space-y-2">
+                    <p><span className="font-medium">Booking ID:</span> {invoice.booking.id}</p>
+                    <p><span className="font-medium">Service Date:</span> {new Date(invoice.booking.date).toLocaleDateString()}</p>
+                    <p><span className="font-medium">Service Time:</span> {new Date(invoice.booking.date).toLocaleTimeString()}</p>
+                    <p><span className="font-medium">Status:</span> <span className="capitalize">{invoice.booking.status}</span></p>
+                    {invoice.booking.note && (
+                      <p><span className="font-medium">Notes:</span> {invoice.booking.note}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Service Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Building className="w-5 h-5 mr-2 text-orange-600" />
+                    Service Information
+                  </h3>
+                  <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                    <p><span className="font-medium">Service:</span> {invoice.service.name}</p>
+                    <p><span className="font-medium">Category:</span> {invoice.service.category}</p>
+                    <p><span className="font-medium">Provider:</span> {invoice.service.provider}</p>
+                    <p><span className="font-medium">Location:</span> {invoice.service.location}</p>
+                  </div>
+                </div>
+
+                {/* Payment Details */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2 text-orange-600" />
+                    Payment Details
+                  </h3>
+                  <div className="bg-green-50 rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Subtotal:</span>
+                      <span>{invoice.amount.subtotal} {invoice.amount.currency}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Tax:</span>
+                      <span>{invoice.amount.tax} {invoice.amount.currency}</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
+                      <span>Total:</span>
+                      <span className="text-green-600">{invoice.amount.total} {invoice.amount.currency}</span>
+                    </div>
+                    <div className="pt-2 border-t border-green-200 space-y-1">
+                      <p><span className="font-medium">Status:</span> <span className="text-green-600 capitalize">{invoice.payment.status}</span></p>
+                      {invoice.payment.method && (
+                        <p><span className="font-medium">Method:</span> {invoice.payment.method}</p>
+                      )}
+                      {invoice.payment.transactionId && (
+                        <p><span className="font-medium">Transaction ID:</span> {invoice.payment.transactionId}</p>
+                      )}
+                      {invoice.payment.paidAt && (
+                        <p><span className="font-medium">Paid At:</span> {new Date(invoice.payment.paidAt).toLocaleString()}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div className="space-y-4">
-                <p><span className="font-medium">Service:</span> {service.title}</p>
-                {booking?.date && (
-                  <p><span className="font-medium">Date:</span> {new Date(booking.date).toLocaleDateString()}</p>
+                <p className="text-gray-600">Booking confirmed successfully!</p>
+                {service && (
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Service:</span> {service.title || service.name}</p>
+                    {booking?.date && (
+                      <p><span className="font-medium">Date:</span> {new Date(booking.date).toLocaleDateString()}</p>
+                    )}
+                    <p><span className="font-medium">Amount:</span> {amount} ETB</p>
+                  </div>
                 )}
-                <p><span className="font-medium">Amount:</span> {amount} ETB</p>
               </div>
             )}
           </div>

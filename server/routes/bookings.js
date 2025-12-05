@@ -166,6 +166,8 @@ router.post("/", async (req, res) => {
       service,
       date,
       note,
+      paymentMethod: paymentMethod || 'cash', // Save payment method
+      paymentStatus: paymentMethod === 'online' ? 'pending' : 'pending', // Online payments start as pending until paid
     };
 
     // Add guest information if no user ID
@@ -184,10 +186,10 @@ router.post("/", async (req, res) => {
     const booking = await Booking.create(bookingData);
     console.log("✅ Booking created successfully! ID:", booking._id);
 
-    // Populate booking for notification
+    // Populate booking for response and notification
     const populatedBooking = await Booking.findById(booking._id)
       .populate('service')
-      .populate('user');
+      .populate('user', 'name email phone address');
 
     // Loyalty Points Logic (only for logged-in users)
     if (userId) {
@@ -241,7 +243,8 @@ router.post("/", async (req, res) => {
       // Don't fail booking if notifications fail
     }
 
-    res.status(201).json(booking);
+    // Return populated booking with user info and guestInfo
+    res.status(201).json(populatedBooking);
   } catch (err) {
     console.error("❌ Booking failed:", err);
     console.error("Error details:", {
@@ -291,6 +294,25 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Update booking payment status (for payment completion)
+router.patch("/:id/payment", async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Update payment status and method
+    if (req.body.paymentStatus) booking.paymentStatus = req.body.paymentStatus;
+    if (req.body.paymentMethod) booking.paymentMethod = req.body.paymentMethod;
+
+    const updated = await booking.save();
+    console.log("✅ Booking payment status updated:", updated._id, "Status:", updated.paymentStatus);
+    res.json(updated);
+  } catch (err) {
+    console.error("Booking payment update failed:", err);
+    res.status(500).json({ message: "Payment update failed", error: err.message });
+  }
+});
+
 // Update booking
 // Update booking - allow provider/admin to update status
 router.put("/:id", authMiddleware, async (req, res) => {
@@ -298,14 +320,16 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    const isOwner = booking.user.toString() === req.user.userId || req.user.role === "provider" || ["admin", "superadmin", "support"].includes(req.user.role);
-    if (!isOwner) return res.status(403).json({ message: "Not authorized to update this booking" });
+    const isOwner = booking.user && booking.user.toString() === req.user.userId || req.user.role === "provider" || ["admin", "superadmin", "support"].includes(req.user.role);
+    if (!isOwner && booking.user) return res.status(403).json({ message: "Not authorized to update this booking" });
 
     // Only update provided fields
     if (req.body.service) booking.service = req.body.service;
     if (req.body.date) booking.date = req.body.date;
     if (req.body.note) booking.note = req.body.note;
     if (req.body.status) booking.status = req.body.status;
+    if (req.body.paymentStatus) booking.paymentStatus = req.body.paymentStatus;
+    if (req.body.paymentMethod) booking.paymentMethod = req.body.paymentMethod;
 
     const updated = await booking.save();
     res.json(updated);
