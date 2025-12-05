@@ -7,7 +7,7 @@ import { getRecentServices, getMostBookedServices, getServices, type Service } f
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
 import { getJobs, type Job } from "../api/jobs";
 import { applyForJob, type CreateJobApplicationData } from "../api/jobApplications";
-import { getCardImageUrl, handleImageError } from "../utils/imageHelper";
+import { getCardImageUrl, handleImageError, normalizeImageUrl } from "../utils/imageHelper";
 import axios from "../api/axios";
 
 const serviceCategories = [
@@ -1193,11 +1193,51 @@ const Home = () => {
                       {service.photos && service.photos.length > 0 ? (
                         <div className="relative w-full h-64 overflow-hidden">
                           <img
-                            src={getCardImageUrl(service.photos[0]) || service.photos[0]}
+                            src={(() => {
+                              const photoUrl = service.photos[0];
+                              if (!photoUrl) return '';
+                              // Always normalize the URL to ensure mobile compatibility
+                              const normalized = normalizeImageUrl(photoUrl, {
+                                width: 800,
+                                height: 800,
+                                crop: 'fill',
+                                quality: 'auto',
+                                format: 'auto'
+                              });
+                              return normalized || photoUrl || '';
+                            })()}
                             alt={service.title || (service as any).name || 'Service'}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
-                            onError={handleImageError}
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              const currentSrc = target.src;
+                              console.error('Recent service image error:', {
+                                originalUrl: service.photos[0],
+                                processedUrl: getCardImageUrl(service.photos[0]),
+                                normalizedUrl: normalizeImageUrl(service.photos[0]),
+                                currentSrc
+                              });
+                              
+                              // Try normalized URL if not already tried
+                              const normalized = normalizeImageUrl(service.photos[0]);
+                              if (normalized && currentSrc !== normalized && !target.dataset.normalizedRetried) {
+                                target.dataset.normalizedRetried = 'true';
+                                console.log('Retrying with normalized URL:', normalized);
+                                target.src = normalized;
+                                return;
+                              }
+                              
+                              // Try original URL if not already tried
+                              if (service.photos[0] && currentSrc !== service.photos[0] && !target.dataset.originalRetried) {
+                                target.dataset.originalRetried = 'true';
+                                console.log('Retrying with original URL:', service.photos[0]);
+                                target.src = service.photos[0];
+                                return;
+                              }
+                              
+                              handleImageError(e);
+                            }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
                           
@@ -1329,11 +1369,51 @@ const Home = () => {
                       {/* Service Image */}
                       {service.photos && service.photos.length > 0 ? (
                         <img
-                          src={getCardImageUrl(service.photos[0]) || service.photos[0]}
+                          src={(() => {
+                            const photoUrl = service.photos[0];
+                            if (!photoUrl) return '';
+                            // Always normalize the URL to ensure mobile compatibility
+                            const normalized = normalizeImageUrl(photoUrl, {
+                              width: 800,
+                              height: 800,
+                              crop: 'fill',
+                              quality: 'auto',
+                              format: 'auto'
+                            });
+                            return normalized || photoUrl || '';
+                          })()}
                           alt={service.title || (service as any).name || 'Service'}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           loading="lazy"
-                          onError={handleImageError}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const currentSrc = target.src;
+                            console.error('Most booked service image error:', {
+                              originalUrl: service.photos[0],
+                              processedUrl: getCardImageUrl(service.photos[0]),
+                              normalizedUrl: normalizeImageUrl(service.photos[0]),
+                              currentSrc
+                            });
+                            
+                            // Try normalized URL if not already tried
+                            const normalized = normalizeImageUrl(service.photos[0]);
+                            if (normalized && currentSrc !== normalized && !target.dataset.normalizedRetried) {
+                              target.dataset.normalizedRetried = 'true';
+                              console.log('Retrying with normalized URL:', normalized);
+                              target.src = normalized;
+                              return;
+                            }
+                            
+                            // Try original URL if not already tried
+                            if (service.photos[0] && currentSrc !== service.photos[0] && !target.dataset.originalRetried) {
+                              target.dataset.originalRetried = 'true';
+                              console.log('Retrying with original URL:', service.photos[0]);
+                              target.src = service.photos[0];
+                              return;
+                            }
+                            
+                            handleImageError(e);
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-orange-100 to-blue-100 flex items-center justify-center">

@@ -340,38 +340,8 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
 export const getThumbnailUrl = (url: string | undefined | null): string | null => {
   if (!url) return null;
   
-  // If it's already a full URL (from backend), check if it needs fixing
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    // Check if it's missing /uploads/ path (common issue)
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    
-    // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
-    if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
-      // Fix the URL by adding /uploads/
-      const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      urlObj.pathname = `/uploads/${filename}`;
-      const fixedUrl = urlObj.toString();
-      console.log('🔧 Fixed thumbnail URL (added /uploads/):', { original: url, fixed: fixedUrl });
-      return fixedUrl;
-    }
-    
-    // For Cloudinary URLs, apply transformations
-    if (isCloudinaryUrl(url)) {
-      return normalizeImageUrl(url, {
-        width: 200,
-        height: 200,
-        crop: 'fill',
-        quality: 'auto',
-        format: 'auto'
-      });
-    }
-    
-    // Return non-Cloudinary URLs as-is (already correct)
-    return url;
-  }
-  
-  // For relative paths, normalize
+  // Use normalizeImageUrl for all cases - it handles mobile device URL conversion,
+  // Cloudinary transformations, /uploads/ path fixing, and all edge cases
   return normalizeImageUrl(url, {
     width: 200,
     height: 200,
@@ -388,38 +358,8 @@ export const getThumbnailUrl = (url: string | undefined | null): string | null =
 export const getCardImageUrl = (url: string | undefined | null): string | null => {
   if (!url) return null;
   
-  // If it's already a full URL (from backend), check if it needs fixing
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    // Check if it's missing /uploads/ path (common issue)
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    
-    // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
-    if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
-      // Fix the URL by adding /uploads/
-      const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-      urlObj.pathname = `/uploads/${filename}`;
-      const fixedUrl = urlObj.toString();
-      console.log('🔧 Fixed card image URL (added /uploads/):', { original: url, fixed: fixedUrl });
-      return fixedUrl;
-    }
-    
-    // For Cloudinary URLs, apply transformations
-    if (isCloudinaryUrl(url)) {
-      return normalizeImageUrl(url, {
-        width: 800,
-        height: 800,
-        crop: 'fill',
-        quality: 'auto',
-        format: 'auto'
-      });
-    }
-    
-    // Return non-Cloudinary URLs as-is (already correct)
-    return url;
-  }
-  
-  // For relative paths, normalize
+  // Use normalizeImageUrl for all cases - it handles mobile device URL conversion,
+  // Cloudinary transformations, /uploads/ path fixing, and all edge cases
   return normalizeImageUrl(url, {
     width: 800,
     height: 800,
@@ -435,21 +375,9 @@ export const getCardImageUrl = (url: string | undefined | null): string | null =
  */
 export const getFullImageUrl = (url: string | undefined | null): string | null => {
   if (!url) return null;
-  // For Cloudinary URLs, apply transformations
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    if (isCloudinaryUrl(url)) {
-      return normalizeImageUrl(url, {
-        width: 1200,
-        height: 675,
-        crop: 'fill',
-        quality: 'auto',
-        format: 'auto'
-      });
-    }
-    // Return non-Cloudinary URLs as-is
-    return url;
-  }
-  // For relative paths, normalize
+  
+  // Use normalizeImageUrl for all cases - it handles mobile device URL conversion,
+  // Cloudinary transformations, /uploads/ path fixing, and all edge cases
   return normalizeImageUrl(url, {
     width: 1200,
     height: 675,

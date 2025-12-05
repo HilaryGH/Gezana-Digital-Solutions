@@ -48,6 +48,8 @@ import AdminTestimonials from "./component/Admin/AdminTestimonials";
 import AdminPromotionalBanners from "./component/Admin/AdminPromotionalBanners";
 import AdminInvestments from "./component/Admin/AdminInvestments";
 import AdminWomenInitiatives from "./component/Admin/AdminWomenInitiatives";
+import AdminJobs from "./component/Admin/AdminJobs";
+import PremiumMemberships from "./component/Admin/PremiumMemberships";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
@@ -159,6 +161,22 @@ const noNavbarRoutes = [
         <Route path="/admin/promotional-banners" element={<AdminPromotionalBanners />} />
         <Route path="/admin/investments" element={<AdminInvestments />} />
         <Route path="/admin/women-initiatives" element={<AdminWomenInitiatives />} />
+        <Route 
+          path="/admin/jobs" 
+          element={
+            <AdminRoute>
+              <AdminJobs />
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/premium-memberships" 
+          element={
+            <AdminRoute>
+              <PremiumMemberships />
+            </AdminRoute>
+          } 
+        />
 
         {/* Support Routes */}
         <Route path="/support-dashboard" element={<CustomerSupportDashboard />} />
