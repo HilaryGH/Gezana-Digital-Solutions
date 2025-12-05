@@ -114,20 +114,75 @@ const ServiceDetails = () => {
               {service.photos && service.photos.length > 0 ? (
                 <div>
                   {/* Main Image */}
-                  <div className="relative aspect-video">
-                    <img
-                      src={normalizeImageUrl(service.photos[selectedImage], {
-                        width: 1200,
-                        height: 675,
-                        crop: 'fill',
-                        quality: 'auto',
-                        format: 'auto'
-                      }) || service.photos[selectedImage]}
-                      alt={service.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => handleImageError(e)}
-                    />
+                  <div className="relative aspect-video bg-gray-100">
+                    {service.photos && service.photos[selectedImage] ? (
+                      <img
+                        src={normalizeImageUrl(service.photos[selectedImage], {
+                          width: 1200,
+                          height: 675,
+                          crop: 'fill',
+                          quality: 'auto',
+                          format: 'auto'
+                        }) || service.photos[selectedImage] || ''}
+                        alt={service.title}
+                        className="w-full h-full object-cover"
+                        loading="eager"
+                        decoding="async"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          const currentSrc = target.src;
+                          console.error('❌ Main image failed to load:', currentSrc);
+                          console.error('Original photo URL:', service.photos[selectedImage]);
+                          
+                          // Try original URL without transformations first
+                          if (service.photos && service.photos[selectedImage]) {
+                            const originalUrl = service.photos[selectedImage];
+                            if (currentSrc !== originalUrl && !target.dataset.retried) {
+                              target.dataset.retried = 'true';
+                              console.log('🔄 Retrying with original URL:', originalUrl);
+                              target.src = originalUrl;
+                              return;
+                            }
+                          }
+                          
+                          // Try with getCardImageUrl as fallback
+                          const { getCardImageUrl } = require('../utils/imageHelper');
+                          const cardUrl = getCardImageUrl(service.photos[selectedImage]);
+                          if (cardUrl && currentSrc !== cardUrl && !target.dataset.cardRetried) {
+                            target.dataset.cardRetried = 'true';
+                            console.log('🔄 Retrying with card image URL:', cardUrl);
+                            target.src = cardUrl;
+                            return;
+                          }
+                          
+                          // Try getFullImageUrl
+                          const { getFullImageUrl } = require('../utils/imageHelper');
+                          const fullUrl = getFullImageUrl(service.photos[selectedImage]);
+                          if (fullUrl && currentSrc !== fullUrl && !target.dataset.fullRetried) {
+                            target.dataset.fullRetried = 'true';
+                            console.log('🔄 Retrying with full image URL:', fullUrl);
+                            target.src = fullUrl;
+                            return;
+                          }
+                          
+                          // Final fallback
+                          console.log('⚠️  All retry attempts failed, using fallback image');
+                          handleImageError(e);
+                        }}
+                        onLoad={() => {
+                          console.log('✅ Main image loaded successfully');
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-24 h-24 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-4xl">🔧</span>
+                          </div>
+                          <p className="text-gray-600">No image available</p>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Image Navigation */}
                     {service.photos.length > 1 && (
@@ -168,7 +223,7 @@ const ServiceDetails = () => {
                         <button
                           key={index}
                           onClick={() => setSelectedImage(index)}
-                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                          className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all bg-gray-100 ${
                             selectedImage === index ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200 hover:border-orange-300'
                           }`}
                         >
@@ -179,11 +234,39 @@ const ServiceDetails = () => {
                               crop: 'fill',
                               quality: 'auto',
                               format: 'auto'
-                            }) || photo} 
+                            }) || photo || ''} 
                             alt={`${service.title} - ${index + 1}`} 
                             className="w-full h-full object-cover"
                             loading="lazy"
-                            onError={(e) => handleImageError(e)}
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              const currentSrc = target.src;
+                              console.error('Thumbnail image failed to load:', currentSrc);
+                              
+                              // Try original URL
+                              if (currentSrc !== photo && !target.dataset.retried) {
+                                target.dataset.retried = 'true';
+                                console.log('Retrying thumbnail with original URL:', photo);
+                                target.src = photo;
+                                return;
+                              }
+                              
+                              // Try with getThumbnailUrl
+                              const { getThumbnailUrl } = require('../utils/imageHelper');
+                              const thumbUrl = getThumbnailUrl(photo);
+                              if (thumbUrl && currentSrc !== thumbUrl && !target.dataset.thumbRetried) {
+                                target.dataset.thumbRetried = 'true';
+                                console.log('Retrying thumbnail with getThumbnailUrl:', thumbUrl);
+                                target.src = thumbUrl;
+                                return;
+                              }
+                              
+                              // Final fallback
+                              handleImageError(e);
+                            }}
+                            onLoad={() => {
+                              // Image loaded successfully
+                            }}
                           />
                         </button>
                       ))}

@@ -34,14 +34,20 @@ const instance = axios.create({
   },
 });
 
-// Add request interceptor for logging
+// Add request interceptor for logging and FormData handling
 instance.interceptors.request.use(
   (config) => {
+    // If FormData is being sent, remove Content-Type header to let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     console.log(`🚀 Making ${config.method?.toUpperCase()} request to:`, config.url);
     console.log("Request config:", {
       baseURL: config.baseURL,
       timeout: config.timeout,
       headers: config.headers,
+      isFormData: config.data instanceof FormData,
     });
     return config;
   },

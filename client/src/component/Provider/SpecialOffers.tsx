@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "../../api/axios";
-import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, Tag, Calendar, DollarSign, AlertCircle, Crown } from "lucide-react";
+import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, Tag, Calendar, DollarSign } from "lucide-react";
 import SpecialOfferForm from "./SpecialOfferForm";
 import { getCardImageUrl, handleImageError } from "../../utils/imageHelper";
 
@@ -30,65 +30,13 @@ interface SpecialOffer {
 const SpecialOffers = () => {
   const [offers, setOffers] = useState<SpecialOffer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasPremium, setHasPremium] = useState(false);
-  const [premiumInfo, setPremiumInfo] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingOffer, setEditingOffer] = useState<SpecialOffer | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkPremiumStatus();
     fetchOffers();
-    
-    // Check if user just returned from payment success
-    const checkPaymentReturn = () => {
-      const paymentSuccess = sessionStorage.getItem('premiumPaymentSuccess');
-      if (paymentSuccess === 'true') {
-        // Refresh premium status after payment
-        setTimeout(() => {
-          checkPremiumStatus();
-          sessionStorage.removeItem('premiumPaymentSuccess');
-        }, 1000);
-      }
-    };
-    
-    checkPaymentReturn();
-    
-    // Also listen for storage events (in case payment success happens in another tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'premiumPaymentSuccess' && e.newValue === 'true') {
-        setTimeout(() => {
-          checkPremiumStatus();
-          sessionStorage.removeItem('premiumPaymentSuccess');
-        }, 1000);
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-
-  const checkPremiumStatus = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/special-offers/check-premium/status", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.data.success) {
-        const hasPremium = response.data.hasPremium;
-        setHasPremium(hasPremium);
-        setPremiumInfo(response.data);
-        console.log("Premium status check:", {
-          hasPremium,
-          premiumMembership: response.data.premiumMembership,
-          subscription: response.data.subscription,
-        });
-      }
-    } catch (error: any) {
-      console.error("Error checking premium status:", error);
-      console.error("Error response:", error.response?.data);
-    }
-  };
 
   const fetchOffers = async () => {
     try {
@@ -180,43 +128,14 @@ const SpecialOffers = () => {
           </h2>
           <p className="text-gray-600 mt-1">Create and manage special offers for your services</p>
         </div>
-        {hasPremium ? (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Create Offer
-          </button>
-        ) : (
-          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <Crown className="w-5 h-5 text-yellow-600" />
-            <span className="text-yellow-800 font-medium">Premium Required</span>
-          </div>
-        )}
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Create Offer
+        </button>
       </div>
-
-      {/* Premium Status Alert */}
-      {!hasPremium && (
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-yellow-900 mb-1">Premium Membership Required</h3>
-              <p className="text-sm text-yellow-800 mb-3">
-                You need an active premium membership to create special offers. Upgrade to premium to unlock this feature and attract more customers with exclusive deals.
-              </p>
-              <a
-                href="/premium-membership"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium"
-              >
-                <Crown className="w-4 h-4" />
-                View Premium Plans
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Offers List */}
       {offers.length === 0 ? (
@@ -224,31 +143,27 @@ const SpecialOffers = () => {
           <Tag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No Special Offers Yet</h3>
           <p className="text-gray-600 mb-4">
-            {hasPremium
-              ? "Create your first special offer to attract more customers with exclusive deals"
-              : "Upgrade to premium to start creating special offers"}
+            Create your first special offer to attract more customers with exclusive deals
           </p>
-          {hasPremium && (
-            <div className="space-y-3">
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold shadow-lg"
-              >
-                <Plus className="w-5 h-5 inline mr-2" />
-                Create Your First Offer
-              </button>
-              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-2xl mx-auto">
-                <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for Creating Effective Offers:</h4>
-                <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                  <li>Choose a service that you want to promote</li>
-                  <li>Set an attractive discount (10-50% is common)</li>
-                  <li>Use clear, compelling titles (e.g., "Summer Sale - 30% Off")</li>
-                  <li>Set dates that give customers enough time to book</li>
-                  <li>Add terms and conditions if needed</li>
-                </ul>
-              </div>
+          <div className="space-y-3">
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold shadow-lg"
+            >
+              <Plus className="w-5 h-5 inline mr-2" />
+              Create Your First Offer
+            </button>
+            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-2xl mx-auto">
+              <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for Creating Effective Offers:</h4>
+              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                <li>Choose a service that you want to promote</li>
+                <li>Set an attractive discount (10-50% is common)</li>
+                <li>Use clear, compelling titles (e.g., "Summer Sale - 30% Off")</li>
+                <li>Set dates that give customers enough time to book</li>
+                <li>Add terms and conditions if needed</li>
+              </ul>
             </div>
-          )}
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

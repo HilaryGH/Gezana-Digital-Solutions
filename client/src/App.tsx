@@ -53,6 +53,7 @@ import ServiceDetails from "./component/ServiceDetails";
 import PaymentPage from "./component/PaymentPage";
 import AuthSuccess from "./component/AuthSuccess";
 import AuthError from "./component/AuthError";
+import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
 function AppContent() {
@@ -122,6 +123,7 @@ const noNavbarRoutes = [
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
+        <Route path="/premium-membership" element={<PremiumMembershipPage />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/auth/error" element={<AuthError />} />
 

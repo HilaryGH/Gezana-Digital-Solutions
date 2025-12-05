@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ServiceCard from "./ServiceCard";
-import { ChevronDown, X, Star } from "lucide-react";
+import { ChevronDown, X, Star, Tag } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
 import { getRecentServices, getMostBookedServices, getServices, type Service } from "../api/services";
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
 import { getJobs, type Job } from "../api/jobs";
 import { applyForJob, type CreateJobApplicationData } from "../api/jobApplications";
 import { getCardImageUrl, handleImageError } from "../utils/imageHelper";
+import axios from "../api/axios";
 
 const serviceCategories = [
   {
@@ -93,6 +94,8 @@ const Home = () => {
   const [showJobsModal, setShowJobsModal] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [specialOffers, setSpecialOffers] = useState<any[]>([]);
+  const [loadingSpecialOffers, setLoadingSpecialOffers] = useState(false);
   const [applicationForm, setApplicationForm] = useState({
     // Personal Information
     fullName: '',
@@ -219,6 +222,48 @@ const Home = () => {
       }
     };
     fetchPromotionalBanners();
+  }, []);
+
+  // Fetch special offers
+  useEffect(() => {
+    const fetchSpecialOffers = async () => {
+      setLoadingSpecialOffers(true);
+      try {
+        console.log('Fetching special offers from /special-offers/active');
+        const response = await axios.get("/special-offers/active");
+        console.log('Special offers API response:', response.data);
+        
+        if (response.data && response.data.success) {
+          const offers = response.data.offers || [];
+          console.log('Setting special offers:', offers.length, 'offers found');
+          
+          // Log debug info if available
+          if (response.data.debug) {
+            console.log('Debug info:', response.data.debug);
+            console.log(`Total offers in DB: ${response.data.debug.totalOffers}`);
+            console.log(`After date filter: ${response.data.debug.afterDateFilter}`);
+            console.log(`Final count: ${response.data.debug.finalCount}`);
+          }
+          
+          setSpecialOffers(offers);
+        } else if (response.data && Array.isArray(response.data)) {
+          // Handle case where API returns array directly
+          console.log('Setting special offers (array response):', response.data.length, 'offers found');
+          setSpecialOffers(response.data);
+        } else {
+          console.warn('Unexpected response format:', response.data);
+          setSpecialOffers([]);
+        }
+      } catch (error: any) {
+        console.error('Error fetching special offers:', error);
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+        setSpecialOffers([]);
+      } finally {
+        setLoadingSpecialOffers(false);
+      }
+    };
+    fetchSpecialOffers();
   }, []);
 
   const handleCategoryClick = async (index: number) => {
@@ -1407,13 +1452,182 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Special Offers from Service Providers Section */}
+        <section className="relative w-full py-12 bg-gradient-to-br from-orange-50/30 via-white to-red-50/30 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6">
+            {/* Section Header */}
+            <div className="text-left mb-8">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                <Tag className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
+                Special <span className="text-orange-600">Offers</span>
+              </h2>
+              <p className="text-sm md:text-base text-gray-600">
+                Exclusive deals and discounts from our service providers
+              </p>
+            </div>
+
+            {/* Special Offers Grid */}
+            {loadingSpecialOffers ? (
+              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                {[...Array(4)].map((_, index) => (
+                  <div key={index} className="flex-shrink-0 w-[320px] bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
+                    <div className="w-full h-48 bg-gray-200"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : specialOffers && specialOffers.length > 0 ? (
+              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+                {specialOffers.map((offer) => {
+                  const isPercentage = offer.discountType === "percentage";
+                  const discountText = isPercentage 
+                    ? `${offer.discountValue}% OFF` 
+                    : `${offer.discountValue} ETB OFF`;
+                  
+                  return (
+                    <div 
+                      key={offer._id} 
+                      className="flex-shrink-0 w-[320px] bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-orange-100 overflow-hidden group cursor-pointer"
+                      onClick={() => {
+                        const serviceId = offer.service?._id || offer.service?.id || offer.service;
+                        if (serviceId) {
+                          navigate(`/service/${serviceId}`);
+                        }
+                      }}
+                    >
+                      {/* Offer Image */}
+                      {offer.image || (offer.service?.photos && offer.service.photos.length > 0) ? (
+                        <div className="relative w-full h-48 overflow-hidden">
+                          <img
+                            src={getCardImageUrl(offer.image || offer.service.photos[0]) || offer.image || offer.service.photos[0]}
+                            alt={offer.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            onError={handleImageError}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+                          
+                          {/* Discount Badge */}
+                          <div className="absolute top-3 right-3 z-20">
+                            <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                              {discountText}
+                            </span>
+                          </div>
+
+                          {/* Title Overlay */}
+                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                            <h3 className="text-white font-bold text-lg mb-1 drop-shadow-lg line-clamp-2">
+                              {offer.title}
+                            </h3>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 bg-gradient-to-br from-orange-100 to-red-200 flex items-center justify-center relative">
+                          <Tag className="w-16 h-16 text-orange-300" />
+                          {/* Discount Badge */}
+                          <div className="absolute top-3 right-3">
+                            <span className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                              {discountText}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Offer Details */}
+                      <div className="p-4 space-y-3">
+                        {/* Service Name */}
+                        {offer.service?.name && (
+                          <div className="text-sm text-gray-600">
+                            <span className="font-semibold">Service:</span> {offer.service.name}
+                          </div>
+                        )}
+
+                        {/* Description */}
+                        <p className="text-sm text-gray-700 line-clamp-2">
+                          {offer.description}
+                        </p>
+
+                        {/* Pricing */}
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                          <div>
+                            <div className="text-xs text-gray-500 mb-1">Original Price</div>
+                            <div className="text-sm text-gray-400 line-through">
+                              {offer.originalPrice?.toFixed(2)} ETB
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-gray-500 mb-1">Now</div>
+                            <div className="text-lg font-bold text-orange-600">
+                              {offer.discountedPrice?.toFixed(2)} ETB
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Dates */}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                          <span>📅</span>
+                          <span>
+                            {new Date(offer.startDate).toLocaleDateString()} - {new Date(offer.endDate).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        {/* Provider Info */}
+                        {offer.provider && (
+                          <div className="text-xs text-gray-500 pt-2 border-t border-gray-100">
+                            <span className="font-semibold">Provider:</span> {offer.provider.companyName || offer.provider.name}
+                          </div>
+                        )}
+
+                        {/* View Offer Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const serviceId = offer.service?._id || offer.service?.id || offer.service;
+                            if (serviceId) {
+                              navigate(`/service/${serviceId}`);
+                            }
+                          }}
+                          className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-105 mt-2"
+                        >
+                          View Offer
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-left py-8">
+                <p className="text-gray-500 text-sm">No special offers available at the moment. Check back soon for exciting deals!</p>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs text-yellow-800">
+                      <strong>Debug Info:</strong> Check browser console and server logs for details.
+                      {specialOffers && specialOffers.length === 0 && (
+                        <span className="block mt-2">
+                          Loading: {loadingSpecialOffers ? 'Yes' : 'No'} | 
+                          Offers array: {Array.isArray(specialOffers) ? 'Yes' : 'No'} | 
+                          Length: {specialOffers?.length || 0}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Seasonal / Promotional Banners Section */}
         <section className="relative w-full py-12 bg-gradient-to-br from-white via-orange-50/50 to-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
             <div className="text-left mb-8">
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Special <span className="text-orange-600">Offers</span>
+                Promotional <span className="text-orange-600">Banners</span>
               </h2>
               <p className="text-sm md:text-base text-gray-600">
                 Limited-time promotions and seasonal discounts

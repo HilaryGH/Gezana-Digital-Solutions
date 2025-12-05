@@ -20,28 +20,28 @@ const plans: Plan[] = [
     name: 'Individual Monthly',
     price: '100',
     period: 'month',
-    description: 'Access to premium features, accountability circles & partner perks.'
+    description: 'Enhanced service listings, priority support & exclusive provider perks.'
   },
   {
     id: 'individual-yearly',
     name: 'Individual Yearly',
     price: '1000',
     period: 'year',
-    description: 'All monthly benefits plus 2 complimentary retreat passes.'
+    description: 'All monthly benefits plus 2 complimentary featured listings.'
   },
   {
     id: 'corporate-monthly',
     name: 'Corporate Monthly',
     price: '300',
     period: 'month',
-    description: 'Employee activation, HR toolkits & analytics.'
+    description: 'Business service management, team dashboards & analytics.'
   },
   {
     id: 'corporate-yearly',
     name: 'Corporate Yearly',
     price: '2500',
     period: 'year',
-    description: 'All monthly benefits plus bespoke strategy co-design.'
+    description: 'All monthly benefits plus custom business strategy consultation.'
   }
 ];
 
@@ -129,9 +129,9 @@ const PremiumMembershipPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
         {/* Hero Section */}
-        <section className="pt-24 pb-4 md:pt-28 md:pb-6 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-600 text-white relative overflow-hidden">
+        <section className="pt-24 pb-8 md:pt-28 md:pb-12 bg-gradient-to-br from-orange-600 via-orange-500 to-orange-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -142,8 +142,8 @@ const PremiumMembershipPage = () => {
               <h1 className="text-xl md:text-2xl font-bold mb-2">
                 Premium Community
               </h1>
-              <p className="text-sm md:text-base text-blue-100">
-                Curated community circles, corporate innovation hubs, and exclusive access to our concierge network.
+              <p className="text-sm md:text-base text-orange-100">
+                Curated service provider networks, business growth hubs, and exclusive access to the HomeHub concierge network.
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ const PremiumMembershipPage = () => {
                 Choose Your Subscription
               </h2>
               <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto">
-                Pick the plan that aligns with your goals. You can upgrade or adjust your membership anytime.
+                Pick the plan that aligns with your goals. You can upgrade or adjust your membership anytime with our community concierge.
               </p>
             </div>
 
@@ -171,22 +171,22 @@ const PremiumMembershipPage = () => {
                     <div
                       key={plan.id}
                       onClick={() => setSelectedPlan(plan.id)}
-                      className={`relative bg-white rounded-lg p-3 shadow-sm cursor-pointer transition-all duration-300 transform hover:-translate-y-0.5 border-2 ${
+                      className={`relative bg-white rounded-lg p-4 shadow-sm cursor-pointer transition-all duration-300 transform hover:-translate-y-0.5 border-2 ${
                         selectedPlan === plan.id
-                          ? 'border-blue-600 shadow-md scale-[1.01]'
-                          : 'border-gray-200 hover:border-blue-300'
+                          ? 'border-orange-600 shadow-md scale-[1.01]'
+                          : 'border-gray-200 hover:border-orange-300'
                       }`}
                     >
                       {selectedPlan === plan.id && (
-                        <div className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                        <div className="absolute -top-2 -right-2 bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
                           Selected
                         </div>
                       )}
                       <div className="mb-2">
-                        <h3 className="text-sm font-bold text-gray-900 mb-0.5">{plan.name}</h3>
-                        <div className="flex items-baseline gap-1.5 mb-1">
-                          <span className="text-lg font-extrabold text-blue-600">{plan.price}</span>
-                          <span className="text-gray-600 text-[10px]">ETB / {plan.period}</span>
+                        <h3 className="text-base font-bold text-gray-900 mb-1">{plan.name}</h3>
+                        <div className="flex items-baseline gap-1.5 mb-2">
+                          <span className="text-xl font-extrabold text-orange-600">{plan.price}</span>
+                          <span className="text-gray-600 text-xs">ETB / {plan.period}</span>
                         </div>
                       </div>
                       <p className="text-[11px] text-gray-600 leading-snug">{plan.description}</p>
@@ -203,21 +203,21 @@ const PremiumMembershipPage = () => {
                     Premium Concierge Intake
                   </h2>
                   <p className="text-xs text-gray-600">
-                    Share a few details and our concierge will design your onboarding pathway.
+                    Share a few details and our concierge will design your onboarding pathway, including curated programs, service analytics dashboards, and personalized support experiences.
                   </p>
                 </div>
 
                 {/* Selected Plan Snapshot */}
                 {selectedPlanData && (
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 mb-4 border-2 border-blue-200">
-                    <h3 className="text-[10px] font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 mb-4 border-2 border-orange-200">
+                    <h3 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
                       Selected Plan Snapshot
                     </h3>
-                    <div className="flex items-baseline gap-1.5 mb-1">
-                      <span className="text-xl font-extrabold text-blue-600">{selectedPlanData.price}</span>
-                      <span className="text-gray-700 text-xs">ETB / {selectedPlanData.period}</span>
+                    <div className="flex items-baseline gap-1.5 mb-2">
+                      <span className="text-2xl font-extrabold text-orange-600">{selectedPlanData.price}</span>
+                      <span className="text-gray-700 text-sm">ETB / {selectedPlanData.period}</span>
                     </div>
-                    <p className="text-[11px] text-gray-700">{selectedPlanData.description}</p>
+                    <p className="text-xs text-gray-700">{selectedPlanData.description}</p>
                   </div>
                 )}
 
@@ -313,14 +313,14 @@ const PremiumMembershipPage = () => {
 
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">
-                      Share your goals or concierge requests
+                      Share your service goals or concierge requests
                     </label>
                     <textarea
                       value={formData.wellnessGoals}
                       onChange={(e) => setFormData({ ...formData, wellnessGoals: e.target.value })}
                       rows={3}
                       className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
-                      placeholder="Tell us about your goals, specific needs, or any special requests..."
+                      placeholder="Tell us about your business goals, service needs, or any special requests..."
                     />
                   </div>
 
@@ -328,7 +328,7 @@ const PremiumMembershipPage = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-blue-400 disabled:to-blue-500 text-white px-4 py-2 rounded-full font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.01] disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 disabled:from-orange-400 disabled:to-orange-500 text-white px-4 py-3 rounded-lg font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.01] disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
@@ -346,6 +346,15 @@ const PremiumMembershipPage = () => {
             </div>
           </div>
         </section>
+
+        {/* Footer Copyright */}
+        <footer className="bg-white border-t border-gray-200 py-6">
+          <div className="max-w-5xl mx-auto px-4 text-center">
+            <p className="text-xs text-gray-500">
+              © All rights reserved by HomeHub
+            </p>
+          </div>
+        </footer>
       </div>
       <Footer />
     </>

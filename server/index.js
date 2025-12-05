@@ -205,6 +205,9 @@ app.use("/api/women-initiatives", womenInitiativesRoutes);
 const premiumMembershipsRoutes = require("./routes/premiumMemberships");
 app.use("/api/premium-memberships", premiumMembershipsRoutes);
 
+const specialOffersRoutes = require("./routes/specialOffers");
+app.use("/api/special-offers", specialOffersRoutes);
+
 const statisticsRoutes = require("./routes/statistics");
 app.use("/api/statistics", statisticsRoutes);
 

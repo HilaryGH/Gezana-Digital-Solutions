@@ -105,16 +105,45 @@ export const normalizeImageUrl = (
                       /^http:\/\/\d+\.\d+\.\d+\.\d+:\d+/.test(url); // Matches http://192.168.1.100:5000
     
     if (isLocalDev) {
-      const urlObj = new URL(url);
-      const pathname = urlObj.pathname;
-      
-      // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
-      if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
-        // It's likely a filename that needs /uploads/ prefix
-        const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
-        urlObj.pathname = `/uploads/${filename}`;
-        console.log('Fixing local URL missing /uploads/ path:', { original: url, fixed: urlObj.toString() });
-        return urlObj.toString();
+      try {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname;
+        
+        // If pathname doesn't start with /uploads/ and looks like a filename (has extension)
+        if (!pathname.startsWith('/uploads/') && !pathname.startsWith('/api/') && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(pathname)) {
+          // It's likely a filename that needs /uploads/ prefix
+          const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+          urlObj.pathname = `/uploads/${filename}`;
+          if (import.meta.env.DEV) {
+            console.log('🔧 Fixing local URL missing /uploads/ path:', { original: url, fixed: urlObj.toString() });
+          }
+          return urlObj.toString();
+        }
+        
+        // Also check if URL is from backend but needs to be converted to current origin for mobile
+        if (typeof window !== 'undefined' && window.location) {
+          const currentHost = window.location.hostname;
+          const currentProtocol = window.location.protocol;
+          
+          // If the URL host doesn't match current host (e.g., backend returned localhost but we're on mobile IP)
+          if (urlObj.hostname !== currentHost && 
+              (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+              currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+            // Convert to current host for mobile compatibility
+            urlObj.hostname = currentHost;
+            urlObj.port = '5000';
+            urlObj.protocol = currentProtocol;
+            if (import.meta.env.DEV) {
+              console.log('🔧 Converting localhost URL to mobile-friendly URL:', { original: url, converted: urlObj.toString() });
+            }
+            return urlObj.toString();
+          }
+        }
+      } catch (err) {
+        // URL parsing failed, continue with original URL
+        if (import.meta.env.DEV) {
+          console.warn('⚠️  Failed to parse URL:', url, err);
+        }
       }
     }
     
@@ -174,7 +203,9 @@ export const normalizeImageUrl = (
       // If hostname is not localhost, use it (mobile device accessing via network IP)
       if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
         baseURL = `${protocol}//${currentHost}:${port}`;
-        console.log('🌐 Using network IP for images (mobile-friendly):', baseURL);
+        if (import.meta.env.DEV) {
+          console.log('🌐 Using network IP for images (mobile-friendly):', baseURL);
+        }
       } else {
         // Desktop: use localhost
         baseURL = `${protocol}//${currentHost}:${port}`;
@@ -192,10 +223,18 @@ export const normalizeImageUrl = (
   
   // If it doesn't start with 'uploads/', add it
   if (!cleanUrl.startsWith('uploads/')) {
-    return `${baseURL}/uploads/${cleanUrl}`;
+    const fullUrl = `${baseURL}/uploads/${cleanUrl}`;
+    if (import.meta.env.DEV) {
+      console.log('🔧 Constructed image URL from relative path:', { original: url, constructed: fullUrl });
+    }
+    return fullUrl;
   }
   
-  return `${baseURL}/${cleanUrl}`;
+  const fullUrl = `${baseURL}/${cleanUrl}`;
+  if (import.meta.env.DEV) {
+    console.log('🔧 Constructed image URL:', { original: url, constructed: fullUrl });
+  }
+  return fullUrl;
 };
 
 /**

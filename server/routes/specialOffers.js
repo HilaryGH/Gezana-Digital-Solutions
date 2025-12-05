@@ -98,9 +98,18 @@ const checkPremiumMembership = async (req, res, next) => {
   }
 };
 
-// Create a new special offer (Premium providers only)
-router.post("/", authMiddleware, checkPremiumMembership, upload.single("image"), async (req, res) => {
+// Create a new special offer (All providers)
+router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
   try {
+    // Check if user is a provider
+    const user = await User.findById(req.user.userId);
+    if (user.role !== "provider") {
+      return res.status(403).json({
+        success: false,
+        message: "Only providers can create special offers",
+      });
+    }
+
     console.log("=== Creating Special Offer ===");
     console.log("Request body:", req.body);
     console.log("Request file:", req.file ? {
@@ -270,31 +279,132 @@ router.get("/service/:serviceId", async (req, res) => {
 router.get("/active", async (req, res) => {
   try {
     const now = new Date();
-    const offers = await SpecialOffer.find({
-      isActive: true,
-      startDate: { $lte: now },
-      endDate: { $gte: now },
-    })
+    
+    // First, get all offers (including inactive ones for debugging)
+    const allOffers = await SpecialOffer.find({})
       .populate("provider", "name companyName")
       .populate("service", "name price photos category")
       .sort({ createdAt: -1 })
       .limit(50);
+    
+    console.log(`📊 Total offers in database: ${allOffers.length}`);
+    console.log(`📅 Current date/time: ${now.toISOString()}`);
+    
+    // Log all offers for debugging
+    allOffers.forEach((offer, index) => {
+      const startDate = new Date(offer.startDate);
+      const endDate = new Date(offer.endDate);
+      const startDateValid = startDate <= now;
+      const endDateValid = endDate >= now;
+      
+      console.log(`\nOffer ${index + 1}:`, {
+        id: offer._id,
+        title: offer.title,
+        isActive: offer.isActive,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        startDateValid,
+        endDateValid,
+        hasService: !!offer.service,
+        serviceId: offer.service?._id || offer.service?.id,
+        hasProvider: !!offer.provider,
+        maxUses: offer.maxUses,
+        currentUses: offer.currentUses
+      });
+    });
+    
+    // Filter active offers with valid dates - be more lenient
+    const offers = allOffers.filter((offer) => {
+      // Check if offer is active (default to true if not set)
+      const isActive = offer.isActive !== false; // More lenient: only filter if explicitly false
+      
+      // Check dates
+      const startDate = new Date(offer.startDate);
+      const endDate = new Date(offer.endDate);
+      const startDateValid = startDate <= now;
+      const endDateValid = endDate >= now;
+      const dateValid = startDateValid && endDateValid;
+      
+      // Check if service exists (don't filter if service is missing, just log)
+      const hasService = !!offer.service;
+      
+      if (!isActive) {
+        console.log(`❌ Offer ${offer._id} (${offer.title}) filtered: isActive = ${offer.isActive}`);
+        return false;
+      }
+      if (!dateValid) {
+        console.log(`❌ Offer ${offer._id} (${offer.title}) filtered: dates invalid`);
+        console.log(`   Start: ${startDate.toISOString()} (valid: ${startDateValid})`);
+        console.log(`   End: ${endDate.toISOString()} (valid: ${endDateValid})`);
+        console.log(`   Now: ${now.toISOString()}`);
+        return false;
+      }
+      if (!hasService) {
+        console.log(`⚠️  Offer ${offer._id} (${offer.title}) has no service, but including it anyway`);
+      }
+      return true;
+    });
+    
+    console.log(`✅ Offers after date/active filter: ${offers.length}`);
 
     // Filter offers that haven't reached max uses
     const validOffers = offers.filter((offer) => {
-      if (offer.maxUses === null) return true;
-      return offer.currentUses < offer.maxUses;
+      if (offer.maxUses === null || offer.maxUses === undefined) return true;
+      const canUse = offer.currentUses < offer.maxUses;
+      if (!canUse) {
+        console.log(`❌ Offer ${offer._id} (${offer.title}) filtered: max uses reached (${offer.currentUses}/${offer.maxUses})`);
+      }
+      return canUse;
     });
+    
+    console.log(`✅ Final valid offers: ${validOffers.length}`);
+    
+    // If no valid offers but we have offers in DB, return them anyway for debugging
+    if (validOffers.length === 0 && allOffers.length > 0) {
+      console.log(`⚠️  No valid offers found, but ${allOffers.length} offers exist in database`);
+      console.log(`⚠️  Returning all offers for debugging purposes`);
+      
+      res.json({
+        success: true,
+        offers: allOffers.map(offer => ({
+          ...offer.toObject(),
+          _debug: {
+            isActive: offer.isActive,
+            startDate: offer.startDate,
+            endDate: offer.endDate,
+            dateValid: new Date(offer.startDate) <= now && new Date(offer.endDate) >= now,
+            hasService: !!offer.service,
+            hasProvider: !!offer.provider
+          }
+        })),
+        debug: {
+          totalOffers: allOffers.length,
+          afterDateFilter: offers.length,
+          finalCount: validOffers.length,
+          currentTime: now.toISOString(),
+          warning: "No valid offers found, returning all offers for debugging"
+        }
+      });
+      return;
+    }
 
     res.json({
       success: true,
       offers: validOffers,
+      debug: {
+        totalOffers: allOffers.length,
+        afterDateFilter: offers.length,
+        finalCount: validOffers.length,
+        currentTime: now.toISOString()
+      }
     });
   } catch (error) {
     console.error("Error fetching active offers:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Error fetching special offers",
+      error: error.message
     });
   }
 });
