@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   Users,
@@ -17,7 +18,8 @@ import {
   ArrowDown,
   Filter,
   Download,
-  RefreshCw
+  RefreshCw,
+  Image
 } from "lucide-react";
 import { getAllBookings, type BookingWithDetails } from "../../api/bookings";
 import axios from "../../api/axios";
@@ -42,6 +44,7 @@ interface CategoryPerformance {
 }
 
 const MarketingDashboard = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<MarketingStats>({
@@ -401,10 +404,13 @@ const MarketingDashboard = () => {
                 </div>
                 <ArrowUp className="w-4 h-4 text-gray-400" />
               </button>
-              <button className="w-full flex items-center justify-between p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+              <button 
+                onClick={() => navigate("/admin/promotional-banners")}
+                className="w-full flex items-center justify-between p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+              >
                 <div className="flex items-center gap-3">
-                  <Target className="w-5 h-5 text-orange-600" />
-                  <span className="font-medium text-gray-900">Promotions</span>
+                  <Image className="w-5 h-5 text-orange-600" />
+                  <span className="font-medium text-gray-900">Promotional Banners</span>
                 </div>
                 <ArrowUp className="w-4 h-4 text-gray-400" />
               </button>

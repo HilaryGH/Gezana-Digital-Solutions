@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   MessageCircle, 
   Users, 
@@ -13,9 +14,17 @@ import {
   MapPin,
   TrendingUp,
   AlertCircle,
-  FileText
+  FileText,
+  Image,
+  Edit,
+  Trash2,
+  Eye,
+  RefreshCw,
+  DollarSign,
+  Save,
+  X
 } from "lucide-react";
-import { getAllBookings, type BookingWithDetails } from "../../api/bookings";
+import { getAllBookings, updateBooking, deleteBooking, type BookingWithDetails } from "../../api/bookings";
 import axios from "../../api/axios";
 
 interface SupportStats {
@@ -29,6 +38,7 @@ interface SupportStats {
 }
 
 const CustomerSupportDashboard = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +53,18 @@ const CustomerSupportDashboard = () => {
     activeTickets: 0,
   });
   const [userName, setUserName] = useState("Support Agent");
+  const [selectedBooking, setSelectedBooking] = useState<BookingWithDetails | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<BookingWithDetails | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    date: "",
+    note: "",
+    status: "",
+    paymentStatus: "",
+  });
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,7 +120,106 @@ const CustomerSupportDashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
+
+  const refreshData = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
+    if (!window.confirm(`Are you sure you want to ${newStatus} this booking?`)) return;
+    
+    setActionLoading(bookingId);
+    try {
+      const token = localStorage.getItem("token");
+      await updateBooking(bookingId, { status: newStatus });
+      refreshData();
+      alert(`Booking ${newStatus} successfully!`);
+    } catch (error: any) {
+      console.error("Error updating booking status:", error);
+      alert(error.response?.data?.message || `Failed to ${newStatus} booking`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handlePaymentStatusUpdate = async (bookingId: string, paymentStatus: string) => {
+    setActionLoading(bookingId);
+    try {
+      await updateBooking(bookingId, { paymentStatus });
+      refreshData();
+      alert("Payment status updated successfully!");
+    } catch (error: any) {
+      console.error("Error updating payment status:", error);
+      alert(error.response?.data?.message || "Failed to update payment status");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleEdit = (booking: BookingWithDetails) => {
+    setEditingBooking(booking);
+    setEditFormData({
+      date: booking.date ? new Date(booking.date).toISOString().split("T")[0] : "",
+      note: booking.note || "",
+      status: booking.status || "pending",
+      paymentStatus: booking.paymentStatus || "pending",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBooking) return;
+    
+    setActionLoading(editingBooking._id);
+    try {
+      const updateData: any = {};
+      if (editFormData.date) {
+        updateData.date = new Date(editFormData.date).toISOString();
+      }
+      if (editFormData.note !== undefined) {
+        updateData.note = editFormData.note;
+      }
+      if (editFormData.status) {
+        updateData.status = editFormData.status;
+      }
+      if (editFormData.paymentStatus) {
+        updateData.paymentStatus = editFormData.paymentStatus;
+      }
+      
+      await updateBooking(editingBooking._id, updateData);
+      refreshData();
+      setShowEditModal(false);
+      setEditingBooking(null);
+      alert("Booking updated successfully!");
+    } catch (error: any) {
+      console.error("Error updating booking:", error);
+      alert(error.response?.data?.message || "Failed to update booking");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (bookingId: string) => {
+    if (!window.confirm("Are you sure you want to delete this booking? This action cannot be undone.")) return;
+    
+    setActionLoading(bookingId);
+    try {
+      await deleteBooking(bookingId);
+      refreshData();
+      alert("Booking deleted successfully!");
+    } catch (error: any) {
+      console.error("Error deleting booking:", error);
+      alert(error.response?.data?.message || "Failed to delete booking");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleViewDetails = (booking: BookingWithDetails) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+  };
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch = 
@@ -217,6 +338,20 @@ const CustomerSupportDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <button
+            onClick={() => navigate("/admin/promotional-banners")}
+            className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all text-left group"
+          >
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-200 transition-colors">
+              <Image className="w-6 h-6 text-orange-600" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">Promotional Banners</h3>
+            <p className="text-sm text-gray-600">Create and manage promotional banners</p>
+          </button>
         </div>
 
         {/* Bookings Management Section */}
@@ -350,16 +485,130 @@ const CustomerSupportDashboard = () => {
 
                       {/* Status & Actions */}
                       <div>
-                        <p className="text-xs text-gray-500 mb-2 font-semibold">STATUS</p>
+                        <p className="text-xs text-gray-500 mb-2 font-semibold">STATUS & ACTIONS</p>
                         <div className="space-y-3">
-                          <span
-                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border ${getStatusColor(
-                              booking.status
-                            )}`}
-                          >
-                            {getStatusIcon(booking.status)}
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                          </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-semibold border ${getStatusColor(
+                                booking.status
+                              )}`}
+                            >
+                              {getStatusIcon(booking.status)}
+                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            </span>
+                            {booking.paymentStatus && (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                                  booking.paymentStatus === "paid"
+                                    ? "bg-green-100 text-green-700 border border-green-300"
+                                    : "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                                }`}
+                              >
+                                <DollarSign className="w-3 h-3" />
+                                {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            <button
+                              onClick={() => handleViewDetails(booking)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium"
+                              title="View Details"
+                            >
+                              <Eye className="w-3 h-3" />
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleEdit(booking)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium"
+                              title="Edit Booking"
+                            >
+                              <Edit className="w-3 h-3" />
+                              Edit
+                            </button>
+                            
+                            {/* Status Update Buttons */}
+                            {booking.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleStatusUpdate(booking._id, "confirmed")}
+                                  disabled={actionLoading === booking._id}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs font-medium disabled:opacity-50"
+                                  title="Confirm Booking"
+                                >
+                                  {actionLoading === booking._id ? (
+                                    <RefreshCw className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="w-3 h-3" />
+                                  )}
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => handleStatusUpdate(booking._id, "cancelled")}
+                                  disabled={actionLoading === booking._id}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs font-medium disabled:opacity-50"
+                                  title="Cancel Booking"
+                                >
+                                  {actionLoading === booking._id ? (
+                                    <RefreshCw className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-3 h-3" />
+                                  )}
+                                  Cancel
+                                </button>
+                              </>
+                            )}
+                            
+                            {booking.status === "confirmed" && (
+                              <button
+                                onClick={() => handleStatusUpdate(booking._id, "completed")}
+                                disabled={actionLoading === booking._id}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50"
+                                title="Mark as Completed"
+                              >
+                                {actionLoading === booking._id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="w-3 h-3" />
+                                )}
+                                Complete
+                              </button>
+                            )}
+                            
+                            {/* Payment Status Update */}
+                            {booking.paymentStatus === "pending" && booking.status !== "cancelled" && (
+                              <button
+                                onClick={() => handlePaymentStatusUpdate(booking._id, "paid")}
+                                disabled={actionLoading === booking._id}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs font-medium disabled:opacity-50"
+                                title="Mark Payment as Paid"
+                              >
+                                {actionLoading === booking._id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <DollarSign className="w-3 h-3" />
+                                )}
+                                Mark Paid
+                              </button>
+                            )}
+                            
+                            <button
+                              onClick={() => handleDelete(booking._id)}
+                              disabled={actionLoading === booking._id}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium disabled:opacity-50"
+                              title="Delete Booking"
+                            >
+                              {actionLoading === booking._id ? (
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3 h-3" />
+                              )}
+                              Delete
+                            </button>
+                          </div>
+                          
                           {booking.note && (
                             <div className="mt-2 p-2 bg-gray-50 rounded-lg">
                               <div className="flex items-start gap-2">

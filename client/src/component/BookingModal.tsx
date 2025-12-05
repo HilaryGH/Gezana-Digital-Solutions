@@ -152,7 +152,11 @@ const BookingModal: React.FC<BookingModalProps> = ({
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const response = await axios.post('/bookings', bookingData, { headers });
+      // Use longer timeout for booking requests in production
+      const response = await axios.post('/bookings', bookingData, { 
+        headers,
+        timeout: 60000, // 60 seconds for production environments
+      });
 
       // If online payment is selected, navigate to payment page
       if (formData.paymentMethod === 'online') {
@@ -197,12 +201,16 @@ const BookingModal: React.FC<BookingModalProps> = ({
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
-        statusText: err.response?.statusText
+        statusText: err.response?.statusText,
+        code: err.code,
       });
       
       let errorMessage = 'Booking failed. Please try again.';
       
-      if (err.response?.status === 401) {
+      // Handle timeout errors specifically
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        errorMessage = 'The booking request timed out. The server may be slow. Please try again in a moment.';
+      } else if (err.response?.status === 401) {
         errorMessage = 'Please log in to book a service';
       } else if (err.response?.status === 404) {
         errorMessage = 'Service not found. Please refresh and try again.';

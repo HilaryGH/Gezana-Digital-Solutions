@@ -1,330 +1,412 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { 
-  FaWrench, 
-  FaBroom, 
-  FaTruck, 
-  FaBaby, 
-  FaTools, 
-  FaHome,
-  FaStar,
-  FaClock,
-  FaCheckCircle,
-  FaArrowRight
-} from "react-icons/fa";
-
-// Six main service categories
-const serviceCategories = [
-  {
-    id: '1',
-    name: 'Home Maintenance',
-    icon: FaWrench,
-    image: '/photo 6.jpg',
-    description: 'Professional home repair and maintenance services including plumbing, electrical, carpentry, and general repairs.',
-    services: ['Plumbing', 'Electrical', 'Carpentry', 'General Repairs', 'Door & Window Repair', 'Furniture Assembly', 'TV Mounting', 'Roofing', 'Flooring', 'HVAC Services'],
-    color: 'from-blue-500 to-blue-600',
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-700'
-  },
-  {
-    id: '2',
-    name: 'Cleaning Services',
-    icon: FaBroom,
-    image: '/photo 1.jpg',
-    description: 'Comprehensive cleaning solutions for residential and commercial spaces, from deep cleaning to regular maintenance.',
-    services: ['Residential Cleaning', 'Carpet Washing', 'Pest Control', 'Deep Cleaning', 'Move-in/Move-out Cleaning', 'Post-Construction Cleaning', 'Window Cleaning', 'Office Cleaning', 'Upholstery Cleaning', 'Regular Maintenance'],
-    color: 'from-green-500 to-green-600',
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-700'
-  },
-  {
-    id: '3',
-    name: 'Appliance Repair',
-    icon: FaTools,
-    image: '/photo 2.jpg',
-    description: 'Expert repair and maintenance for all types of household appliances including refrigerators, ACs, and more.',
-    services: ['Refrigerator Repair', 'AC Repair', 'Washing Machine Repair', 'Dryer Repair', 'Dishwasher Repair', 'Oven Repair', 'Microwave Repair', 'Water Heater Repair', 'Appliance Installation', 'Emergency Repair'],
-    color: 'from-purple-500 to-purple-600',
-    bgColor: 'bg-purple-50',
-    textColor: 'text-purple-700'
-  },
-  {
-    id: '4',
-    name: 'Personal Care',
-    icon: FaBaby,
-    image: '/photo 3.jpg',
-    description: 'Professional beauty and personal care services including hair, makeup, spa treatments, and wellness services.',
-    services: ['Haircut', 'Hairstyle', 'Facial', 'Manicure & Pedicure', 'Makeup Services', 'Eyebrow Shaping', 'Hair Coloring', 'Spa Treatments', 'Massage Therapy', 'Beauty Consultation'],
-    color: 'from-pink-500 to-pink-600',
-    bgColor: 'bg-pink-50',
-    textColor: 'text-pink-700'
-  },
-  {
-    id: '5',
-    name: 'Housemaid Services',
-    icon: FaHome,
-    image: '/photo 4.jpg',
-    description: 'Professional housekeeping and domestic services including cooking, laundry, child care, and elderly care.',
-    services: ['Daily Housekeeping', 'Cooking Services', 'Laundry Services', 'Ironing Services', 'Grocery Shopping', 'Child Care Assistance', 'Elderly Care', 'Pet Care', 'Meal Preparation', 'Home Organization'],
-    color: 'from-yellow-500 to-yellow-600',
-    bgColor: 'bg-yellow-50',
-    textColor: 'text-yellow-700'
-  },
-  {
-    id: '6',
-    name: 'Hotel/Lounge Services',
-    icon: FaTruck,
-    image: '/photo 5.jpg',
-    description: 'Professional hospitality services for hotels, lounges, and events including catering, event planning, and guest services.',
-    services: ['Room Service', 'Concierge', 'Housekeeping', 'Event Planning', 'Catering', 'Spa Services', 'Front Desk', 'Guest Services', 'Bartending', 'VIP Services'],
-    color: 'from-orange-500 to-orange-600',
-    bgColor: 'bg-orange-50',
-    textColor: 'text-orange-700'
-  }
-];
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, Filter, MapPin, DollarSign, SlidersHorizontal, X, Grid, List } from 'lucide-react';
+import { getServices, getServiceCategories, type Service, type ServiceSearchParams } from '../../api/services';
+import ServiceCard from '../ServiceCard';
+import BookingModal from '../BookingModal';
+import { normalizeImageUrl } from '../../utils/imageHelper';
 
 const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get('subcategory') || '');
+  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
+  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
+  const [location, setLocation] = useState(searchParams.get('location') || '');
+  const [sortBy, setSortBy] = useState<'relevance' | 'price_low' | 'price_high' | 'rating' | 'newest'>('relevance');
+  
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    totalPages: 1
+  });
 
-  const handleCategoryClick = (categoryName: string) => {
-    // Navigate to home page with category filter
-    navigate(`/?search=${encodeURIComponent(categoryName)}`);
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const cats = await getServiceCategories();
+        setCategories(cats);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch services
+  useEffect(() => {
+    fetchServices();
+  }, [selectedCategory, selectedSubcategory, minPrice, maxPrice, location, searchQuery, sortBy]);
+
+  const fetchServices = async (page: number = 1) => {
+    setLoading(true);
+    try {
+      const params: ServiceSearchParams = {
+        query: searchQuery || undefined,
+        category: selectedCategory || undefined,
+        subcategory: selectedSubcategory || undefined,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        location: location || undefined,
+        page,
+        limit: 12
+      };
+
+      const response = await getServices(params);
+      let fetchedServices = response.services || [];
+
+      // Apply sorting
+      if (sortBy === 'price_low') {
+        fetchedServices = fetchedServices.sort((a, b) => (a.price || 0) - (b.price || 0));
+      } else if (sortBy === 'price_high') {
+        fetchedServices = fetchedServices.sort((a, b) => (b.price || 0) - (a.price || 0));
+      } else if (sortBy === 'rating') {
+        fetchedServices = fetchedServices.sort((a, b) => {
+          const ratingA = a.serviceRating || a.providerRating || 0;
+          const ratingB = b.serviceRating || b.providerRating || 0;
+          return ratingB - ratingA;
+        });
+      } else if (sortBy === 'newest') {
+        fetchedServices = fetchedServices.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0).getTime();
+          const dateB = new Date(b.createdAt || 0).getTime();
+          return dateB - dateA;
+        });
+      }
+
+      setServices(fetchedServices);
+      setPagination({
+        total: response.total || fetchedServices.length,
+        page: response.page || page,
+        totalPages: response.totalPages || 1
+      });
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      setServices([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateURLParams();
+    fetchServices(1);
+  };
+
+  const handleFilterChange = () => {
+    updateURLParams();
+    fetchServices(1);
+  };
+
+  const updateURLParams = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('query', searchQuery);
+    if (selectedCategory) params.set('category', selectedCategory);
+    if (selectedSubcategory) params.set('subcategory', selectedSubcategory);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (location) params.set('location', location);
+    setSearchParams(params);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+    setSelectedSubcategory('');
+    setMinPrice('');
+    setMaxPrice('');
+    setLocation('');
+    setSearchParams({});
+    fetchServices(1);
+  };
+
+  const handleViewDetails = (service: Service) => {
+    navigate(`/service/${service.id}`);
+  };
+
+  const handleBookService = (service: Service) => {
+    setSelectedService(service);
+    setShowBookingModal(true);
+  };
+
+  const getSubcategories = () => {
+    if (!selectedCategory) return [];
+    const category = categories.find(cat => cat.id === selectedCategory || cat.name === selectedCategory);
+    return category?.subcategories || [];
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-orange-50/30 pt-20 relative overflow-hidden">
-      {/* Decorative Background Elements with Brand Colors */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-float" style={{
-          background: 'radial-gradient(circle, rgba(247, 147, 30, 0.3), rgba(247, 147, 30, 0.1))'
-        }}></div>
-        <div className="absolute bottom-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-float" style={{
-          animationDelay: '2s',
-          background: 'radial-gradient(circle, rgba(46, 61, 211, 0.3), rgba(46, 61, 211, 0.1))'
-        }}></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{
-          animationDelay: '4s',
-          background: 'radial-gradient(circle, rgba(0, 174, 239, 0.3), rgba(0, 174, 239, 0.1))'
-        }}></div>
-        {/* Brand pattern overlay */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(247, 147, 30, 0.1) 50px, rgba(247, 147, 30, 0.1) 100px, transparent 100px, transparent 150px, rgba(46, 61, 211, 0.1) 150px, rgba(46, 61, 211, 0.1) 200px)'
-        }}></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/30 pt-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            All <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-blue-600">Services</span>
+          </h1>
+          <p className="text-lg text-gray-600">
+            Discover and book professional services from verified providers
+          </p>
       </div>
       
-      <div className="max-w-7xl mx-auto px-4 py-16 relative z-10">
-        {/* Hero Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Right Section (swapped from left) */}
-          <div className="relative order-2 lg:order-1">
-            <div className="bg-gradient-to-br from-white via-orange-50/50 to-blue-50/50 rounded-3xl p-8 shadow-2xl border-2 border-gray-100 relative overflow-hidden group">
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-200/30 to-blue-200/30 rounded-full -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-1000"></div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-blue-200/30 to-orange-200/30 rounded-full -ml-24 -mb-24 group-hover:scale-125 transition-transform duration-1000" style={{ transitionDelay: '0.2s' }}></div>
-              
-              <div className="relative z-10">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
-                  Professional Services at Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-blue-600">Fingertips</span>
-                </h2>
-                <div className="space-y-6">
-                  {[
-                    { icon: FaCheckCircle, title: "Verified Experts", description: "All professionals are thoroughly vetted and certified", gradient: "from-orange-500 to-orange-600" },
-                    { icon: FaClock, title: "Quick Response", description: "Get service providers matched within minutes", gradient: "from-blue-500 to-blue-600" },
-                    { icon: FaStar, title: "Quality Guaranteed", description: "100% satisfaction or your money back", gradient: "from-orange-500 via-orange-600 to-blue-600" }
-                  ].map((feature, index) => {
-                    const IconComponent = feature.icon;
-                    return (
-                      <div key={index} className="flex items-start gap-4 group/item">
-                        <div className={`flex-shrink-0 w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover/item:scale-110 group-hover/item:rotate-6 transition-all duration-300 relative overflow-hidden`}>
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/item:translate-x-[100%] transition-transform duration-700"></div>
-                          <IconComponent className="text-white text-xl relative z-10" />
+        {/* Search and Filter Bar */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <form onSubmit={handleSearch} className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search services..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Type
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    setSelectedSubcategory('');
+                    handleFilterChange();
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id || cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
                         </div>
+
+              {/* Subcategory Filter */}
+              {selectedCategory && getSubcategories().length > 0 && (
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover/item:text-transparent group-hover/item:bg-clip-text group-hover/item:bg-gradient-to-r group-hover/item:from-orange-600 group-hover/item:to-blue-600 transition-all duration-300">
-                            {feature.title}
-                          </h3>
-                          <p className="text-gray-600">{feature.description}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subcategory
+                  </label>
+                  <select
+                    value={selectedSubcategory}
+                    onChange={(e) => {
+                      setSelectedSubcategory(e.target.value);
+                      handleFilterChange();
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="">All Subcategories</option>
+                    {getSubcategories().map((sub: string, idx: number) => (
+                      <option key={idx} value={sub}>
+                        {sub}
+                      </option>
+                    ))}
+                  </select>
                         </div>
+              )}
+
+              {/* Location Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="inline w-4 h-4 mr-1" />
+                  Location
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter location"
+                  value={location}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    handleFilterChange();
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
                       </div>
-                    );
-                  })}
-                </div>
+
+              {/* Price Range */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <DollarSign className="inline w-4 h-4 mr-1" />
+                  Price Range
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={minPrice}
+                    onChange={(e) => {
+                      setMinPrice(e.target.value);
+                      handleFilterChange();
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={maxPrice}
+                    onChange={(e) => {
+                      setMaxPrice(e.target.value);
+                      handleFilterChange();
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
               </div>
             </div>
           </div>
           
-          {/* Left Section (swapped from right) */}
-          <div className="order-1 lg:order-2">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 via-orange-600 to-blue-600 rounded-3xl mb-6 shadow-2xl transform hover:scale-110 hover:rotate-6 transition-all duration-300">
-              <FaTools className="text-white text-3xl" />
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-orange-500 to-blue-600">Services</span>
-            </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-8">
-              Discover our six main service categories. Each category offers a comprehensive range of specialized services designed to meet all your needs.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <button className="bg-gradient-to-r from-orange-500 via-orange-600 to-blue-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden group">
-                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                <span className="relative z-10">Get Started</span>
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Clear Filters
               </button>
-              <Link
-                to="/"
-                className="border-2 border-orange-600 text-orange-600 hover:bg-gradient-to-r hover:from-orange-600 hover:to-blue-600 hover:text-white hover:border-transparent px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center relative overflow-hidden group"
-              >
-                <span className="relative z-10">Back to Home</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Service Categories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {serviceCategories.map((category, index) => (
-                <div
-                key={category.id}
-                className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 overflow-hidden border border-gray-100 cursor-pointer"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => handleCategoryClick(category.name)}
-              >
-                {/* Category Header */}
-                <div className="relative h-64 overflow-hidden">
-                  {/* Background Image */}
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  
-                  {/* Brand gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-orange-600/30 group-hover:via-blue-600/20 group-hover:to-transparent transition-all duration-500"></div>
-                  
-                  {/* Animated border on hover */}
-                  <div className="absolute inset-0 border-4 border-transparent group-hover:border-orange-500/50 transition-all duration-500 rounded-t-3xl"></div>
-                  
-                  {/* Category Title */}
-                  <div className="absolute bottom-4 left-0 right-0 z-10 text-center px-4">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-200 group-hover:to-blue-200 transition-all duration-300">
-                      {category.name}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Category Content */}
-                  <div className="p-6">
-                  <p className="text-gray-600 mb-4 leading-relaxed line-clamp-3">
-                    {category.description}
-                  </p>
-
-                  {/* Services List */}
-                    <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Popular Services:</h4>
-                      <div className="flex flex-wrap gap-2">
-                      {category.services.slice(0, 6).map((service, idx) => (
-                        <span key={idx} className={`${category.bgColor} ${category.textColor} px-2 py-1 rounded-full text-xs font-medium`}>
-                          {service}
-                        </span>
-                      ))}
-                      {category.services.length > 6 && (
-                        <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
-                          +{category.services.length - 6} more
+                {(searchQuery || selectedCategory || minPrice || maxPrice || location) && (
+                  <span className="text-sm text-gray-500">
+                    {services.length} service{services.length !== 1 ? 's' : ''} found
                         </span>
                         )}
                       </div>
-                    </div>
-
-                  {/* Explore Button */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-orange-100 text-orange-600' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  <Grid className="w-5 h-5" />
+                </button>
                     <button
-                    className={`w-full bg-gradient-to-r ${category.color} text-white py-3 px-6 rounded-2xl font-semibold hover:shadow-xl transition-all duration-300 transform group-hover:scale-105 flex items-center justify-center space-x-2 relative overflow-hidden`}
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-orange-100 text-orange-600' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                    <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
-                    <span className="relative z-10">Explore Services</span>
-                    <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
+                  <List className="w-5 h-5" />
                     </button>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value as any);
+                    fetchServices(1);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                >
+                  <option value="relevance">Sort by Relevance</option>
+                  <option value="price_low">Price: Low to High</option>
+                  <option value="price_high">Price: High to Low</option>
+                  <option value="rating">Highest Rated</option>
+                  <option value="newest">Newest First</option>
+                </select>
                   </div>
                 </div>
+          </form>
+        </div>
+
+        {/* Services Grid/List */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-gray-200 rounded-2xl h-96 animate-pulse"></div>
           ))}
           </div>
-
-        {/* Call to Action Section */}
-        <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-blue-600 rounded-3xl p-8 md:p-12 text-center text-white relative overflow-hidden group">
-          {/* Animated background elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-48 group-hover:scale-150 transition-transform duration-1000"></div>
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/10 rounded-full -ml-40 -mb-40 group-hover:scale-125 transition-transform duration-1000" style={{ transitionDelay: '0.2s' }}></div>
-          
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}></div>
+        ) : services.length > 0 ? (
+          <div className={viewMode === 'grid' 
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
+            : 'space-y-4'
+          }>
+            {services.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onViewDetails={handleViewDetails}
+                onBookService={handleBookService}
+                variant={viewMode === 'list' ? 'detailed' : 'default'}
+              />
+            ))}
           </div>
-          
-          <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Book a Service?
-            </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Explore our complete range of services or start booking from any of our six main categories.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white hover:bg-gray-50 text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-blue-600 px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden group/btn">
-                <span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-blue-600 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
-                <span className="relative z-10 text-white group-hover/btn:text-white">Browse All Services</span>
-              </button>
-              <Link
-                to="/"
-                className="border-2 border-white text-white hover:bg-white hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-orange-600 hover:to-blue-600 px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 relative overflow-hidden"
-              >
-                <span className="relative z-10">Back to Home</span>
-              </Link>
+        ) : (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-12 h-12 text-gray-400" />
             </div>
-          </div>
-        </div>
-
-        {/* Why Choose Our Services */}
-        <div className="mt-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Our <span className="text-orange-600">Services?</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're committed to delivering exceptional service quality and customer satisfaction.
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">No Services Found</h3>
+            <p className="text-gray-600 mb-6">
+              Try adjusting your search or filter criteria
             </p>
+            <button
+              onClick={clearFilters}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Clear All Filters
+            </button>
           </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { icon: FaCheckCircle, title: "Verified Professionals", description: "All our service providers are thoroughly vetted, background-checked, and quality-assured.", gradient: "from-orange-500 to-orange-600" },
-              { icon: FaClock, title: "24/7 Availability", description: "Get help when you need it most. Our emergency services are available around the clock.", gradient: "from-blue-500 to-blue-600" },
-              { icon: FaStar, title: "Quality Guaranteed", description: "We stand behind our work with satisfaction guarantees and quality assurance.", gradient: "from-orange-500 via-orange-600 to-blue-600" }
-            ].map((feature, index) => {
-              const IconComponent = feature.icon;
-              return (
-                <div key={index} className="text-center group bg-white rounded-3xl p-8 shadow-xl border-2 border-gray-100 hover:shadow-2xl hover:border-transparent transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden">
-                  {/* Gradient background on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-3xl`}></div>
-                  
-                  <div className="relative z-10">
-                    <div className={`w-20 h-20 bg-gradient-to-br ${feature.gradient} rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                      <IconComponent className="w-10 h-10 text-white relative z-10" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-600 group-hover:to-blue-600 transition-all duration-300">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="mt-8 flex justify-center items-center gap-2">
+            <button
+              onClick={() => fetchServices(pagination.page - 1)}
+              disabled={pagination.page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-gray-700">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() => fetchServices(pagination.page + 1)}
+              disabled={pagination.page >= pagination.totalPages}
+              className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
+            </button>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Booking Modal */}
+      {showBookingModal && selectedService && (
+        <BookingModal
+          service={selectedService}
+          isOpen={showBookingModal}
+          onClose={() => {
+            setShowBookingModal(false);
+            setSelectedService(null);
+          }}
+          onBookingSuccess={(booking) => {
+            console.log('Booking successful:', booking);
+            setShowBookingModal(false);
+            setSelectedService(null);
+            navigate('/my-bookings');
+          }}
+        />
+      )}
     </div>
   );
 };

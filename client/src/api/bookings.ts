@@ -110,10 +110,19 @@ export const getProviderBookings = async (): Promise<BookingWithDetails[]> => {
 // Create a new booking
 export const createBooking = async (bookingData: CreateBookingData): Promise<Booking> => {
   try {
-    const response = await axios.post('/bookings', bookingData);
+    // Use a longer timeout for booking requests (60 seconds for production)
+    const response = await axios.post('/bookings', bookingData, {
+      timeout: 60000, // 60 seconds for production environments
+    });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating booking:', error);
+    
+    // Provide better error messages for timeout
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      throw new Error('Booking request timed out. The server may be slow. Please try again.');
+    }
+    
     throw error;
   }
 };

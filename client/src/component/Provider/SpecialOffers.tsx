@@ -128,13 +128,13 @@ const SpecialOffers = () => {
           </h2>
           <p className="text-gray-600 mt-1">Create and manage special offers for your services</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Create Offer
-        </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Create Offer
+          </button>
       </div>
 
       {/* Offers List */}
@@ -145,25 +145,25 @@ const SpecialOffers = () => {
           <p className="text-gray-600 mb-4">
             Create your first special offer to attract more customers with exclusive deals
           </p>
-          <div className="space-y-3">
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold shadow-lg"
-            >
-              <Plus className="w-5 h-5 inline mr-2" />
-              Create Your First Offer
-            </button>
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-2xl mx-auto">
-              <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for Creating Effective Offers:</h4>
-              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li>Choose a service that you want to promote</li>
-                <li>Set an attractive discount (10-50% is common)</li>
-                <li>Use clear, compelling titles (e.g., "Summer Sale - 30% Off")</li>
-                <li>Set dates that give customers enough time to book</li>
-                <li>Add terms and conditions if needed</li>
-              </ul>
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold shadow-lg"
+              >
+                <Plus className="w-5 h-5 inline mr-2" />
+                Create Your First Offer
+              </button>
+              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-2xl mx-auto">
+                <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for Creating Effective Offers:</h4>
+                <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                  <li>Choose a service that you want to promote</li>
+                  <li>Set an attractive discount (10-50% is common)</li>
+                  <li>Use clear, compelling titles (e.g., "Summer Sale - 30% Off")</li>
+                  <li>Set dates that give customers enough time to book</li>
+                  <li>Add terms and conditions if needed</li>
+                </ul>
+              </div>
             </div>
-          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

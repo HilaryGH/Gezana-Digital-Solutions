@@ -27,6 +27,7 @@ import SeekerDashboard from "./component/seeker/SeekerDashboard";
 import ProviderDashboard from "./component/Provider/ProviderDashboard";
 import AdminDashboard from "./component/Admin/AdminDashboard";
 import AdminRoute from "./component/AdminRoute";
+import MarketingSupportRoute from "./component/MarketingSupportRoute";
 import CustomerSupportDashboard from "./component/Support/CustomerSupportDashboard";
 import MarketingDashboard from "./component/Marketing/MarketingDashboard";
 import SuperadminDashboard from "./component/Superadmin/SuperadminDashboard";
@@ -158,7 +159,14 @@ const noNavbarRoutes = [
         <Route path="/admin/providers-list" element={<AdminProvidersList />} />
         <Route path="/admin/team-members" element={<AdminTeamMembers />} />
         <Route path="/admin/testimonials" element={<AdminTestimonials />} />
-        <Route path="/admin/promotional-banners" element={<AdminPromotionalBanners />} />
+        <Route 
+          path="/admin/promotional-banners" 
+          element={
+            <MarketingSupportRoute>
+              <AdminPromotionalBanners />
+            </MarketingSupportRoute>
+          } 
+        />
         <Route path="/admin/investments" element={<AdminInvestments />} />
         <Route path="/admin/women-initiatives" element={<AdminWomenInitiatives />} />
         <Route 

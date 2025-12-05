@@ -138,7 +138,10 @@ const BookServiceWithPayment: React.FC = () => {
           note,
           paymentMethod,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 60000, // 60 seconds for production environments
+        }
       );
 
       if (paymentMethod === "cash") {
@@ -164,8 +167,20 @@ const BookServiceWithPayment: React.FC = () => {
 
       setMessage("Redirecting to payment...");
     } catch (err: any) {
-      console.error(err);
-      setMessage(err.response?.data?.message || "Booking failed");
+      console.error('Booking error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        code: err.code,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      
+      // Handle timeout errors specifically
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        setMessage('The booking request timed out. The server may be slow. Please try again in a moment.');
+      } else {
+        setMessage(err.response?.data?.message || "Booking failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

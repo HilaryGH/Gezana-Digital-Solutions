@@ -35,7 +35,7 @@ const Navbar = () => {
   const [typedText, setTypedText] = useState("");
   const typingTimeoutRef = useRef<number | null>(null);
   const [stats, setStats] = useState<NavbarStatistics>({
-    newProvidersThisWeek: 500,
+    newProvidersThisWeek: 0,
     completedBookings: 0,
     averageRating: 0,
   });
@@ -63,10 +63,13 @@ const Navbar = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        setStatsLoading(true);
         const statistics = await getNavbarStatistics();
+        console.log("Navbar statistics fetched:", statistics);
         setStats(statistics);
       } catch (error) {
         console.error("Error fetching navbar statistics:", error);
+        // Keep default values (0) on error instead of showing wrong data
       } finally {
         setStatsLoading(false);
       }
@@ -201,13 +204,15 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        scrolled 
-          ? "bg-white/98 backdrop-blur-xl shadow-lg border-b border-gray-200" 
-          : "bg-white shadow-md"
-      } ${menuOpen ? 'lg:z-50' : ''}`}>
-        {/* Top Announcement Bar */}
-        <div className={`w-full transition-all duration-500 ${
+      <nav className={`fixed top-0 left-0 w-full transition-all duration-500 ${
+        menuOpen 
+          ? "bg-white shadow-md z-[9999]" 
+          : scrolled 
+            ? "bg-white/98 backdrop-blur-xl shadow-lg border-b border-gray-200 z-50" 
+            : "bg-white shadow-md z-50"
+      }`}>
+        {/* Top Announcement Bar - Hidden on mobile */}
+        <div className={`hidden md:block w-full transition-all duration-500 ${
           scrolled ? 'h-0 overflow-hidden' : 'h-12'
         }`}>
           <div className="bg-black text-white relative overflow-hidden">
@@ -335,24 +340,8 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Mobile Actions */}
+            {/* Mobile Actions - Only menu button, no language switcher */}
             <div className="flex items-center space-x-2 lg:hidden">
-              <div className="language-switcher">
-                <LanguageSwitcher />
-              </div>
-              
-              <button
-                onClick={toggleSearch}
-                className={`p-2 rounded-lg transition-all duration-300 ${
-                  scrolled 
-                    ? 'text-gray-700 hover:bg-gray-100' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                aria-label="Search"
-              >
-                <IoSearchOutline size={20} />
-              </button>
-              
               <button
                 onClick={toggleMenu}
                 className={`p-2 rounded-lg transition-all duration-300 ${
@@ -368,21 +357,45 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile Search Bar - Below navbar, similar to desktop */}
+        <div className="lg:hidden container mx-auto px-4 pb-3">
+          <div className="relative">
+            <button
+              onClick={toggleSearch}
+              className={`w-full flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300 group border ${
+                scrolled 
+                  ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200' 
+                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
+              }`}
+            >
+              <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span className="text-sm font-medium whitespace-nowrap font-mono flex-1 text-left truncate">
+                {t('common.search')}{" "}
+                <span className="text-gray-700">{typedText}</span>
+                <span className="ml-0.5 inline-block w-[2px] h-4 bg-gray-700 align-middle animate-pulse"></span>
+              </span>
+            </button>
+          </div>
+        </div>
+
         {/* Mobile Menu Overlay */}
         {menuOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] lg:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] lg:hidden"
             onClick={toggleMenu}
           />
         )}
 
         {/* Mobile Slide Menu */}
-        <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-[70] transform transition-transform duration-300 ease-out lg:hidden shadow-2xl ${
+        <div className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white z-[9999] transform transition-transform duration-300 ease-out lg:hidden shadow-2xl ${
           menuOpen ? "translate-x-0" : "translate-x-full"
-        }`}>
-          <div className="flex flex-col h-full">
+        }`} style={{ 
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? 'auto' : 'none'
+        }}>
+          <div className="flex flex-col h-full w-full">
             {/* Mobile Header */}
-            <div className="flex items-center justify-between p-6 bg-white border-b border-gray-200">
+            <div className="flex items-center justify-between p-6 bg-white border-b border-gray-200 flex-shrink-0">
               <div className="flex items-center space-x-4">
                 <img
                   src="/logo correct.png"
@@ -403,7 +416,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+            <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-white">
               <div className="space-y-2">
                 <Link
                   to="/about"
@@ -451,7 +464,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Language Switcher */}
-            <div className="px-6 py-4 border-t border-gray-200">
+            <div className="px-6 py-4 border-t border-gray-200 bg-white flex-shrink-0">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Language / ቋንቋ</h3>
               <div className="flex justify-center">
                 <LanguageSwitcher />
@@ -459,13 +472,21 @@ const Navbar = () => {
             </div>
 
             {/* Mobile CTA */}
-            <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
+            <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3 flex-shrink-0">
               <Link
                 to="/login"
                 onClick={toggleMenu}
                 className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
                 <span>Login</span>
+              </Link>
+              <Link
+                to="/community"
+                onClick={toggleMenu}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center space-x-2"
+              >
+                <MdConnectWithoutContact className="w-4 h-4" />
+                <span>Join Community</span>
               </Link>
             </div>
           </div>

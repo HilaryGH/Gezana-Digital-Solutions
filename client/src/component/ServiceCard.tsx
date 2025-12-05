@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Star, MapPin, Clock, Eye, Heart, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { type Service } from '../api/services';
 import BookingModal from './BookingModal';
-import { getCardImageUrl, handleImageError } from '../utils/imageHelper';
+import { getCardImageUrl, handleImageError, normalizeImageUrl } from '../utils/imageHelper';
 
 interface ServiceCardProps {
   service: Service;
@@ -64,17 +64,105 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       {service.photos && service.photos.length > 0 ? (
         <div className="relative w-full aspect-square overflow-hidden">
           <img
-            src={getCardImageUrl(service.photos[0]) || service.photos[0] || ''}
+            src={(() => {
+              const photoUrl = service.photos[0];
+              if (!photoUrl) return '';
+              // Always normalize the URL to ensure mobile compatibility
+              const normalized = normalizeImageUrl(photoUrl, {
+                width: 800,
+                height: 800,
+                crop: 'fill',
+                quality: 'auto',
+                format: 'auto'
+              });
+              return normalized || photoUrl || '';
+            })()}
             alt={service.title || (service as any).name || 'Service'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
             onError={(e) => {
+              const target = e.currentTarget;
+              const currentSrc = target.src;
+              const photoUrl = service.photos[0];
+              
               console.error('ServiceCard image error:', {
-                originalUrl: service.photos[0],
-                processedUrl: getCardImageUrl(service.photos[0]),
-                currentSrc: e.currentTarget.src
+                originalUrl: photoUrl,
+                processedUrl: getCardImageUrl(photoUrl),
+                normalizedUrl: normalizeImageUrl(photoUrl),
+                currentSrc
               });
-              handleImageError(e);
+              
+              // Try mobile-converted URL first (most likely fix for mobile devices)
+              if (typeof window !== 'undefined' && window.location && photoUrl) {
+                try {
+                  const urlObj = new URL(photoUrl);
+                  const currentHost = window.location.hostname;
+                  const currentProtocol = window.location.protocol;
+                  const currentPort = window.location.port || '5000';
+                  
+                  // If URL is localhost but we're on mobile, convert it
+                  if ((urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+                      currentHost !== 'localhost' && currentHost !== '127.0.0.1' &&
+                      !target.dataset.mobileRetried) {
+                    target.dataset.mobileRetried = 'true';
+                    urlObj.hostname = currentHost;
+                    urlObj.port = currentPort;
+                    urlObj.protocol = currentProtocol;
+                    const mobileUrl = urlObj.toString();
+                    console.log('Retrying with mobile-converted URL:', mobileUrl);
+                    target.src = mobileUrl;
+                    return;
+                  }
+                } catch (err) {
+                  // URL parsing failed, continue
+                }
+              }
+              
+              // Try normalized URL if not already tried
+              const normalized = normalizeImageUrl(photoUrl);
+              if (normalized && currentSrc !== normalized && !target.dataset.normalizedRetried) {
+                target.dataset.normalizedRetried = 'true';
+                console.log('Retrying with normalized URL:', normalized);
+                target.src = normalized;
+                return;
+              }
+              
+              // Try getCardImageUrl if not already tried
+              const cardUrl = getCardImageUrl(photoUrl);
+              if (cardUrl && currentSrc !== cardUrl && !target.dataset.cardRetried) {
+                target.dataset.cardRetried = 'true';
+                console.log('Retrying with card URL:', cardUrl);
+                target.src = cardUrl;
+                return;
+              }
+              
+              // Try original URL if not already tried (last resort)
+              if (photoUrl && currentSrc !== photoUrl && !target.dataset.originalRetried) {
+                target.dataset.originalRetried = 'true';
+                console.log('Retrying with original URL:', photoUrl);
+                target.src = photoUrl;
+                return;
+              }
+              
+              // Don't use fallback - just hide the image or show placeholder
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent && !parent.querySelector('.image-placeholder')) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'image-placeholder w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center';
+                placeholder.innerHTML = `
+                  <div class="text-center">
+                    <div class="w-12 h-12 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span class="text-xl">🔧</span>
+                    </div>
+                    <p class="text-gray-600 text-xs">Image unavailable</p>
+                  </div>
+                `;
+                parent.appendChild(placeholder);
+              }
+            }}
+            onLoad={() => {
+              console.log('✅ ServiceCard image loaded successfully');
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />

@@ -91,10 +91,11 @@ export const normalizeImageUrl = (
 ): string | null => {
   if (!url) return null;
   
-  // Log the input URL for debugging
-  if (import.meta.env.DEV) {
-    console.log('🖼️  Normalizing image URL:', url);
-  }
+  // Only log in development for debugging specific issues (reduce noise)
+  // Uncomment if needed for debugging:
+  // if (import.meta.env.DEV && url.includes('gezana-api.onrender.com')) {
+  //   console.log('🖼️  Normalizing production URL:', url);
+  // }
   
   // If it's already a full URL (Cloudinary or external)
   if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -114,16 +115,19 @@ export const normalizeImageUrl = (
           // It's likely a filename that needs /uploads/ prefix
           const filename = pathname.startsWith('/') ? pathname.slice(1) : pathname;
           urlObj.pathname = `/uploads/${filename}`;
-          if (import.meta.env.DEV) {
-            console.log('🔧 Fixing local URL missing /uploads/ path:', { original: url, fixed: urlObj.toString() });
-          }
+            // Reduced logging - only log if it's actually fixing something
+            // if (import.meta.env.DEV) {
+            //   console.log('🔧 Fixing local URL missing /uploads/ path:', { original: url, fixed: urlObj.toString() });
+            // }
           return urlObj.toString();
         }
         
-        // Also check if URL is from backend but needs to be converted to current origin for mobile
+        // ALWAYS check if URL needs to be converted to current origin for mobile
+        // This ensures images work on mobile devices even if backend returns localhost
         if (typeof window !== 'undefined' && window.location) {
           const currentHost = window.location.hostname;
           const currentProtocol = window.location.protocol;
+          const currentPort = window.location.port || '5000';
           
           // If the URL host doesn't match current host (e.g., backend returned localhost but we're on mobile IP)
           if (urlObj.hostname !== currentHost && 
@@ -131,11 +135,22 @@ export const normalizeImageUrl = (
               currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
             // Convert to current host for mobile compatibility
             urlObj.hostname = currentHost;
-            urlObj.port = '5000';
+            urlObj.port = currentPort;
             urlObj.protocol = currentProtocol;
-            if (import.meta.env.DEV) {
-              console.log('🔧 Converting localhost URL to mobile-friendly URL:', { original: url, converted: urlObj.toString() });
-            }
+            // Reduced logging - only log important conversions
+            // if (import.meta.env.DEV) {
+            //   console.log('🔧 Converting localhost URL to mobile-friendly URL:', { original: url, converted: urlObj.toString() });
+            // }
+            return urlObj.toString();
+          }
+          
+          // Also handle case where URL host matches but port is different
+          if (urlObj.hostname === currentHost && urlObj.port !== currentPort && currentPort !== '') {
+            urlObj.port = currentPort;
+            // Reduced logging
+            // if (import.meta.env.DEV) {
+            //   console.log('🔧 Updating URL port to match current origin:', { original: url, converted: urlObj.toString() });
+            // }
             return urlObj.toString();
           }
         }
@@ -147,22 +162,27 @@ export const normalizeImageUrl = (
       }
     }
     
-    // In development ONLY, convert production URLs to current origin
+    // In development, for production URLs, we have two options:
+    // 1. Use production URL directly (works from anywhere, but slower)
+    // 2. Convert to local URL (faster if files exist locally, but fails if they don't)
+    // For now, we'll use production URLs directly in dev to avoid 404s
+    // The backend should ideally return local URLs in development
     // In production, return all URLs as-is (don't modify them)
     if (import.meta.env.DEV && (url.includes('gezana-api.onrender.com') || url.includes('onrender.com'))) {
-      const urlPath = url.replace(/^https?:\/\/[^/]+/, '');
-      // Use the actual request origin (works for mobile on same network)
-      let devUrl: string;
-      if (typeof window !== 'undefined' && window.location) {
-        const currentHost = window.location.hostname;
-        const currentPort = window.location.port || '5000';
-        const protocol = window.location.protocol;
-        devUrl = `${protocol}//${currentHost}:${currentPort}${urlPath}`;
-      } else {
-        devUrl = `http://localhost:5000${urlPath}`;
-      }
-      console.log('Converting production URL to current origin (DEV ONLY):', { original: url, converted: devUrl });
-      return devUrl;
+      // For now, keep production URLs in dev mode since local files might not exist
+      // This ensures images load even if backend returns production URLs
+      // TODO: Backend should return local URLs in development
+      return url;
+      
+      // Alternative: Try to convert to local URL (uncomment if local files exist)
+      // const urlPath = url.replace(/^https?:\/\/[^/]+/, '');
+      // if (typeof window !== 'undefined' && window.location) {
+      //   const currentHost = window.location.hostname;
+      //   const currentPort = window.location.port || '5000';
+      //   const protocol = window.location.protocol;
+      //   return `${protocol}//${currentHost}:${currentPort}${urlPath}`;
+      // }
+      // return `http://localhost:5000${urlPath}`;
     }
     
     // If it's a Cloudinary URL, only apply optimizations if options are provided
@@ -175,6 +195,29 @@ export const normalizeImageUrl = (
       }
       // Return Cloudinary URL as-is if no specific transformations requested
       return url;
+    }
+    
+    // For any other external URL, check if it needs mobile conversion
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const urlObj = new URL(url);
+        const currentHost = window.location.hostname;
+        const currentProtocol = window.location.protocol;
+        
+        // If URL host is localhost but we're on mobile (different host), convert it
+        if ((urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+            currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+          urlObj.hostname = currentHost;
+          urlObj.port = '5000';
+          urlObj.protocol = currentProtocol;
+          if (import.meta.env.DEV) {
+            console.log('🔧 Converting external localhost URL to mobile-friendly URL:', { original: url, converted: urlObj.toString() });
+          }
+          return urlObj.toString();
+        }
+      } catch (err) {
+        // URL parsing failed, continue with original
+      }
     }
     
     // In production, return production URLs as-is (don't log or modify)
@@ -285,15 +328,51 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
     console.error('Error parsing URL in handleImageError:', err);
   }
   
-  // In development, if it's a production URL, try converting to localhost
+  // In development, if it's a production URL, try converting to current origin (mobile-friendly)
   if (import.meta.env.DEV && (currentSrc.includes('gezana-api.onrender.com') || currentSrc.includes('onrender.com'))) {
     if (!target.dataset.localhostRetried) {
       target.dataset.localhostRetried = 'true';
       const urlPath = currentSrc.replace(/^https?:\/\/[^/]+/, '');
-      const localhostUrl = `http://localhost:5000${urlPath}`;
-      console.log('🔧 Retrying with localhost URL:', localhostUrl);
-      target.src = localhostUrl;
+      
+      // Use current origin for mobile compatibility
+      let convertedUrl: string;
+      if (typeof window !== 'undefined' && window.location) {
+        const currentHost = window.location.hostname;
+        const currentPort = window.location.port || '5000';
+        const protocol = window.location.protocol;
+        convertedUrl = `${protocol}//${currentHost}:${currentPort}${urlPath}`;
+      } else {
+        convertedUrl = `http://localhost:5000${urlPath}`;
+      }
+      
+      console.log('🔧 Retrying with current origin URL (mobile-friendly):', convertedUrl);
+      target.src = convertedUrl;
       return;
+    }
+  }
+  
+  // Try converting localhost to current host for mobile devices
+  if (typeof window !== 'undefined' && window.location) {
+    try {
+      const urlObj = new URL(currentSrc);
+      const currentHost = window.location.hostname;
+      const currentProtocol = window.location.protocol;
+      
+      // If URL is localhost but we're on mobile (different host)
+      if ((urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+          currentHost !== 'localhost' && currentHost !== '127.0.0.1' &&
+          !target.dataset.mobileRetried) {
+        target.dataset.mobileRetried = 'true';
+        urlObj.hostname = currentHost;
+        urlObj.port = '5000';
+        urlObj.protocol = currentProtocol;
+        const mobileUrl = urlObj.toString();
+        console.log('🔧 Retrying with mobile-friendly URL:', mobileUrl);
+        target.src = mobileUrl;
+        return;
+      }
+    } catch (err) {
+      // URL parsing failed, continue
     }
   }
   
@@ -326,10 +405,26 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
     }
   }
   
-  // If we've already retried or it's not a Cloudinary URL, use fallback
+  // If we've already retried or it's not a Cloudinary URL, hide the image instead of using fallback
+  // This prevents showing the logo for every failed image
   if (!target.dataset.fallbackSet) {
     target.dataset.fallbackSet = 'true';
-    target.src = fallbackSrc;
+    // Hide the image and show a placeholder instead
+    target.style.display = 'none';
+    const parent = target.parentElement;
+    if (parent && !parent.querySelector('.image-error-placeholder')) {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'image-error-placeholder w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center';
+      placeholder.innerHTML = `
+        <div class="text-center">
+          <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+            <span class="text-xl">🔧</span>
+          </div>
+          <p class="text-gray-500 text-xs">Image unavailable</p>
+        </div>
+      `;
+      parent.appendChild(placeholder);
+    }
   }
 };
 

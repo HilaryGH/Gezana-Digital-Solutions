@@ -429,16 +429,18 @@ const Home = () => {
                   </svg>
         </div>
         
-                {/* Single rotating background image covering entire house */}
+                {/* Single rotating background image with smooth transition */}
                 <div 
-                  className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+                  key={imageRotationIndex}
+                  className="absolute inset-0"
                   style={{ 
                     backgroundImage: `url("${mobileBackgroundImages[imageRotationIndex]}")`,
                     backgroundSize: '40%',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
                     opacity: 0.3,
-                    zIndex: 0
+                    zIndex: 0,
+                    transition: 'opacity 2000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                   }}
                 ></div>
                 
@@ -534,35 +536,35 @@ const Home = () => {
                     >
                     </div>
                   </div>
+                </div>
 
-                  {/* CTA Button - At the bottom of the background image with same background as header */}
-                  <div className="w-full flex justify-center mt-0 z-20">
-                    <button 
-                      onClick={() => navigate('/signup')}
-                      className="group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl"
-                      style={{
-                        width: '200px',
-                        background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)',
-                        backgroundColor: 'rgba(46, 61, 211, 0.85)',
-                        borderColor: 'rgba(255, 255, 255, 0.3)',
-                        boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)',
-                        color: '#FFFFFF !important',
-                        backdropFilter: 'blur(10px)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(46, 61, 211, 0.95) 0%, rgba(0, 174, 239, 0.90) 50%, rgba(46, 61, 211, 0.95) 100%)';
-                        e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)';
-                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
-                      }}
-                    >
-                      <span className="relative z-10 flex items-center justify-center" style={{ color: '#FFFFFF' }}>
-                        Become a Provider
-                      </span>
-                    </button>
-                  </div>
+                {/* CTA Button - At the bottom of the background image on mobile */}
+                <div className="absolute inset-0 flex items-end justify-center z-30 pointer-events-none pb-4">
+                  <button 
+                    onClick={() => navigate('/signup')}
+                    className="group relative px-6 py-3 rounded-full font-bold text-sm transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 overflow-hidden border-2 text-white shadow-xl pointer-events-auto"
+                    style={{
+                      width: '200px',
+                      background: 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)',
+                      backgroundColor: 'rgba(46, 61, 211, 0.85)',
+                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 8px 25px rgba(46, 61, 211, 0.4)',
+                      color: '#FFFFFF !important',
+                      backdropFilter: 'blur(10px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(46, 61, 211, 0.95) 0%, rgba(0, 174, 239, 0.90) 50%, rgba(46, 61, 211, 0.95) 100%)';
+                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(46, 61, 211, 0.5)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(46, 61, 211, 0.85) 0%, rgba(0, 174, 239, 0.80) 50%, rgba(46, 61, 211, 0.85) 100%)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(46, 61, 211, 0.4)';
+                    }}
+                  >
+                    <span className="relative z-10 flex items-center justify-center" style={{ color: '#FFFFFF' }}>
+                      Become a Provider
+                    </span>
+                  </button>
                 </div>
               </div>
             )}
@@ -965,7 +967,7 @@ const Home = () => {
             </div>
 
             {/* Services Menu - Responsive */}
-            <div className="relative z-20 w-full h-full flex flex-col items-center lg:items-start justify-center px-3 xs:px-4 sm:px-5 lg:px-6">
+            <div className="relative z-20 w-full h-full flex flex-col items-center lg:items-start justify-start lg:justify-center px-3 xs:px-4 sm:px-5 lg:px-6 pt-4 xs:pt-5 sm:pt-6 lg:pt-0">
               {/* Enhanced Header with Brand Colors - Responsive */}
               <div className="mb-2 xs:mb-3 sm:mb-4 lg:mb-5 w-full text-center lg:text-left">
                 <h2 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-1 xs:mb-1.5 tracking-tight" style={{
@@ -1121,18 +1123,18 @@ const Home = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                     {serviceCategories[currentCategoryIndex].services.map((service, index) => (
                       <div
                         key={index}
                         onClick={() => handleViewServices(service)}
-                        className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 bg-gray-50 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105 group"
+                        className="p-3 sm:p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 bg-gray-50 hover:bg-blue-50 cursor-pointer transition-all duration-300 transform hover:scale-105 group"
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
-                            <ChevronDown className="w-4 h-4 text-blue-600 rotate-[-90deg]" />
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors flex-shrink-0">
+                            <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 rotate-[-90deg]" />
                           </div>
-                          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-blue-700 transition-colors break-words">
                             {service}
                           </span>
                         </div>
@@ -1877,32 +1879,9 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Community Features Grid - Four Items */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Feature 1 - Connect with Professionals - Blue Theme */}
-              <div className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-100 hover:border-blue-400 overflow-hidden">
-                {/* Animated Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                {/* Decorative Element */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 rounded-bl-full"></div>
-                
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-md">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                    Connect with Professionals
-                  </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    Network with experienced service providers and learn from the best in the industry.
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 2 - Find Job Opportunities - Orange Theme */}
+            {/* Community Features Grid - Three Items */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {/* Feature 1 - Find Job Opportunities - Orange Theme */}
               <div 
                 onClick={() => setShowJobsModal(true)}
                 className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-400 overflow-hidden cursor-pointer"
@@ -1933,7 +1912,7 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Feature 3 - Diaspora Community - Brand Orange */}
+              {/* Feature 2 - Diaspora Community - Brand Orange */}
               <div 
                 onClick={() => navigate('/diaspora')}
                 className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-orange-100 hover:border-orange-400 overflow-hidden cursor-pointer"
@@ -1962,7 +1941,7 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Feature 4 - Premium Membership - Brand Gradient */}
+              {/* Feature 3 - Premium Membership - Brand Gradient */}
               <div 
                 onClick={() => navigate('/premium-membership')}
                 className="group relative bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border-2 border-blue-200 hover:border-orange-400 overflow-hidden cursor-pointer"
@@ -1995,30 +1974,97 @@ const Home = () => {
           </div>
         </section>
 
-      {/* Call to Action Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-600 to-orange-700 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}></div>
+      {/* Call to Action Section - Redesigned with Rounded Creative Design */}
+      <section className="py-16 md:py-24 px-4 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
         </div>
         
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Experience the Difference?
-          </h2>
-          <p className="text-xl text-orange-100 mb-10 leading-relaxed">
-            Join thousands of satisfied customers and service providers who trust HomeHub for their daily service needs.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="bg-white hover:bg-orange-50 text-orange-600 px-10 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              Book a Service Now
-            </button>
-            <button className="border-2 border-white text-white hover:bg-white hover:text-orange-600 px-10 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105">
-              Become a Provider
-            </button>
+        <div className="max-w-6xl mx-auto relative z-10">
+          {/* Main CTA Card - Rounded and Creative */}
+          <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-3xl md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-2xl overflow-hidden group">
+            {/* Animated Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M40 40c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm40 0c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              }}></div>
+            </div>
+            
+            {/* Floating Decorative Elements */}
+            <div className="absolute top-8 right-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
+            <div className="absolute bottom-8 left-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000" style={{ transitionDelay: '0.2s' }}></div>
+            <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-white/5 rounded-full blur-xl group-hover:scale-110 transition-transform duration-1000" style={{ transitionDelay: '0.4s' }}></div>
+            
+            {/* Content */}
+            <div className="relative z-10 text-center">
+              {/* Badge/Icon */}
+              <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-white/20 backdrop-blur-sm rounded-2xl md:rounded-3xl mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                <svg className="w-10 h-10 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </div>
+              
+              <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight">
+                Ready to Experience the <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-orange-100 to-white">Difference?</span>
+              </h2>
+              
+              <p className="text-lg md:text-xl lg:text-2xl text-orange-50 mb-8 md:mb-12 leading-relaxed max-w-3xl mx-auto">
+                Join thousands of satisfied customers and service providers who trust HomeHub for their daily service needs.
+              </p>
+              
+              {/* Action Buttons - Redesigned */}
+              <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
+                <button 
+                  onClick={() => navigate('/services')}
+                  className="group/btn relative bg-white hover:bg-orange-50 text-orange-600 px-8 md:px-12 py-4 md:py-5 rounded-2xl md:rounded-3xl font-bold text-base md:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden min-w-[200px]"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-orange-600/0 via-orange-600/10 to-orange-600/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></span>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Book a Service Now
+                  </span>
+                </button>
+                
+                <button 
+                  onClick={() => navigate('/signup?role=provider')}
+                  className="group/btn relative border-2 border-white text-white hover:bg-white hover:text-orange-600 px-8 md:px-12 py-4 md:py-5 rounded-2xl md:rounded-3xl font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 overflow-hidden backdrop-blur-sm bg-white/10 min-w-[200px]"
+                >
+                  <span className="absolute inset-0 bg-white translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></span>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Sign Up Now
+                  </span>
+                </button>
+              </div>
+              
+              {/* Trust Indicators */}
+              <div className="mt-8 md:mt-12 flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white/80 text-sm md:text-base">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Verified Providers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span>5-Star Rated</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Secure & Trusted</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

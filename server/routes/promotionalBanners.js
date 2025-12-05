@@ -25,12 +25,12 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /api/promotional-banners/all - Get all banners (admin only)
+// GET /api/promotional-banners/all - Get all banners (admin, superadmin, marketing, support)
 router.get("/all", authMiddleware, async (req, res) => {
   try {
-    // Check if user is admin or superadmin
-    if (!["admin", "superadmin"].includes(req.user.role)) {
-      return res.status(403).json({ message: "Admin access required" });
+    // Check if user is admin, superadmin, marketing, or support
+    if (!["admin", "superadmin", "marketing", "support"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied. Admin, Marketing, or Support access required" });
     }
 
     const banners = await PromotionalBanner.find()
@@ -44,11 +44,11 @@ router.get("/all", authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/promotional-banners/mine - Get banners created by current user (provider/admin)
+// GET /api/promotional-banners/mine - Get banners created by current user
 router.get("/mine", authMiddleware, async (req, res) => {
   try {
-    // Check if user is admin, superadmin, or provider
-    if (!["admin", "superadmin", "provider"].includes(req.user.role)) {
+    // Check if user is admin, superadmin, marketing, support, or provider
+    if (!["admin", "superadmin", "marketing", "support", "provider"].includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -77,12 +77,12 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST /api/promotional-banners - Create new banner (admin or provider)
+// POST /api/promotional-banners - Create new banner (admin, superadmin, marketing, support, or provider)
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    // Check if user is admin, superadmin, or provider
-    if (!["admin", "superadmin", "provider"].includes(req.user.role)) {
-      return res.status(403).json({ message: "Access denied. Admin or Provider access required" });
+    // Check if user is admin, superadmin, marketing, support, or provider
+    if (!["admin", "superadmin", "marketing", "support", "provider"].includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied. Admin, Marketing, Support, or Provider access required" });
     }
 
     const {
@@ -126,11 +126,11 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/promotional-banners/:id - Update banner (admin or provider - can only update their own)
+// PUT /api/promotional-banners/:id - Update banner
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
-    // Check if user is admin, superadmin, or provider
-    if (!["admin", "superadmin", "provider"].includes(req.user.role)) {
+    // Check if user is admin, superadmin, marketing, support, or provider
+    if (!["admin", "superadmin", "marketing", "support", "provider"].includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -139,8 +139,9 @@ router.put("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Promotional banner not found" });
     }
 
-    // Providers can only update their own banners, admins can update any
-    if (req.user.role === "provider" && banner.createdBy.toString() !== req.user.userId) {
+    // Providers can only update their own banners, admins/superadmin/marketing/support can update any
+    const canUpdateAny = ["admin", "superadmin", "marketing", "support"].includes(req.user.role);
+    if (!canUpdateAny && banner.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "You can only update your own promotional banners" });
     }
 
@@ -182,11 +183,11 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/promotional-banners/:id - Delete banner (admin or provider - can only delete their own)
+// DELETE /api/promotional-banners/:id - Delete banner
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    // Check if user is admin, superadmin, or provider
-    if (!["admin", "superadmin", "provider"].includes(req.user.role)) {
+    // Check if user is admin, superadmin, marketing, support, or provider
+    if (!["admin", "superadmin", "marketing", "support", "provider"].includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied" });
     }
 
@@ -195,8 +196,9 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Promotional banner not found" });
     }
 
-    // Providers can only delete their own banners, admins can delete any
-    if (req.user.role === "provider" && banner.createdBy.toString() !== req.user.userId) {
+    // Providers can only delete their own banners, admins/superadmin/marketing/support can delete any
+    const canDeleteAny = ["admin", "superadmin", "marketing", "support"].includes(req.user.role);
+    if (!canDeleteAny && banner.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "You can only delete your own promotional banners" });
     }
 

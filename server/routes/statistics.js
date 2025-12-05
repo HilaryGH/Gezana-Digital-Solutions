@@ -43,6 +43,9 @@ router.get("/navbar", async (req, res) => {
     }
 
     // Calculate average rating from approved and active reviews
+    // Also consider service ratings and provider ratings from the Service model
+    const Service = require("../models/Service");
+    
     // Get all reviews and filter in memory for better compatibility
     const allReviews = await Review.find({});
     const reviews = allReviews.filter(review => {
@@ -52,10 +55,40 @@ router.get("/navbar", async (req, res) => {
       return isActive && isApproved && review.rating;
     });
     
+    // Also get average rating from services (if they have ratings)
+    const servicesWithRatings = await Service.find({
+      $or: [
+        { serviceRating: { $exists: true, $gt: 0 } },
+        { providerRating: { $exists: true, $gt: 0 } }
+      ]
+    }).select('serviceRating providerRating');
+    
     let averageRating = 0;
+    let totalRatings = 0;
+    let ratingCount = 0;
+    
+    // Add review ratings
     if (reviews.length > 0) {
-      const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
-      averageRating = totalRating / reviews.length;
+      const reviewRatings = reviews.map(r => r.rating || 0).filter(r => r > 0);
+      totalRatings += reviewRatings.reduce((sum, r) => sum + r, 0);
+      ratingCount += reviewRatings.length;
+    }
+    
+    // Add service ratings
+    if (servicesWithRatings.length > 0) {
+      servicesWithRatings.forEach(service => {
+        if (service.serviceRating && service.serviceRating > 0) {
+          totalRatings += service.serviceRating;
+          ratingCount += 1;
+        } else if (service.providerRating && service.providerRating > 0) {
+          totalRatings += service.providerRating;
+          ratingCount += 1;
+        }
+      });
+    }
+    
+    if (ratingCount > 0) {
+      averageRating = totalRatings / ratingCount;
     }
 
     // Log for debugging

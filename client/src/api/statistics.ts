@@ -9,12 +9,17 @@ export interface NavbarStatistics {
 export const getNavbarStatistics = async (): Promise<NavbarStatistics> => {
   try {
     const response = await axios.get("/statistics/navbar");
-    return response.data;
+    // Ensure we have valid numbers
+    return {
+      newProvidersThisWeek: response.data.newProvidersThisWeek || 0,
+      completedBookings: response.data.completedBookings || 0,
+      averageRating: response.data.averageRating || 0,
+    };
   } catch (error) {
     console.error("Error fetching navbar statistics:", error);
-    // Return default values if API fails
+    // Return zero values if API fails (don't show fake data)
     return {
-      newProvidersThisWeek: 500,
+      newProvidersThisWeek: 0,
       completedBookings: 0,
       averageRating: 0,
     };

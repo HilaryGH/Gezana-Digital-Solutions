@@ -34,21 +34,24 @@ const instance = axios.create({
   },
 });
 
-// Add request interceptor for logging and FormData handling
+// Add request interceptor for auth token and FormData handling
 instance.interceptors.request.use(
   (config) => {
+    // Add auth token if available
+    const token = localStorage.getItem("token");
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     // If FormData is being sent, remove Content-Type header to let browser set it with boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
     }
     
-    console.log(`🚀 Making ${config.method?.toUpperCase()} request to:`, config.url);
-    console.log("Request config:", {
-      baseURL: config.baseURL,
-      timeout: config.timeout,
-      headers: config.headers,
-      isFormData: config.data instanceof FormData,
-    });
+    // Reduced logging - only log important requests
+    if (import.meta.env.DEV && (config.url?.includes('/bookings') || config.url?.includes('/user'))) {
+      console.log(`🚀 Making ${config.method?.toUpperCase()} request to:`, config.url);
+    }
     return config;
   },
   (error) => {
@@ -60,25 +63,23 @@ instance.interceptors.request.use(
 // Add response interceptor for logging
 instance.interceptors.response.use(
   (response) => {
-    console.log(`✅ Response received from ${response.config.url}:`, {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-    });
+    // Reduced logging - only log errors or important responses
+    if (import.meta.env.DEV && (response.config.url?.includes('/bookings') || response.config.url?.includes('/user'))) {
+      console.log(`✅ Response received from ${response.config.url}:`, {
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
     return response;
   },
   (error) => {
+    // Always log errors
     console.error("❌ Response interceptor error:", {
       message: error.message,
       code: error.code,
       status: error.response?.status,
       statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-      },
+      url: error.config?.url,
     });
     return Promise.reject(error);
   }
