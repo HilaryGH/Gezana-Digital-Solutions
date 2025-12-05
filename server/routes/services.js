@@ -62,18 +62,18 @@ const isCloudinaryUrl = (url) => {
 };
 
 // Helper function to convert photo path to full URL
-// Handles both Cloudinary URLs (stored as full URLs) and local filenames
+// Prioritizes Cloudinary URLs, handles both Cloudinary URLs (stored as full URLs) and local filenames
 const getPhotoUrl = (req, photo) => {
   if (!photo) return null;
   
   const photoStr = String(photo).trim();
   if (!photoStr) return null;
   
-  // Check if it's already a full URL (Cloudinary or external)
+  // PRIORITY 1: Check if it's already a full Cloudinary URL
   if (photoStr.startsWith('http://') || photoStr.startsWith('https://')) {
     // Verify it's a valid Cloudinary URL
     if (isCloudinaryUrl(photoStr)) {
-      console.log('✅ Using Cloudinary URL:', photoStr);
+      console.log('☁️  Using Cloudinary URL:', photoStr);
       return photoStr;
     }
     
@@ -196,16 +196,25 @@ router.post(
         description,
         price: parseFloat(price),
         provider: req.user.userId,
-        // Handle photo uploads
+        // Handle photo uploads - Cloudinary will return full URLs
         photos: req.files?.photos?.map(file => {
           const fileUrl = getFileUrl(file);
-          console.log('Service photo upload:', {
+          console.log('📸 Service photo upload:', {
             fieldname: file.fieldname,
             originalname: file.originalname,
             filename: file.filename,
             path: file.path,
-            url: fileUrl
+            url: fileUrl,
+            isCloudinary: isCloudinaryUrl(fileUrl)
           });
+          
+          // Ensure we're using Cloudinary URL if available
+          if (fileUrl && isCloudinaryUrl(fileUrl)) {
+            console.log('✅ Photo uploaded to Cloudinary:', fileUrl);
+          } else if (fileUrl) {
+            console.warn('⚠️  Photo not uploaded to Cloudinary, using:', fileUrl);
+          }
+          
           return fileUrl;
         }).filter(Boolean) || [],
         // Optional fields
@@ -233,18 +242,23 @@ router.post(
       // Populate and transform the service to return with proper photo URLs
       await newService.populate("provider", "name email");
       
-      // Transform photos to full URLs
+      // Transform photos to full URLs - prioritize Cloudinary
       const transformedPhotos = newService.photos.map(photo => {
         if (!photo) return null;
         
-        // If photo is already a full URL (Cloudinary), return as is
+        // If photo is already a full Cloudinary URL, return as is
         if (photo.startsWith('http://') || photo.startsWith('https://')) {
+          if (isCloudinaryUrl(photo)) {
+            console.log('☁️  Photo is already Cloudinary URL:', photo);
+            return photo;
+          }
+          // Other external URL, return as is
           return photo;
         }
         
-        // Otherwise, construct URL for local files
+        // Otherwise, construct URL for local files (fallback)
         const fullUrl = getPhotoUrl(req, photo);
-        console.log('Transforming photo URL:', { original: photo, transformed: fullUrl });
+        console.log('📸 Transforming photo URL:', { original: photo, transformed: fullUrl, isCloudinary: isCloudinaryUrl(fullUrl) });
         return fullUrl;
       }).filter(Boolean);
       
@@ -662,23 +676,61 @@ router.get("/:id", async (req, res) => {
 /**
  * PUT /api/services/:id
  */
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, upload.fields([
+  { name: "photos", maxCount: 5 }, // Allow multiple photos
+]), async (req, res) => {
   try {
     const svc = await Service.findOne({ _id: req.params.id, provider: req.user.userId });
     if (!svc) return res.status(404).json({ message: "Service not found" });
 
-    const { name, category, type, description, price, isActive } = req.body;
+    const { name, category, type, description, price, isActive, priceType, location } = req.body;
 
     if (name !== undefined) svc.name = name;
     if (category !== undefined) svc.category = category;
-    if (type !== undefined) svc.type = type; // ✅ allow type update
+    if (type !== undefined) svc.type = type;
     if (description !== undefined) svc.description = description;
     if (price !== undefined) svc.price = price;
     if (isActive !== undefined) svc.isActive = isActive;
+    if (priceType !== undefined) svc.priceType = priceType;
+    if (location !== undefined) svc.location = location;
+
+    // Handle photo uploads - Cloudinary will return full URLs
+    if (req.files && req.files.photos && req.files.photos.length > 0) {
+      const newPhotos = req.files.photos.map(file => {
+        const fileUrl = getFileUrl(file);
+        console.log('📸 Service photo update upload:', {
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          url: fileUrl,
+          isCloudinary: isCloudinaryUrl(fileUrl)
+        });
+        return fileUrl;
+      }).filter(Boolean);
+      
+      // Append new photos to existing ones (or replace if needed)
+      svc.photos = [...(svc.photos || []), ...newPhotos];
+      console.log('✅ Updated service photos:', svc.photos);
+    }
 
     await svc.save();
-    res.json(svc);
+    
+    // Transform photos to full URLs for response
+    const transformedPhotos = svc.photos.map(photo => {
+      if (!photo) return null;
+      if (photo.startsWith('http://') || photo.startsWith('https://')) {
+        return photo; // Already a full URL (Cloudinary)
+      }
+      return getPhotoUrl(req, photo);
+    }).filter(Boolean);
+    
+    const responseService = {
+      ...svc.toObject(),
+      photos: transformedPhotos
+    };
+    
+    res.json(responseService);
   } catch (err) {
+    console.error("Service update error:", err);
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 });

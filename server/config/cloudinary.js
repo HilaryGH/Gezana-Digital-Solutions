@@ -12,13 +12,24 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
+    // Determine folder based on file type/fieldname
+    let folder = 'homehub';
+    if (file.fieldname === 'photos' || file.fieldname === 'servicePhotos') {
+      folder = 'homehub/services';
+    } else if (file.fieldname === 'photo' || file.fieldname === 'image') {
+      folder = 'homehub/profiles';
+    } else if (file.fieldname === 'idFile' || file.fieldname === 'license' || file.fieldname === 'tradeRegistration') {
+      folder = 'homehub/documents';
+    }
+    
     return {
-      folder: 'homehub', // Folder in Cloudinary
+      folder: folder, // Organized folders in Cloudinary
       allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'mp4', 'avi', 'mov', 'wmv'],
-      transformation: [
-        { width: 1000, height: 1000, crop: 'limit', quality: 'auto' }, // Optimize images
-      ],
-      public_id: `${Date.now()}-${file.fieldname}`, // Unique public ID
+      transformation: file.mimetype?.startsWith('image/') ? [
+        { width: 1200, height: 1200, crop: 'limit', quality: 'auto', format: 'auto' }, // Optimize images
+      ] : undefined,
+      resource_type: file.mimetype?.startsWith('video/') ? 'video' : 'auto',
+      public_id: `${Date.now()}-${file.fieldname}-${Math.random().toString(36).substring(7)}`, // Unique public ID
     };
   },
 });

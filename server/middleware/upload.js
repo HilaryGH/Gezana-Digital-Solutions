@@ -20,15 +20,20 @@ let upload;
 if (useCloudinary) {
   // Use Cloudinary storage
   // When Cloudinary is used, multer returns file.path with full Cloudinary URL
-  // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/homehub/1764607366904-photos.jpg
+  // Example: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/homehub/services/1764607366904-photos.jpg
   const { storage: cloudinaryStorage } = require("../config/cloudinary");
   storage = cloudinaryStorage;
   console.log("✅ Using Cloudinary for file uploads");
   console.log("   → Files will be stored in Cloudinary and return full URLs");
+  console.log("   → Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
 } else {
   // Fallback to local disk storage
   // When local storage is used, multer returns file.filename with just the filename
   // Example: "1764607366904-photos.jpg" (stored in server/uploads/ directory)
+  console.warn("⚠️  Cloudinary not configured!");
+  console.warn("   → Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET");
+  console.warn("   → Falling back to local storage");
+  
   storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, uploadsDir); // Use absolute path
@@ -38,7 +43,6 @@ if (useCloudinary) {
       cb(null, Date.now() + "-" + file.fieldname + ext);
     },
   });
-  console.log("⚠️  Cloudinary not configured, using local storage");
   console.log(`   → Files will be stored in: ${uploadsDir}`);
   console.log("   → Files will return just the filename (converted to full URL by getPhotoUrl)");
 }
