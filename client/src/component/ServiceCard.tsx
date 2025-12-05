@@ -67,15 +67,56 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             src={(() => {
               const photoUrl = service.photos[0];
               if (!photoUrl) return '';
-              // Always normalize the URL to ensure mobile compatibility
-              const normalized = normalizeImageUrl(photoUrl, {
-                width: 800,
-                height: 800,
+              
+              // Detect if we're on mobile device
+              const isMobile = typeof window !== 'undefined' && 
+                (window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+              
+              // Use smaller image size for mobile to ensure faster loading
+              const imageSize = isMobile ? 400 : 800;
+              
+              // For mobile devices, convert localhost URLs to current host immediately
+              let urlToUse = photoUrl;
+              if (typeof window !== 'undefined' && window.location) {
+                try {
+                  // Handle both absolute URLs and relative paths
+                  let urlObj: URL;
+                  if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+                    urlObj = new URL(photoUrl);
+                  } else {
+                    // Relative path - construct full URL
+                    const currentHost = window.location.hostname;
+                    const currentProtocol = window.location.protocol;
+                    const currentPort = window.location.port || '5000';
+                    urlObj = new URL(photoUrl, `${currentProtocol}//${currentHost}:${currentPort}`);
+                  }
+                  
+                  const currentHost = window.location.hostname;
+                  const currentProtocol = window.location.protocol;
+                  const currentPort = window.location.port || '5000';
+                  
+                  // If URL is localhost but we're on mobile (different host), convert it immediately
+                  if ((urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+                      currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+                    urlObj.hostname = currentHost;
+                    urlObj.port = currentPort;
+                    urlObj.protocol = currentProtocol;
+                    urlToUse = urlObj.toString();
+                  }
+                } catch (err) {
+                  // URL parsing failed, use original
+                }
+              }
+              
+              // Always normalize the URL with appropriate size for mobile compatibility
+              const normalized = normalizeImageUrl(urlToUse, {
+                width: imageSize,
+                height: imageSize,
                 crop: 'fill',
                 quality: 'auto',
                 format: 'auto'
               });
-              return normalized || photoUrl || '';
+              return normalized || urlToUse || '';
             })()}
             alt={service.title || (service as any).name || 'Service'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -85,17 +126,80 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               const currentSrc = target.src;
               const photoUrl = service.photos[0];
               
-              console.error('ServiceCard image error:', {
-                originalUrl: photoUrl,
-                processedUrl: getCardImageUrl(photoUrl),
-                normalizedUrl: normalizeImageUrl(photoUrl),
-                currentSrc
-              });
+              if (!photoUrl) return;
               
-              // Try mobile-converted URL first (most likely fix for mobile devices)
+              // Detect if we're on mobile device
+              const isMobile = typeof window !== 'undefined' && 
+                (window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+              
+              // Try progressively smaller image sizes for mobile (in case size is the issue)
+              const sizes = isMobile ? [300, 200, 150, 100] : [600, 400, 300];
+              const currentSizeIndex = parseInt(target.dataset.sizeRetryIndex || '0');
+              
+              if (currentSizeIndex < sizes.length && !target.dataset.sizeRetried) {
+                target.dataset.sizeRetried = 'true';
+                const smallerSize = sizes[currentSizeIndex];
+                target.dataset.sizeRetryIndex = String(currentSizeIndex + 1);
+                
+                // Convert URL for mobile first
+                let urlToUse = photoUrl;
+                if (typeof window !== 'undefined' && window.location) {
+                  try {
+                    let urlObj: URL;
+                    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+                      urlObj = new URL(photoUrl);
+                    } else {
+                      const currentHost = window.location.hostname;
+                      const currentProtocol = window.location.protocol;
+                      const currentPort = window.location.port || '5000';
+                      urlObj = new URL(photoUrl, `${currentProtocol}//${currentHost}:${currentPort}`);
+                    }
+                    
+                    const currentHost = window.location.hostname;
+                    const currentProtocol = window.location.protocol;
+                    const currentPort = window.location.port || '5000';
+                    
+                    if ((urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+                        currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+                      urlObj.hostname = currentHost;
+                      urlObj.port = currentPort;
+                      urlObj.protocol = currentProtocol;
+                      urlToUse = urlObj.toString();
+                    }
+                  } catch (err) {
+                    // URL parsing failed
+                  }
+                }
+                
+                const resizedUrl = normalizeImageUrl(urlToUse, {
+                  width: smallerSize,
+                  height: smallerSize,
+                  crop: 'fill',
+                  quality: 'auto',
+                  format: 'auto'
+                });
+                
+                if (resizedUrl && currentSrc !== resizedUrl) {
+                  console.log(`Retrying with smaller image size (${smallerSize}x${smallerSize}):`, resizedUrl);
+                  target.dataset.sizeRetried = 'false'; // Reset for next size
+                  target.src = resizedUrl;
+                  return;
+                }
+              }
+              
+              // Try mobile-converted URL (convert localhost to current host)
               if (typeof window !== 'undefined' && window.location && photoUrl) {
                 try {
-                  const urlObj = new URL(photoUrl);
+                  let urlObj: URL;
+                  if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+                    urlObj = new URL(photoUrl);
+                  } else {
+                    const currentHost = window.location.hostname;
+                    const currentProtocol = window.location.protocol;
+                    const currentPort = window.location.port || '5000';
+                    urlObj = new URL(photoUrl, `${currentProtocol}//${currentHost}:${currentPort}`);
+                  }
+                  
                   const currentHost = window.location.hostname;
                   const currentProtocol = window.location.protocol;
                   const currentPort = window.location.port || '5000';
@@ -118,7 +222,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 }
               }
               
-              // Try normalized URL if not already tried
+              // Try normalized URL without size constraints
               const normalized = normalizeImageUrl(photoUrl);
               if (normalized && currentSrc !== normalized && !target.dataset.normalizedRetried) {
                 target.dataset.normalizedRetried = 'true';
@@ -127,42 +231,77 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 return;
               }
               
-              // Try getCardImageUrl if not already tried
-              const cardUrl = getCardImageUrl(photoUrl);
-              if (cardUrl && currentSrc !== cardUrl && !target.dataset.cardRetried) {
-                target.dataset.cardRetried = 'true';
-                console.log('Retrying with card URL:', cardUrl);
-                target.src = cardUrl;
-                return;
-              }
-              
-              // Try original URL if not already tried (last resort)
+              // Try original URL with mobile conversion
               if (photoUrl && currentSrc !== photoUrl && !target.dataset.originalRetried) {
                 target.dataset.originalRetried = 'true';
-                console.log('Retrying with original URL:', photoUrl);
-                target.src = photoUrl;
+                
+                // Convert original URL for mobile
+                let originalUrl = photoUrl;
+                if (typeof window !== 'undefined' && window.location) {
+                  try {
+                    let urlObj: URL;
+                    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+                      urlObj = new URL(photoUrl);
+                    } else {
+                      const currentHost = window.location.hostname;
+                      const currentProtocol = window.location.protocol;
+                      const currentPort = window.location.port || '5000';
+                      urlObj = new URL(photoUrl, `${currentProtocol}//${currentHost}:${currentPort}`);
+                    }
+                    
+                    const currentHost = window.location.hostname;
+                    const currentProtocol = window.location.protocol;
+                    const currentPort = window.location.port || '5000';
+                    
+                    if ((urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') &&
+                        currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+                      urlObj.hostname = currentHost;
+                      urlObj.port = currentPort;
+                      urlObj.protocol = currentProtocol;
+                      originalUrl = urlObj.toString();
+                    }
+                  } catch (err) {
+                    // URL parsing failed
+                  }
+                }
+                
+                console.log('Retrying with original URL (mobile-converted):', originalUrl);
+                target.src = originalUrl;
                 return;
               }
               
-              // Don't use fallback - just hide the image or show placeholder
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent && !parent.querySelector('.image-placeholder')) {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'image-placeholder w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center';
-                placeholder.innerHTML = `
-                  <div class="text-center">
-                    <div class="w-12 h-12 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <span class="text-xl">🔧</span>
+              // If all retries failed, show placeholder but keep trying in background
+              if (!target.dataset.placeholderShown) {
+                target.dataset.placeholderShown = 'true';
+                target.style.opacity = '0.3';
+                const parent = target.parentElement;
+                if (parent && !parent.querySelector('.image-placeholder')) {
+                  const placeholder = document.createElement('div');
+                  placeholder.className = 'image-placeholder absolute inset-0 w-full h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center pointer-events-none';
+                  placeholder.innerHTML = `
+                    <div class="text-center">
+                      <div class="w-12 h-12 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
+                        <span class="text-xl">🔧</span>
+                      </div>
+                      <p class="text-gray-600 text-xs">Loading image...</p>
                     </div>
-                    <p class="text-gray-600 text-xs">Image unavailable</p>
-                  </div>
-                `;
-                parent.appendChild(placeholder);
+                  `;
+                  parent.appendChild(placeholder);
+                }
               }
             }}
-            onLoad={() => {
+            onLoad={(e) => {
               console.log('✅ ServiceCard image loaded successfully');
+              // Remove placeholder and restore opacity if image loads
+              const target = e.currentTarget;
+              target.style.opacity = '1';
+              const parent = target.parentElement;
+              if (parent) {
+                const placeholder = parent.querySelector('.image-placeholder');
+                if (placeholder) {
+                  placeholder.remove();
+                }
+              }
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
