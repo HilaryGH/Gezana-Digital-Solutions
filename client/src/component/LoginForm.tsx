@@ -4,6 +4,23 @@ import { useTranslation } from "react-i18next";
 import { Mail, Lock } from "lucide-react"; // nice icons
 import axios from "../api/axios";
 
+// Get backend base URL for OAuth redirects
+const getBackendBaseURL = () => {
+  if (import.meta.env.DEV) {
+    if (typeof window !== 'undefined' && window.location) {
+      const hostname = window.location.hostname;
+      const port = '5000';
+      
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        const protocol = window.location.protocol;
+        return `${protocol}//${hostname}:${port}`;
+      }
+    }
+    return "http://localhost:5000";
+  }
+  return "https://gezana-api.onrender.com"; // Production server
+};
+
 type LoginResponse = {
   token: string;
   user: {
@@ -67,7 +84,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
   };
 
   const handleSocialLogin = (provider: "google" | "facebook") => {
-    window.location.href = `/api/auth/${provider}`;
+    const backendURL = getBackendBaseURL();
+    window.location.href = `${backendURL}/auth/${provider}`;
   };
 
   return (
