@@ -88,7 +88,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   // Determine callback URL based on environment
   // The callback URL must be the BACKEND URL where Facebook will redirect
   const getFacebookCallbackURL = () => {
-    // Use FACEBOOK_CALLBACK_URL from .env if provided
+    // If FACEBOOK_CALLBACK_URL is explicitly set, use it
     if (process.env.FACEBOOK_CALLBACK_URL) {
       return process.env.FACEBOOK_CALLBACK_URL;
     }
