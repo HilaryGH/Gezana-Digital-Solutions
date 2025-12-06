@@ -138,6 +138,8 @@ app.use(passport.session());
 // Routes
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
+// Also mount at /auth for OAuth callbacks
+app.use("/auth", authRoutes);
 
 const userRoutes = require("./routes/user");
 app.use("/api/user", userRoutes);

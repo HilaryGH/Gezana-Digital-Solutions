@@ -26,12 +26,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   const getCallbackURL = () => {
     if (process.env.NODE_ENV === 'production') {
       // In production, always use the backend URL
-      return 'https://gezana-api.onrender.com/api/auth/google/callback';
+      return 'https://gezana-api.onrender.com/auth/google/callback';
     }
     // In development, use localhost backend
     return process.env.SERVER_URL 
-      ? `${process.env.SERVER_URL}/api/auth/google/callback`
-      : 'http://localhost:5000/api/auth/google/callback';
+      ? `${process.env.SERVER_URL}/auth/google/callback`
+      : 'http://localhost:5000/auth/google/callback';
   };
 
   passport.use(
@@ -89,12 +89,12 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   const getFacebookCallbackURL = () => {
     if (process.env.NODE_ENV === 'production') {
       // In production, always use the backend URL
-      return 'https://gezana-api.onrender.com/api/auth/facebook/callback';
+      return 'https://gezana-api.onrender.com/auth/facebook/callback';
     }
     // In development, use localhost backend
     return process.env.SERVER_URL 
-      ? `${process.env.SERVER_URL}/api/auth/facebook/callback`
-      : 'http://localhost:5000/api/auth/facebook/callback';
+      ? `${process.env.SERVER_URL}/auth/facebook/callback`
+      : 'http://localhost:5000/auth/facebook/callback';
   };
 
   passport.use(

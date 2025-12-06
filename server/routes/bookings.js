@@ -140,22 +140,54 @@ router.post("/", async (req, res) => {
     }
 
     // Find or create category and serviceType
-    console.log("🔍 Finding/creating category:", serviceDoc.category);
-    let categoryDoc = await Category.findOne({ name: serviceDoc.category });
+    // Ensure we have valid category and type names
+    const categoryName = serviceDoc.category || 'General';
+    const serviceTypeName = serviceDoc.type || 'Standard';
+    
+    console.log("🔍 Finding/creating category:", categoryName);
+    let categoryDoc = await Category.findOne({ name: categoryName });
     if (!categoryDoc) {
-      console.log("📝 Creating new category:", serviceDoc.category);
-      categoryDoc = await Category.create({ name: serviceDoc.category });
+      try {
+        console.log("📝 Creating new category:", categoryName);
+        categoryDoc = await Category.create({ name: categoryName });
+        console.log("✅ Category created:", categoryDoc.name, "ID:", categoryDoc._id);
+      } catch (error) {
+        // If creation fails (e.g., duplicate key), try to find it again
+        console.warn("⚠️  Category creation failed, trying to find again:", error.message);
+        categoryDoc = await Category.findOne({ name: categoryName });
+        if (!categoryDoc) {
+          // Last resort: find any category or create a default one
+          categoryDoc = await Category.findOne() || await Category.create({ name: 'General' });
+          console.log("⚠️  Using fallback category:", categoryDoc.name);
+        }
+      }
     }
     console.log("✅ Category:", categoryDoc.name, "ID:", categoryDoc._id);
 
-    console.log("🔍 Finding/creating service type:", serviceDoc.type);
-    let serviceTypeDoc = await ServiceType.findOne({ name: serviceDoc.type });
+    console.log("🔍 Finding/creating service type:", serviceTypeName);
+    let serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
     if (!serviceTypeDoc) {
-      console.log("📝 Creating new service type:", serviceDoc.type);
-      serviceTypeDoc = await ServiceType.create({ 
-        name: serviceDoc.type,
-        category: categoryDoc._id 
-      });
+      try {
+        console.log("📝 Creating new service type:", serviceTypeName);
+        serviceTypeDoc = await ServiceType.create({ 
+          name: serviceTypeName,
+          category: categoryDoc._id 
+        });
+        console.log("✅ Service Type created:", serviceTypeDoc.name, "ID:", serviceTypeDoc._id);
+      } catch (error) {
+        // If creation fails, try to find it again
+        console.warn("⚠️  Service type creation failed, trying to find again:", error.message);
+        serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
+        if (!serviceTypeDoc) {
+          // Last resort: find any service type with the same category or create a default one
+          serviceTypeDoc = await ServiceType.findOne({ category: categoryDoc._id }) 
+            || await ServiceType.create({ 
+                name: 'Standard',
+                category: categoryDoc._id 
+              });
+          console.log("⚠️  Using fallback service type:", serviceTypeDoc.name);
+        }
+      }
     }
     console.log("✅ Service Type:", serviceTypeDoc.name, "ID:", serviceTypeDoc._id);
 
@@ -378,6 +410,70 @@ router.get("/my", authMiddleware, async (req, res) => {
   }
 });
 
+
+// Utility endpoint to restore missing categories from services
+router.post("/restore-categories", async (req, res) => {
+  try {
+    console.log("🔄 Starting category restoration...");
+    
+    // Get all services
+    const services = await Service.find({});
+    console.log(`📋 Found ${services.length} services`);
+    
+    const categoriesCreated = [];
+    const serviceTypesCreated = [];
+    
+    for (const service of services) {
+      const categoryName = service.category || 'General';
+      const serviceTypeName = service.type || 'Standard';
+      
+      // Find or create category
+      let categoryDoc = await Category.findOne({ name: categoryName });
+      if (!categoryDoc) {
+        try {
+          categoryDoc = await Category.create({ name: categoryName });
+          categoriesCreated.push(categoryName);
+          console.log(`✅ Created category: ${categoryName}`);
+        } catch (error) {
+          console.warn(`⚠️  Failed to create category ${categoryName}:`, error.message);
+          categoryDoc = await Category.findOne({ name: categoryName });
+        }
+      }
+      
+      // Find or create service type
+      if (categoryDoc) {
+        let serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
+        if (!serviceTypeDoc) {
+          try {
+            serviceTypeDoc = await ServiceType.create({ 
+              name: serviceTypeName,
+              category: categoryDoc._id 
+            });
+            serviceTypesCreated.push(serviceTypeName);
+            console.log(`✅ Created service type: ${serviceTypeName} for category: ${categoryName}`);
+          } catch (error) {
+            console.warn(`⚠️  Failed to create service type ${serviceTypeName}:`, error.message);
+          }
+        }
+      }
+    }
+    
+    res.json({
+      message: "Category restoration completed",
+      servicesProcessed: services.length,
+      categoriesCreated: categoriesCreated.length,
+      serviceTypesCreated: serviceTypesCreated.length,
+      newCategories: categoriesCreated,
+      newServiceTypes: serviceTypesCreated
+    });
+  } catch (err) {
+    console.error("❌ Category restoration failed:", err);
+    res.status(500).json({ 
+      message: "Category restoration failed", 
+      error: err.message 
+    });
+  }
+});
 
 module.exports = router;
 
