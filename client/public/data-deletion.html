@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Deletion Request - HomeHub Digital Solutions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2e3dd3 0%, #ff6b35 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .alert {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .alert h3 {
+            color: #856404;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .alert p {
+            color: #856404;
+            margin-bottom: 0;
+        }
+        
+        section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #2e3dd3;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        h3 {
+            color: #ff6b35;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            margin-top: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #2e3dd3;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            margin-top: 4px;
+        }
+        
+        .checkbox-group label {
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #2e3dd3 0%, #ff6b35 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 61, 211, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2e3dd3;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .info-box h3 {
+            color: #2e3dd3;
+            margin-top: 0;
+        }
+        
+        .contact-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #2e3dd3;
+            margin-top: 20px;
+        }
+        
+        .contact-info h3 {
+            color: #2e3dd3;
+            margin-top: 0;
+        }
+        
+        a {
+            color: #2e3dd3;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .steps {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #2e3dd3 0%, #ff6b35 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #f8f9fa;
+            margin-top: 40px;
+            border-top: 2px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+            
+            .form-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Data Deletion Request</h1>
+        <p>HomeHub Digital Solutions</p>
+    </header>
+    
+    <div class="container">
+        <div class="alert">
+            <h3>⚠️ Important Notice</h3>
+            <p>
+                <strong>Before submitting a data deletion request, please note:</strong> Deleting your account and data is permanent and cannot be undone. This action will remove all your information, bookings, reviews, and account history from our platform.
+            </p>
+        </div>
+        
+        <section>
+            <h2>Your Right to Data Deletion</h2>
+            <p>
+                Under data protection laws, including GDPR and other applicable regulations, you have the right to request the deletion of your personal data. HomeHub Digital Solutions is committed to honoring your privacy rights and will process your deletion request in accordance with applicable laws.
+            </p>
+        </section>
+        
+        <section>
+            <h2>What Will Be Deleted</h2>
+            <p>When you request account deletion, the following information will be permanently removed:</p>
+            <ul>
+                <li>Your account profile and personal information</li>
+                <li>Email address and contact details</li>
+                <li>Payment information (stored securely and processed through third-party providers)</li>
+                <li>Service preferences and booking history</li>
+                <li>Reviews and ratings you have submitted</li>
+                <li>Uploaded documents and files</li>
+                <li>Communication history</li>
+                <li>Loyalty points and rewards</li>
+            </ul>
+            
+            <div class="info-box">
+                <h3>📋 Information That May Be Retained</h3>
+                <p>For legal and business purposes, we may retain certain information even after account deletion:</p>
+                <ul>
+                    <li>Transaction records required for financial and tax compliance (anonymized where possible)</li>
+                    <li>Information necessary to resolve disputes or enforce agreements</li>
+                    <li>Data required by law or regulatory authorities</li>
+                    <li>Aggregated, anonymized data that cannot identify you</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section>
+            <h2>How to Request Data Deletion</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Log into Your Account</h3>
+                        <p>You must be logged into the account you wish to delete. This helps us verify your identity and ensure the request is legitimate.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Submit the Request Form</h3>
+                        <p>Fill out the form below with your account information and reason for deletion. All fields marked with * are required.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Verification Process</h3>
+                        <p>We will verify your identity by sending a confirmation email to your registered email address. You must confirm the deletion request.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Processing</h3>
+                        <p>Once verified, we will process your deletion request within 30 days. You will receive a confirmation email when the process is complete.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>Alternative Methods</h2>
+            <p>If you prefer not to use the online form, you can also request data deletion by:</p>
+            <ul>
+                <li>Emailing us directly at <a href="mailto:privacy@homehubdigital.com">privacy@homehubdigital.com</a></li>
+                <li>Contacting our support team through the platform</li>
+                <li>Using the account deletion option in your account settings (if available)</li>
+            </ul>
+        </section>
+        
+        <section class="form-section">
+            <h2>Data Deletion Request Form</h2>
+            <p>Please fill out this form to request the deletion of your account and personal data.</p>
+            
+            <form id="deletionForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        placeholder="Enter your registered email address"
+                    />
+                </div>
+                
+                <div class="form-group">
+                    <label for="accountType">Account Type *</label>
+                    <select id="accountType" name="accountType" required>
+                        <option value="">Select your account type</option>
+                        <option value="seeker">Service Seeker</option>
+                        <option value="provider">Service Provider</option>
+                        <option value="both">Both (Seeker and Provider)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reason">Reason for Deletion (Optional)</label>
+                    <select id="reason" name="reason">
+                        <option value="">Select a reason (optional)</option>
+                        <option value="no-longer-needed">No longer using the service</option>
+                        <option value="privacy-concerns">Privacy concerns</option>
+                        <option value="account-duplicate">Duplicate account</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="additionalInfo">Additional Information (Optional)</label>
+                    <textarea 
+                        id="additionalInfo" 
+                        name="additionalInfo" 
+                        placeholder="Provide any additional details about your deletion request..."
+                    ></textarea>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="confirm" name="confirm" required />
+                    <label for="confirm">
+                        I understand that deleting my account is permanent and cannot be undone. I confirm that I want to proceed with the deletion of my account and all associated data. *
+                    </label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="backup" name="backup" />
+                    <label for="backup">
+                        I would like to receive a copy of my data before deletion (if available)
+                    </label>
+                </div>
+                
+                <button type="submit" class="submit-btn">Submit Deletion Request</button>
+            </form>
+            
+            <div class="info-box" style="margin-top: 30px;">
+                <h3>🔒 Security Note</h3>
+                <p>
+                    For security purposes, we will send a verification email to confirm your identity before processing the deletion request. This helps protect your account from unauthorized deletion attempts.
+                </p>
+            </div>
+        </section>
+        
+        <section>
+            <h2>Processing Time</h2>
+            <p>
+                We aim to process all data deletion requests within <strong>30 days</strong> of receiving a verified request. In some cases, it may take longer if there are active bookings, pending transactions, or legal obligations that require us to retain certain information for a specific period.
+            </p>
+        </section>
+        
+        <section>
+            <h2>Contact Us</h2>
+            <p>If you have questions about data deletion or need assistance with your request, please contact us:</p>
+            
+            <div class="contact-info">
+                <h3>HomeHub Digital Solutions</h3>
+                <p><strong>Email:</strong> <a href="mailto:privacy@homehubdigital.com">privacy@homehubdigital.com</a></p>
+                <p><strong>Support Email:</strong> <a href="mailto:support@homehubdigital.com">support@homehubdigital.com</a></p>
+                <p><strong>Website:</strong> <a href="https://homehubdigital.netlify.app">https://homehubdigital.netlify.app</a></p>
+                <p><strong>Address:</strong> Addis Ababa, Ethiopia</p>
+            </div>
+        </section>
+        
+        <footer>
+            <p>&copy; <span id="currentYear"></span> HomeHub Digital Solutions. All rights reserved.</p>
+            <p style="margin-top: 10px;">
+                <a href="/">Return to Home</a> | 
+                <a href="/privacy-policy.html">Privacy Policy</a> | 
+                <a href="/about">About Us</a> | 
+                <a href="/contact">Contact Us</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // Set current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // Handle form submission
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            // Validate confirmation checkbox
+            if (!data.confirm) {
+                alert('Please confirm that you understand the deletion is permanent.');
+                return;
+            }
+            
+            // Create mailto link with form data
+            const email = data.email;
+            const subject = encodeURIComponent('Data Deletion Request - HomeHub Digital Solutions');
+            const body = encodeURIComponent(
+                `Data Deletion Request\n\n` +
+                `Email: ${data.email}\n` +
+                `Account Type: ${data.accountType}\n` +
+                `Reason: ${data.reason || 'Not specified'}\n` +
+                `Additional Information: ${data.additionalInfo || 'None'}\n` +
+                `Request Data Backup: ${data.backup ? 'Yes' : 'No'}\n\n` +
+                `I confirm that I want to delete my account and all associated data.\n\n` +
+                `This request was submitted through the Data Deletion Request form.`
+            );
+            
+            // Open email client
+            window.location.href = `mailto:privacy@homehubdigital.com?subject=${subject}&body=${body}`;
+            
+            // Show confirmation message
+            alert('Thank you for your request. Your email client should open with a pre-filled message. Please send the email to complete your deletion request. We will process your request within 30 days after verification.');
+        }
+    </script>
+</body>
+</html>
+
