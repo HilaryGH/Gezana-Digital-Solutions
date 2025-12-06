@@ -88,6 +88,11 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   // Determine callback URL based on environment
   // The callback URL must be the BACKEND URL where Facebook will redirect
   const getFacebookCallbackURL = () => {
+    // Use FACEBOOK_CALLBACK_URL from .env if provided
+    if (process.env.FACEBOOK_CALLBACK_URL) {
+      return process.env.FACEBOOK_CALLBACK_URL;
+    }
+    
     if (process.env.NODE_ENV === 'production') {
       // In production, always use the backend URL
       return 'https://gezana-api.onrender.com/auth/facebook/callback';
