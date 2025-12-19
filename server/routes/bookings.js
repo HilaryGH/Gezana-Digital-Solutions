@@ -6,7 +6,9 @@ const Service = require("../models/Service");
 const Category = require("../models/Category");
 const ServiceType = require("../models/ServiceType");
 const User = require("../models/User");
+const Referral = require("../models/Referral");
 const { sendBookingConfirmationNotifications } = require("../utils/notificationService");
+const { getDistanceBetween } = require("../utils/geolocation");
 const JWT_SECRET = require("../config/jwt");
 
 
@@ -87,7 +89,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // Create a booking (supports both logged-in users and guests)
 router.post("/", async (req, res) => {
   try {
-    const { service, date, note, guestInfo, paymentMethod } = req.body;
+    const { service, date, note, guestInfo, paymentMethod, referralCode } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
 
     console.log("📋 Booking request received:");
@@ -191,6 +193,42 @@ router.post("/", async (req, res) => {
     }
     console.log("✅ Service Type:", serviceTypeDoc.name, "ID:", serviceTypeDoc._id);
 
+    // Calculate distance between seeker and provider
+    let distance = null;
+    try {
+      // Get seeker location
+      let seekerLocation = null;
+      if (userId) {
+        // For logged-in users, get location from user profile
+        const seekerUser = await User.findById(userId).select('latitude longitude coordinates');
+        if (seekerUser) {
+          seekerLocation = seekerUser;
+        }
+      } else if (guestInfo && guestInfo.latitude && guestInfo.longitude) {
+        // For guests, use coordinates from guestInfo if provided
+        seekerLocation = {
+          latitude: parseFloat(guestInfo.latitude),
+          longitude: parseFloat(guestInfo.longitude)
+        };
+      }
+
+      // Get provider location from service
+      const providerUser = await User.findById(serviceDoc.provider._id || serviceDoc.provider)
+        .select('latitude longitude coordinates');
+      
+      if (seekerLocation && providerUser) {
+        distance = getDistanceBetween(seekerLocation, providerUser);
+        console.log("📏 Calculated distance:", distance, "km");
+      } else {
+        console.log("⚠️  Distance calculation skipped - missing location data");
+        if (!seekerLocation) console.log("   Seeker location not available");
+        if (!providerUser) console.log("   Provider location not available");
+      }
+    } catch (error) {
+      console.error("❌ Error calculating distance:", error);
+      // Continue with booking creation even if distance calculation fails
+    }
+
     const bookingData = {
       user: userId,
       category: categoryDoc._id,
@@ -200,6 +238,7 @@ router.post("/", async (req, res) => {
       note,
       paymentMethod: paymentMethod || 'cash', // Save payment method
       paymentStatus: paymentMethod === 'online' ? 'pending' : 'pending', // Online payments start as pending until paid
+      distance: distance, // Save calculated distance
     };
 
     // Add guest information if no user ID
@@ -207,11 +246,24 @@ router.post("/", async (req, res) => {
       bookingData.guestInfo = guestInfo;
     }
 
+    // Handle referral code if provided
+    if (referralCode) {
+      const referrerUser = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+      if (referrerUser) {
+        bookingData.referralCode = referralCode.trim().toUpperCase();
+        console.log(`✅ Referral code ${referralCode} found. Referrer: ${referrerUser.name} (${referrerUser._id})`);
+      } else {
+        console.log(`⚠️  Invalid referral code: ${referralCode}`);
+        // Don't fail booking if referral code is invalid, just log it
+      }
+    }
+
     console.log("📝 Creating booking with data:", {
       user: userId || 'guest',
       category: categoryDoc._id,
       serviceType: serviceTypeDoc._id,
       service,
+      distance: distance ? `${distance} km` : 'N/A',
       hasGuestInfo: !!bookingData.guestInfo
     });
 
@@ -231,6 +283,43 @@ router.post("/", async (req, res) => {
       await User.findByIdAndUpdate(userId, {
         $inc: { loyaltyPoints: points },
       });
+    }
+
+    // Handle referral tracking if referral code was used
+    if (referralCode && bookingData.referralCode) {
+      try {
+        const referrerUser = await User.findOne({ referralCode: bookingData.referralCode });
+        if (referrerUser) {
+          // Check if referral already exists for this user and booking
+          let referral = await Referral.findOne({
+            referrer: referrerUser._id,
+            bookingId: booking._id
+          });
+
+          if (!referral) {
+            // Create new referral record
+            referral = new Referral({
+              referrer: referrerUser._id,
+              referredUser: userId || null, // null for guest bookings
+              referralCode: bookingData.referralCode,
+              usedInPurchase: true,
+              bookingId: booking._id,
+              status: "completed"
+            });
+            await referral.save();
+
+            // Update referrer's referral count
+            await User.findByIdAndUpdate(referrerUser._id, {
+              $inc: { referralCount: 1 }
+            });
+
+            console.log(`✅ Referral tracked for booking: ${referrerUser.name} referred this purchase`);
+          }
+        }
+      } catch (error) {
+        console.error("Error tracking referral for booking:", error);
+        // Don't fail booking if referral tracking fails
+      }
     }
 
     // Send booking confirmation notifications
@@ -275,8 +364,15 @@ router.post("/", async (req, res) => {
       // Don't fail booking if notifications fail
     }
 
-    // Return populated booking with user info and guestInfo
-    res.status(201).json(populatedBooking);
+    // Return populated booking with user info, guestInfo, and distance
+    const responseData = populatedBooking.toObject();
+    responseData.distance = booking.distance; // Include distance in response
+    
+    res.status(201).json({
+      ...responseData,
+      distance: booking.distance, // Distance in kilometers
+      distanceUnit: 'km'
+    });
   } catch (err) {
     console.error("❌ Booking failed:", err);
     console.error("Error details:", {

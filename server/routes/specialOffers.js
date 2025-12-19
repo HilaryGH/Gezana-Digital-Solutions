@@ -98,15 +98,21 @@ const checkPremiumMembership = async (req, res, next) => {
   }
 };
 
-// Create a new special offer (All providers)
+// Create a new special offer (Only providers and service seekers, NOT individual seekers)
 router.post("/", authMiddleware, upload.single("image"), async (req, res) => {
   try {
-    // Check if user is a provider
+    // Check if user is a provider or service seeker (NOT individual seeker)
     const user = await User.findById(req.user.userId);
-    if (user.role !== "provider") {
+    if (user.role === "seeker" && user.seekerType === "individual") {
       return res.status(403).json({
         success: false,
-        message: "Only providers can create special offers",
+        message: "Individual seekers cannot create special offers. Only providers and service seekers can create special offers.",
+      });
+    }
+    if (user.role !== "provider" && !(user.role === "seeker" && user.seekerType === "service")) {
+      return res.status(403).json({
+        success: false,
+        message: "Only providers and service seekers can create special offers",
       });
     }
 
@@ -280,10 +286,24 @@ router.get("/active", async (req, res) => {
   try {
     const now = new Date();
     
-    // First, get all offers (including inactive ones for debugging)
+    // First, get all offers with service IDs preserved
+    // We need to get the raw service IDs before populate, in case service documents are deleted
+    const allOffersRaw = await SpecialOffer.find({})
+      .select("service provider title description discountType discountValue originalPrice discountedPrice startDate endDate isActive maxUses currentUses image terms createdAt updatedAt")
+      .lean();
+    
+    // Store service IDs before populate
+    const serviceIdMap = new Map();
+    allOffersRaw.forEach(offer => {
+      if (offer.service) {
+        serviceIdMap.set(offer._id.toString(), offer.service.toString());
+      }
+    });
+    
+    // Now get offers with populate
     const allOffers = await SpecialOffer.find({})
       .populate("provider", "name companyName")
-      .populate("service", "name price photos category")
+      .populate("service", "_id name price photos category")
       .sort({ createdAt: -1 })
       .limit(50);
     
@@ -357,10 +377,19 @@ router.get("/active", async (req, res) => {
       return canUse;
     });
     
-    console.log(`✅ Final valid offers: ${validOffers.length}`);
+    // Filter out offers where service is null (service was deleted)
+    const offersWithValidServices = validOffers.filter((offer) => {
+      const hasService = !!offer.service;
+      if (!hasService) {
+        console.log(`❌ Offer ${offer._id} (${offer.title}) filtered: service was deleted`);
+      }
+      return hasService;
+    });
+    
+    console.log(`✅ Final valid offers: ${offersWithValidServices.length}`);
     
     // If no valid offers but we have offers in DB, return them anyway for debugging
-    if (validOffers.length === 0 && allOffers.length > 0) {
+    if (offersWithValidServices.length === 0 && allOffers.length > 0) {
       console.log(`⚠️  No valid offers found, but ${allOffers.length} offers exist in database`);
       console.log(`⚠️  Returning all offers for debugging purposes`);
       
@@ -380,7 +409,8 @@ router.get("/active", async (req, res) => {
         debug: {
           totalOffers: allOffers.length,
           afterDateFilter: offers.length,
-          finalCount: validOffers.length,
+          afterMaxUsesFilter: validOffers.length,
+          finalCount: offersWithValidServices.length,
           currentTime: now.toISOString(),
           warning: "No valid offers found, returning all offers for debugging"
         }
@@ -388,13 +418,39 @@ router.get("/active", async (req, res) => {
       return;
     }
 
+    // Ensure service _id is included in response
+    // Convert to plain objects and ensure service._id is present
+    const offersWithServiceId = offersWithValidServices.map(offer => {
+      const offerObj = offer.toObject ? offer.toObject() : { ...offer };
+      const offerId = offerObj._id.toString();
+      
+      // Ensure service._id is present if service is populated
+      if (offerObj.service && typeof offerObj.service === 'object') {
+        // If _id is missing, try to get it from various possible locations
+        if (!offerObj.service._id) {
+          // Mongoose should include _id by default, but if it's missing, try these:
+          if (offer.service?._id) {
+            offerObj.service._id = offer.service._id.toString();
+          } else if (offer.service?.id) {
+            offerObj.service._id = offer.service.id.toString();
+          }
+        } else {
+          // Ensure _id is a string
+          offerObj.service._id = offerObj.service._id.toString();
+        }
+      }
+      
+      return offerObj;
+    });
+
     res.json({
       success: true,
-      offers: validOffers,
+      offers: offersWithServiceId,
       debug: {
         totalOffers: allOffers.length,
         afterDateFilter: offers.length,
-        finalCount: validOffers.length,
+        afterMaxUsesFilter: validOffers.length,
+        finalCount: offersWithValidServices.length,
         currentTime: now.toISOString()
       }
     });

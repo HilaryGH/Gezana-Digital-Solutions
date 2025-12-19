@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../Navbar";
-import Footer from "../Footer";
+import { ArrowLeft } from "lucide-react";
 import axios from "../../api/axios";
 
-type PlanType = 'individual-monthly' | 'individual-yearly' | 'corporate-monthly' | 'corporate-yearly';
+type PlanType = 'individual-monthly' | 'individual-yearly' | 'corporate-monthly' | 'corporate-yearly' | 'provider-monthly' | 'provider-yearly';
+type UserType = 'seeker' | 'provider';
 
 interface Plan {
   id: PlanType;
@@ -12,41 +12,66 @@ interface Plan {
   price: string;
   period: string;
   description: string;
+  userType: UserType;
 }
 
-const plans: Plan[] = [
+const seekerPlans: Plan[] = [
   {
     id: 'individual-monthly',
     name: 'Individual Monthly',
     price: '100',
     period: 'month',
-    description: 'Enhanced service listings, priority support & exclusive provider perks.'
+    description: 'Enhanced service listings, priority support & exclusive provider perks for individual service seekers.',
+    userType: 'seeker'
   },
   {
     id: 'individual-yearly',
     name: 'Individual Yearly',
     price: '1000',
     period: 'year',
-    description: 'All monthly benefits plus 2 complimentary featured listings.'
+    description: 'All monthly benefits plus 2 complimentary featured listings and priority customer support.',
+    userType: 'seeker'
   },
   {
     id: 'corporate-monthly',
     name: 'Corporate Monthly',
     price: '300',
     period: 'month',
-    description: 'Business service management, team dashboards & analytics.'
+    description: 'Business service management, team dashboards & analytics for corporate clients.',
+    userType: 'seeker'
   },
   {
     id: 'corporate-yearly',
     name: 'Corporate Yearly',
     price: '2500',
     period: 'year',
-    description: 'All monthly benefits plus custom business strategy consultation.'
+    description: 'All monthly benefits plus custom business strategy consultation and dedicated account manager.',
+    userType: 'seeker'
+  }
+];
+
+const providerPlans: Plan[] = [
+  {
+    id: 'provider-monthly',
+    name: 'Service Provider Monthly',
+    price: '200',
+    period: 'month',
+    description: 'Enhanced service listings, priority support, analytics dashboard, and exclusive provider perks.',
+    userType: 'provider'
+  },
+  {
+    id: 'provider-yearly',
+    name: 'Service Provider Annually',
+    price: '1500',
+    period: 'year',
+    description: 'All monthly benefits plus 2 complimentary featured listings, priority customer support, and advanced analytics.',
+    userType: 'provider'
   }
 ];
 
 const PremiumMembershipPage = () => {
   const navigate = useNavigate();
+  const [userType, setUserType] = useState<UserType>('seeker');
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('individual-monthly');
   const [formData, setFormData] = useState({
     fullName: '',
@@ -60,7 +85,19 @@ const PremiumMembershipPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
+  // Get current plans based on user type
+  const currentPlans = userType === 'seeker' ? seekerPlans : providerPlans;
+  const selectedPlanData = currentPlans.find(plan => plan.id === selectedPlan) || currentPlans[0];
+
+  // Update selected plan when user type changes
+  const handleUserTypeChange = (newUserType: UserType) => {
+    setUserType(newUserType);
+    if (newUserType === 'seeker') {
+      setSelectedPlan('individual-monthly');
+    } else {
+      setSelectedPlan('provider-monthly');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,13 +142,22 @@ const PremiumMembershipPage = () => {
       );
 
       if (response.data.success) {
-        // Navigate to payment page with membership data
+        // Navigate to payment page with membership data and selected subscription
         navigate("/payment", {
           state: {
             type: "premium-membership",
             membership: response.data.membership,
             amount: parseInt(selectedPlanData.price),
             planName: selectedPlanData.name,
+            planType: selectedPlan,
+            period: selectedPlanData.period,
+            subscription: {
+              planId: selectedPlan,
+              planName: selectedPlanData.name,
+              price: parseInt(selectedPlanData.price),
+              period: selectedPlanData.period,
+              userType: userType
+            }
           },
         });
       }
@@ -127,9 +173,16 @@ const PremiumMembershipPage = () => {
   };
 
   return (
-    <>
-      <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+      {/* Back Arrow Button */}
+      <button
+        onClick={() => navigate("/")}
+        className="fixed top-4 left-4 z-50 bg-white hover:bg-gray-100 text-gray-700 p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 flex items-center justify-center group"
+        aria-label="Go back to home"
+      >
+        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+      </button>
+
         {/* Hero Section */}
         <section className="pt-24 pb-8 md:pt-28 md:pb-12 bg-gradient-to-br from-orange-600 via-orange-500 to-orange-600 text-white relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
@@ -161,13 +214,48 @@ const PremiumMembershipPage = () => {
               </p>
             </div>
 
+            {/* User Type Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select User Type <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleUserTypeChange('seeker')}
+                  className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                    userType === 'seeker'
+                      ? 'bg-orange-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Service Seekers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUserTypeChange('provider')}
+                  className={`flex-1 px-4 py-3 rounded-lg font-semibold text-sm transition-all ${
+                    userType === 'provider'
+                      ? 'bg-orange-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Service Providers
+                </button>
+              </div>
+            </div>
+
             {/* Side by Side Layout: Plans and Form */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               {/* Plan Cards Section - Left Side */}
               <div className="lg:sticky lg:top-8 lg:h-fit">
-                <h3 className="text-base font-bold text-gray-900 mb-3">Available Plans</h3>
+                <h3 className="text-base font-bold text-gray-900 mb-3">
+                  {userType === 'seeker' ? 'Service Seeker Plans' : 'Service Provider Plans'}
+                </h3>
+                
+                {userType === 'seeker' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-2">
-                  {plans.map((plan) => (
+                    {seekerPlans.map((plan) => (
                     <div
                       key={plan.id}
                       onClick={() => setSelectedPlan(plan.id)}
@@ -193,6 +281,36 @@ const PremiumMembershipPage = () => {
                     </div>
                   ))}
                 </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Select Subscription Period
+                    </label>
+                    <select
+                      value={selectedPlan}
+                      onChange={(e) => setSelectedPlan(e.target.value as PlanType)}
+                      className="w-full px-4 py-3 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                    >
+                      {providerPlans.map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name} - {plan.price} ETB / {plan.period}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedPlanData && (
+                      <div className="bg-white rounded-lg p-4 shadow-sm border-2 border-orange-200 mt-3">
+                        <div className="mb-2">
+                          <h3 className="text-base font-bold text-gray-900 mb-1">{selectedPlanData.name}</h3>
+                          <div className="flex items-baseline gap-1.5 mb-2">
+                            <span className="text-xl font-extrabold text-orange-600">{selectedPlanData.price}</span>
+                            <span className="text-gray-600 text-xs">ETB / {selectedPlanData.period}</span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-600 leading-snug">{selectedPlanData.description}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Form Section - Right Side */}
@@ -356,8 +474,6 @@ const PremiumMembershipPage = () => {
           </div>
         </footer>
       </div>
-      <Footer />
-    </>
   );
 };
 

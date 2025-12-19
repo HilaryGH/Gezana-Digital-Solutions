@@ -97,7 +97,7 @@ const premiumMembershipSchema = new mongoose.Schema(
 premiumMembershipSchema.pre("save", async function (next) {
   if (!this.invoiceNumber && this.paymentStatus === "paid") {
     const count = await mongoose.model("PremiumMembership").countDocuments();
-    this.invoiceNumber = `INV-${Date.now()}-${String(count + 1).padStart(6, "0")}`;
+    this.invoiceNumber = `INV-${String(count + 1).padStart(4, "0")}`;
   }
   next();
 });
@@ -108,6 +108,10 @@ premiumMembershipSchema.index({ paymentStatus: 1 });
 premiumMembershipSchema.index({ invoiceNumber: 1 });
 
 module.exports = mongoose.model("PremiumMembership", premiumMembershipSchema);
+
+
+
+
 
 
 

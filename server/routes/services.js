@@ -1000,4 +1000,24 @@ router.get("/top-providers", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/services/provider/:providerId - Get all services by provider ID (public)
+ */
+router.get("/provider/:providerId", async (req, res) => {
+  try {
+    const { providerId } = req.params;
+    const services = await Service.find({ 
+      provider: providerId,
+      isActive: true 
+    })
+      .populate("category", "name")
+      .select("_id name");
+
+    res.json(services);
+  } catch (err) {
+    console.error("Error fetching provider services:", err);
+    res.status(500).json({ message: "Failed to fetch provider services" });
+  }
+});
+
 module.exports = router;

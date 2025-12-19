@@ -53,6 +53,7 @@ const BookServiceWithPayment: React.FC = () => {
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -137,6 +138,7 @@ const BookServiceWithPayment: React.FC = () => {
           date,
           note,
           paymentMethod,
+          ...(referralCode ? { referralCode: referralCode.trim().toUpperCase() } : {}),
         },
         { 
           headers: { Authorization: `Bearer ${token}` },
@@ -357,6 +359,24 @@ const BookServiceWithPayment: React.FC = () => {
                 </option>
                 <option value="cash">Cash on Delivery</option>
               </select>
+            </div>
+
+            {/* Referral Code (Optional) */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-100">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <span className="text-purple-600">🎁</span> Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+                placeholder="Enter referral code if you have one"
+                className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 uppercase"
+                style={{ textTransform: 'uppercase' }}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Have a referral code? Enter it here to support the person who referred you!
+              </p>
             </div>
 
             {/* Submit */}

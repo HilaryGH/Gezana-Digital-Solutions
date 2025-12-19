@@ -9,66 +9,124 @@ const PaymentPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online');
 
-  const { booking, service, amount, type } = location.state || {};
+  const { booking, service, amount, type, membership, subscription, planName } = location.state || {};
+  const isPremiumMembership = type === 'premium-membership';
+  const isBooking = type === 'booking' || (!type && booking && service);
 
   useEffect(() => {
-    // If no booking data, redirect to home
-    if (!booking || !service) {
-      console.warn('PaymentPage: Missing booking or service data, redirecting to home');
-      console.warn('PaymentPage: Received state:', location.state);
-      navigate('/');
+    // Check if we have valid data for either booking or premium membership
+    if (isPremiumMembership) {
+      if (!membership || !amount) {
+        console.warn('PaymentPage: Missing membership or amount data, redirecting to home');
+        navigate('/');
+      } else {
+        console.log('PaymentPage: Received premium membership data:', { membership, amount, planName, subscription });
+      }
+    } else if (isBooking) {
+      if (!booking || !service) {
+        console.warn('PaymentPage: Missing booking or service data, redirecting to home');
+        navigate('/');
+      } else {
+        console.log('PaymentPage: Received booking data:', { booking, service, amount, type });
+      }
     } else {
-      console.log('PaymentPage: Received booking data:', { booking, service, amount, type });
-      console.log('PaymentPage: Booking ID:', booking._id || booking.id);
-      console.log('PaymentPage: Service:', service.title || service.name);
-      console.log('PaymentPage: Amount:', amount);
+      console.warn('PaymentPage: Invalid payment type, redirecting to home');
+      navigate('/');
     }
-  }, [booking, service, navigate, location.state, amount, type]);
+  }, [booking, service, membership, amount, type, isPremiumMembership, isBooking, navigate, planName, subscription]);
 
   const handlePayment = async () => {
     setLoading(true);
     setError('');
 
     try {
-      // Here you would integrate with your payment gateway
-      // For now, we'll simulate a successful payment
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Update booking payment status on server
-      try {
-        const token = localStorage.getItem('token');
-        if (booking && (booking._id || booking.id)) {
-          await axios.patch(`/bookings/${booking._id || booking.id}/payment`, {
-            paymentStatus: 'paid',
-            paymentMethod: 'online'
-          }, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-          });
-        }
-      } catch (err) {
-        console.error('Error updating booking payment status:', err);
-        // Continue to success page even if update fails
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please log in to complete payment');
+        setLoading(false);
+        return;
       }
 
-      // Navigate to success page
-      navigate('/payment-success', {
-        state: {
-          booking,
-          service,
-          amount,
-          type: type || 'booking' // Pass type to payment success page
+      let transactionId: string;
+      
+      if (paymentMethod === 'online') {
+        // Here you would integrate with your payment gateway
+        // For now, we'll simulate a successful payment
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      } else {
+        // Cash payment - no simulation needed
+        transactionId = `CASH-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+
+      if (isPremiumMembership && membership) {
+        // Update premium membership payment status
+        try {
+          const response = await axios.patch(`/premium-memberships/${membership._id}/payment`, {
+            paymentStatus: 'paid',
+            paymentMethod: paymentMethod,
+            transactionId: transactionId
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          // Navigate to success page with updated membership data
+          navigate('/payment-success', {
+            state: {
+              type: 'premium-membership',
+              membership: response.data.membership || { ...membership, paymentStatus: 'paid', transactionId, paymentMethod },
+              amount,
+              planName,
+              subscription,
+              transactionId,
+              paymentMethod
+            }
+          });
+        } catch (err: any) {
+          console.error('Error updating premium membership payment status:', err);
+          const errorMessage = err.response?.data?.message || err.message || 'Failed to update payment status';
+          setError(errorMessage);
+          setLoading(false);
+          return;
         }
-      });
+      } else if (isBooking && booking) {
+        // Update booking payment status on server
+        try {
+          if (booking._id || booking.id) {
+            await axios.patch(`/bookings/${booking._id || booking.id}/payment`, {
+              paymentStatus: 'paid',
+              paymentMethod: 'online'
+            }, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+          }
+        } catch (err) {
+          console.error('Error updating booking payment status:', err);
+          // Continue to success page even if update fails
+        }
+
+        // Navigate to success page
+        navigate('/payment-success', {
+          state: {
+            booking,
+            service,
+            amount,
+            type: type || 'booking'
+          }
+        });
+      }
     } catch (err: any) {
       setError(err.message || 'Payment failed. Please try again.');
       setLoading(false);
     }
   };
 
-  if (!booking || !service) {
+  if (isPremiumMembership && !membership) {
+    return null;
+  }
+  if (isBooking && (!booking || !service)) {
     return null;
   }
 
@@ -94,72 +152,119 @@ const PaymentPage = () => {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Secure Payment</h1>
-                  <p className="text-sm text-gray-600">Complete your booking payment</p>
+                  <p className="text-sm text-gray-600">
+                    {isPremiumMembership ? 'Complete your premium membership payment' : 'Complete your booking payment'}
+                  </p>
                 </div>
               </div>
 
               {/* Payment Options */}
               <div className="space-y-6">
                 {/* Credit/Debit Card */}
-                <div className="border-2 border-orange-500 rounded-xl p-6 bg-orange-50">
+                <div className={`border-2 rounded-xl p-6 transition-all ${
+                  paymentMethod === 'online' 
+                    ? 'border-orange-500 bg-orange-50' 
+                    : 'border-gray-200 bg-white'
+                }`}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Pay with Card</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold text-gray-900">Pay with Card</h3>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        checked={paymentMethod === 'online'}
+                        onChange={() => setPaymentMethod('online')}
+                        className="w-5 h-5 text-orange-600 focus:ring-orange-500"
+                      />
+                    </div>
                     <div className="flex space-x-2">
                       <img src="/visa.png" alt="Visa" className="h-6" onError={(e) => e.currentTarget.style.display = 'none'} />
                       <img src="/mastercard.png" alt="Mastercard" className="h-6" onError={(e) => e.currentTarget.style.display = 'none'} />
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Card Number
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                  {paymentMethod === 'online' && (
+                    <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Expiry Date
+                          Card Number
                         </label>
                         <input
                           type="text"
-                          placeholder="MM/YY"
-                          maxLength={5}
+                          placeholder="1234 5678 9012 3456"
+                          maxLength={19}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         />
                       </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Expiry Date
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="MM/YY"
+                            maxLength={5}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            CVV
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="123"
+                            maxLength={3}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          />
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          CVV
+                          Cardholder Name
                         </label>
                         <input
                           type="text"
-                          placeholder="123"
-                          maxLength={3}
+                          placeholder="Enter name on card"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         />
                       </div>
                     </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Cardholder Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Enter name on card"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      />
-                    </div>
-                  </div>
+                  )}
                 </div>
+
+                {/* Cash Payment Option */}
+                {isPremiumMembership && (
+                  <div className={`border-2 rounded-xl p-6 transition-all ${
+                    paymentMethod === 'cash' 
+                      ? 'border-orange-500 bg-orange-50' 
+                      : 'border-gray-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Pay with Cash</h3>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        checked={paymentMethod === 'cash'}
+                        onChange={() => setPaymentMethod('cash')}
+                        className="w-5 h-5 text-orange-600 focus:ring-orange-500"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Pay in cash when you visit our office or arrange for cash payment. An invoice will be generated immediately.
+                    </p>
+                    {paymentMethod === 'cash' && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm text-blue-800">
+                          <strong>Note:</strong> Your membership will be activated immediately and an invoice will be generated. Please complete cash payment within 7 days.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Mobile Payment Options */}
                 <div className="border border-gray-200 rounded-xl p-6">
@@ -202,7 +307,11 @@ const PaymentPage = () => {
                   ) : (
                     <>
                       <Shield className="w-5 h-5" />
-                      <span>Pay {amount} ETB Securely</span>
+                      <span>
+                        {paymentMethod === 'cash' 
+                          ? `Confirm Cash Payment - ${amount} ETB` 
+                          : `Pay ${amount} ETB Securely`}
+                      </span>
                     </>
                   )}
       </button>
@@ -221,41 +330,67 @@ const PaymentPage = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
               
-              {/* Service Details */}
-              <div className="space-y-4 mb-6">
-                {service.photos && service.photos.length > 0 && (
-                  <img
-                    src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
-                    alt={service.title}
-                    className="w-full h-32 object-cover rounded-lg"
-                    loading="lazy"
-                    onError={handleImageError}
-                  />
-                )}
-                <div>
-                  <h3 className="font-semibold text-gray-900">{service.title}</h3>
-                  <p className="text-sm text-gray-600">{service.category}</p>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Provider</span>
-                    <span className="font-medium text-gray-900">{service.providerName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Location</span>
-                    <span className="font-medium text-gray-900">{service.location}</span>
-                  </div>
-                  {booking.date && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Date</span>
-                      <span className="font-medium text-gray-900">
-                        {new Date(booking.date).toLocaleDateString()}
-                      </span>
+              {isPremiumMembership ? (
+                /* Premium Membership Details */
+                <div className="space-y-4 mb-6">
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
+                    <h3 className="font-semibold text-gray-900 mb-2">{planName || subscription?.planName}</h3>
+                    <p className="text-sm text-gray-600 mb-3">{subscription?.period === 'month' ? 'Monthly Subscription' : 'Yearly Subscription'}</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Plan Type</span>
+                        <span className="font-medium text-gray-900">{subscription?.userType === 'seeker' ? 'Service Seeker' : 'Service Provider'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Billing Period</span>
+                        <span className="font-medium text-gray-900 capitalize">{subscription?.period || 'month'}</span>
+                      </div>
+                      {membership?.organization && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Organization</span>
+                          <span className="font-medium text-gray-900">{membership.organization}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Service Details */
+                <div className="space-y-4 mb-6">
+                  {service.photos && service.photos.length > 0 && (
+                    <img
+                      src={getThumbnailUrl(service.photos[0]) || service.photos[0]}
+                      alt={service.title}
+                      className="w-full h-32 object-cover rounded-lg"
+                      loading="lazy"
+                      onError={handleImageError}
+                    />
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{service.title}</h3>
+                    <p className="text-sm text-gray-600">{service.category}</p>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Provider</span>
+                      <span className="font-medium text-gray-900">{service.providerName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Location</span>
+                      <span className="font-medium text-gray-900">{service.location}</span>
+                    </div>
+                    {booking.date && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Date</span>
+                        <span className="font-medium text-gray-900">
+                          {new Date(booking.date).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Price Breakdown */}
               <div className="border-t border-gray-200 pt-4 space-y-3">

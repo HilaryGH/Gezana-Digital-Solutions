@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import Avatar from "../Avatar";
-import { Menu, X, Calendar, Plus, User, List, Bell, ChevronRight } from "lucide-react";
+import { Menu, X, Calendar, Plus, User, List, Bell, ChevronRight, Tag } from "lucide-react";
 import { FaTools, FaStar, FaChartLine, FaSignOutAlt, FaCrown } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { HiSparkles, HiBadgeCheck } from "react-icons/hi";
 
 const ProviderNavbar = () => {
+  const navigate = useNavigate();
   const [userName, setUserName] = useState("Provider");
   const [isOpen, setIsOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -66,6 +67,15 @@ const ProviderNavbar = () => {
       icon: List,
       description: "View All Services",
       color: "indigo"
+    },
+    { 
+      to: "/provider-dashboard", 
+      label: "Special Offers", 
+      icon: Tag,
+      description: "Manage Offers",
+      color: "orange",
+      useState: true,
+      state: { showSpecialOffers: true }
     },
   ];
 
@@ -164,6 +174,24 @@ const ProviderNavbar = () => {
               purple: 'text-brand-highlight',
               indigo: 'text-brand-primary'
             };
+            
+            // Check if this link should use state navigation
+            if ((link as any).useState && (link as any).state) {
+              return (
+                <button
+                  key={link.to}
+                  onClick={() => navigate(link.to, { state: (link as any).state })}
+                  className="group relative flex items-center space-x-3 py-3 px-4 rounded-xl text-sm transition-all duration-200 w-full text-left text-gray-700 hover:bg-brand-highlight/10 hover:text-brand-primary hover:transform hover:scale-[1.01]"
+                >
+                  <IconComponent className={`w-5 h-5 ${colorMap[link.color]} group-hover:scale-110 transition-transform`} />
+                  <div className="flex-1">
+                    <p className="font-medium">{link.label}</p>
+                    <p className="text-xs text-gray-500">{link.description}</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all" />
+                </button>
+              );
+            }
             
             return (
             <NavLink
@@ -271,6 +299,26 @@ const ProviderNavbar = () => {
                   purple: 'text-brand-highlight',
                   indigo: 'text-brand-primary'
                 };
+                
+                // Check if this link should use state navigation
+                if ((link as any).useState && (link as any).state) {
+                  return (
+                    <button
+                      key={link.to}
+                      onClick={() => {
+                        navigate(link.to, { state: (link as any).state });
+                        setIsOpen(false);
+                      }}
+                      className="w-full flex items-center space-x-3 p-4 text-gray-700 hover:text-brand-primary hover:bg-brand-highlight/10 rounded-xl transition-all duration-200 group"
+                    >
+                      <IconComponent className={`w-5 h-5 ${colorMap[link.color]} group-hover:scale-110 transition-transform`} />
+                      <div>
+                        <p className="font-medium">{link.label}</p>
+                        <p className="text-xs text-gray-500">{link.description}</p>
+                      </div>
+                    </button>
+                  );
+                }
                 
                 return (
               <NavLink

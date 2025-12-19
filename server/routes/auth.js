@@ -4,11 +4,32 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const crypto = require("crypto");
 const User = require("../models/User");
+const Referral = require("../models/Referral");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 const { sendWelcomeNotifications } = require("../utils/notificationService");
-const { sendPasswordResetEmail } = require("../utils/emailService");
+const { sendPasswordResetEmail, sendWelcomeEmailWithReferral } = require("../utils/emailService");
 const JWT_SECRET = require("../config/jwt");
+
+// Generate unique referral code
+const generateReferralCode = async () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding confusing characters
+  let code;
+  let isUnique = false;
+  
+  while (!isUnique) {
+    code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const existing = await User.findOne({ referralCode: code });
+    if (!existing) {
+      isUnique = true;
+    }
+  }
+  
+  return code;
+};
 
 const router = express.Router();
 
@@ -37,6 +58,8 @@ router.post("/register", upload.fields([
       confirmPassword,
       role,
       subRole,
+      serviceCategory,
+      freelanceSubCategory,
       phone,
       alternativePhone,
       officePhone,
@@ -51,7 +74,8 @@ router.post("/register", upload.fields([
       femaleLedOrOwned,
       branches,
       banks,
-      businessStatus
+      businessStatus,
+      referralCode // Referral code used during registration
     } = req.body;
 
     // Validation
@@ -84,6 +108,19 @@ router.post("/register", upload.fields([
       phone,
     };
 
+    // Handle referral code if provided
+    let referrerUser = null;
+    if (referralCode) {
+      referrerUser = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+      if (referrerUser) {
+        userData.referredBy = referrerUser._id;
+        console.log(`✅ Referral code ${referralCode} found. Referrer: ${referrerUser.name} (${referrerUser._id})`);
+      } else {
+        console.log(`⚠️  Invalid referral code: ${referralCode}`);
+        // Don't fail registration if referral code is invalid, just log it
+      }
+    }
+
     // Add role-specific fields
     if (role === "seeker") {
       userData.name = fullName;
@@ -91,6 +128,12 @@ router.post("/register", upload.fields([
       userData.whatsapp = whatsapp;
       userData.telegram = telegram;
       userData.seekerType = "individual";
+
+      // Generate referral code for individual seekers
+      if (userData.seekerType === "individual") {
+        userData.referralCode = await generateReferralCode();
+        console.log(`✅ Generated referral code for new individual seeker: ${userData.referralCode}`);
+      }
 
       // Handle seeker file upload
       if (req.files && req.files.idFile) {
@@ -100,6 +143,12 @@ router.post("/register", upload.fields([
       userData.name = companyName || fullName;
       userData.subRole = subRole;
       userData.serviceType = serviceType;
+      if (serviceCategory) {
+        userData.serviceCategory = serviceCategory;
+      }
+      if (freelanceSubCategory) {
+        userData.freelanceSubCategory = freelanceSubCategory;
+      }
       userData.alternativePhone = alternativePhone;
       userData.officePhone = officePhone;
       userData.whatsapp = whatsapp;
@@ -188,16 +237,46 @@ router.post("/register", upload.fields([
     await newUser.save();
     console.log("User created successfully:", newUser._id);
 
+    // Handle referral tracking if user was referred
+    if (referrerUser && newUser.referredBy) {
+      try {
+        const referral = new Referral({
+          referrer: referrerUser._id,
+          referredUser: newUser._id,
+          referralCode: referralCode.trim().toUpperCase(),
+          usedInRegistration: true,
+          status: "completed"
+        });
+        await referral.save();
+        
+        // Update referrer's referral count
+        await User.findByIdAndUpdate(referrerUser._id, {
+          $inc: { referralCount: 1 }
+        });
+        
+        console.log(`✅ Referral tracked: ${referrerUser.name} referred ${newUser.name}`);
+      } catch (error) {
+        console.error("Error tracking referral:", error);
+        // Don't fail registration if referral tracking fails
+      }
+    }
+
     // Send welcome notifications (Email + WhatsApp) - skip for admin/superadmin/support users
     if (!["admin", "superadmin", "support"].includes(role)) {
       try {
-        const notificationResults = await sendWelcomeNotifications({
-          email: newUser.email,
-          name: newUser.name,
-          role: newUser.role,
-          phone: newUser.phone,
-          whatsapp: newUser.whatsapp
-        });
+        // For individual seekers, send email with referral code
+        if (role === "seeker" && newUser.seekerType === "individual" && newUser.referralCode) {
+          await sendWelcomeEmailWithReferral(newUser.email, newUser.name, newUser.referralCode);
+        } else {
+          // For other users, send regular welcome notifications
+          const notificationResults = await sendWelcomeNotifications({
+            email: newUser.email,
+            name: newUser.name,
+            role: newUser.role,
+            phone: newUser.phone,
+            whatsapp: newUser.whatsapp
+          });
+        }
         console.log("Welcome notifications sent:", notificationResults);
       } catch (notifError) {
         console.error("Error sending welcome notifications:", notifError);

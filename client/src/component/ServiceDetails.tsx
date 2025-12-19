@@ -1,24 +1,117 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Star, MapPin, DollarSign, Clock, Calendar, 
   Phone, Mail, Shield, Award, CheckCircle, 
-  ArrowLeft, Heart, Share2, AlertCircle
+  ArrowLeft, Heart, Share2, AlertCircle, Tag, FileText, ExternalLink
 } from 'lucide-react';
 import { getServiceById, type Service } from '../api/services';
 import BookingModal from './BookingModal';
 import Reviews from './Reviews';
 import { normalizeImageUrl, handleImageError } from '../utils/imageHelper';
+import axios from '../api/axios';
+
+interface SpecialOffer {
+  _id: string;
+  title: string;
+  description: string;
+  originalPrice: number;
+  discountedPrice: number;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
 
 const ServiceDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [specialOffer, setSpecialOffer] = useState<SpecialOffer | null>(null);
+  const [isProviderOnDuty, setIsProviderOnDuty] = useState<boolean | null>(null);
+  const [providerInfo, setProviderInfo] = useState<{ email: string | null; phone: string | null } | null>(null);
+  const [providerRating, setProviderRating] = useState<number | null>(null);
+  const [isPremiumIndividualSeeker, setIsPremiumIndividualSeeker] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if special offer data was passed via navigation state
+    if (location.state?.specialOffer) {
+      setSpecialOffer(location.state.specialOffer);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    // Check if user is premium individual seeker
+    const checkPremiumStatus = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        // Get current user info
+        const userResponse = await axios.get("/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const user = userResponse.data;
+        const isIndividualSeeker = user.role === "seeker" && user.seekerType === "individual";
+
+        if (isIndividualSeeker) {
+          // Check for premium membership
+          try {
+            const premiumResponse = await axios.get("/premium-memberships/my-memberships", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (premiumResponse.data.memberships && premiumResponse.data.memberships.length > 0) {
+              // Get the most recent membership
+              const membership = premiumResponse.data.memberships[0];
+              const isPaid = membership.paymentStatus === "paid";
+              const isActive = membership.status === "active" || membership.status === "pending";
+              const notExpired = !membership.endDate || new Date(membership.endDate) > new Date();
+
+              if (isPaid && isActive && notExpired) {
+                setIsPremiumIndividualSeeker(true);
+                return;
+              }
+            }
+          } catch (err) {
+            // Premium membership check failed, try subscription
+          }
+
+          // Check for subscription
+          try {
+            const subscriptionResponse = await axios.get("/subscriptions/my-subscription", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (subscriptionResponse.data.hasSubscription && subscriptionResponse.data.subscription) {
+              const subscription = subscriptionResponse.data.subscription;
+              const isActive = subscription.status === "active" || subscription.status === "trial";
+              const notExpired = subscription.endDate && new Date(subscription.endDate) > new Date();
+              const isForSeeker = subscription.plan?.applicableTo === "seeker" || subscription.plan?.applicableTo === "both";
+
+              if (isActive && notExpired && isForSeeker) {
+                setIsPremiumIndividualSeeker(true);
+              }
+            }
+          } catch (err) {
+            // Subscription check failed
+          }
+        }
+      } catch (error) {
+        console.error("Error checking premium status:", error);
+      }
+    };
+
+    checkPremiumStatus();
+  }, []);
 
   useEffect(() => {
     const fetchServiceDetails = async () => {
@@ -29,9 +122,90 @@ const ServiceDetails = () => {
         const data = await getServiceById(id);
         setService(data);
         setError('');
+        
+        // Fetch provider duty status, info, and rating
+        if (data.providerId) {
+          try {
+            const dutyResponse = await axios.get(`/provider/duty-status/${data.providerId}`);
+            setIsProviderOnDuty(dutyResponse.data.isOnDuty || false);
+          } catch (dutyError) {
+            console.error('Error fetching provider duty status:', dutyError);
+            setIsProviderOnDuty(null);
+          }
+
+          // Fetch provider public info (email, phone)
+          try {
+            const providerInfoResponse = await axios.get(`/provider/public-info/${data.providerId}`);
+            setProviderInfo({
+              email: providerInfoResponse.data.email,
+              phone: providerInfoResponse.data.phone
+            });
+          } catch (infoError) {
+            console.error('Error fetching provider info:', infoError);
+            setProviderInfo(null);
+          }
+
+          // Fetch provider rating from reviews
+          try {
+            // Get all services for this provider to calculate average rating
+            const servicesResponse = await axios.get(`/services/provider/${data.providerId}`);
+            const providerServices = servicesResponse.data || [];
+            
+            if (providerServices.length > 0) {
+              const serviceIds = providerServices.map((s: any) => s._id || s.id).filter(Boolean);
+              
+              if (serviceIds.length > 0) {
+                // Fetch review statistics for each service
+                const reviewStatsPromises = serviceIds.map(async (serviceId: string) => {
+                  try {
+                    const response = await axios.get(`/reviews/service/${serviceId}`, {
+                      params: { page: 1, limit: 1 }
+                    });
+                    return {
+                      averageRating: parseFloat(response.data.averageRating) || 0,
+                      totalReviews: response.data.totalReviews || 0
+                    };
+                  } catch (error) {
+                    return { averageRating: 0, totalReviews: 0 };
+                  }
+                });
+                
+                const reviewStats = await Promise.all(reviewStatsPromises);
+                
+                // Calculate weighted average rating
+                let totalWeightedRating = 0;
+                let totalReviewCount = 0;
+                
+                reviewStats.forEach((stats) => {
+                  if (stats.totalReviews > 0) {
+                    totalWeightedRating += stats.averageRating * stats.totalReviews;
+                    totalReviewCount += stats.totalReviews;
+                  }
+                });
+                
+                if (totalReviewCount > 0) {
+                  setProviderRating(totalWeightedRating / totalReviewCount);
+                } else {
+                  setProviderRating(0);
+                }
+              } else {
+                setProviderRating(0);
+              }
+            } else {
+              setProviderRating(0);
+            }
+          } catch (ratingError) {
+            console.error('Error fetching provider rating:', ratingError);
+            setProviderRating(null);
+          }
+        }
       } catch (err: any) {
         console.error('Error fetching service details:', err);
-        setError(err.response?.data?.message || 'Failed to load service details');
+        if (err.response?.status === 404) {
+          setError('This service is no longer available. It may have been removed by the provider.');
+        } else {
+          setError(err.response?.data?.message || 'Failed to load service details');
+        }
       } finally {
         setLoading(false);
       }
@@ -78,17 +252,27 @@ const ServiceDetails = () => {
 
   if (error || !service) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-20">
         <div className="text-center max-w-md mx-auto p-6">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Service Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'The service you are looking for does not exist.'}</p>
-          <button
-            onClick={() => navigate('/services')}
-            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Browse All Services
-          </button>
+          <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Service Not Available</h2>
+          <p className="text-gray-600 mb-6">
+            {error || 'The service you are looking for does not exist or has been removed.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => navigate('/')}
+              className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+            >
+              Go to Home
+            </button>
+            <button
+              onClick={() => navigate('/services')}
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Browse All Services
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -320,7 +504,7 @@ const ServiceDetails = () => {
                 </div>
                 
                 {/* Location and Availability */}
-                <div className="flex items-center space-x-4 text-gray-600">
+                <div className="flex items-center space-x-4 text-gray-600 flex-wrap gap-2">
                   <div className="flex items-center space-x-1">
                     <MapPin size={16} />
                     <span>{service.location || 'Location not specified'}</span>
@@ -331,6 +515,15 @@ const ServiceDetails = () => {
                       {service.isAvailable !== false ? 'Available Now' : 'Currently Unavailable'}
                     </span>
                   </div>
+                  {/* Provider Duty Status */}
+                  {isProviderOnDuty !== null && (
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${isProviderOnDuty ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'}`} />
+                      <span className={`text-sm font-medium ${isProviderOnDuty ? 'text-blue-600' : 'text-gray-600'}`}>
+                        {isProviderOnDuty ? 'On Duty' : 'Off Duty'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -375,11 +568,45 @@ const ServiceDetails = () => {
             <div className="sticky top-24 space-y-6">
               {/* Pricing Card */}
               <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
+                {specialOffer && (
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Tag className="w-5 h-5 text-orange-600" />
+                      <span className="text-sm font-semibold text-orange-800">Special Offer Active!</span>
+                    </div>
+                    <p className="text-xs text-orange-700 mb-2">{specialOffer.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded">
+                        {specialOffer.discountType === 'percentage'
+                          ? `${specialOffer.discountValue}% OFF`
+                          : `${specialOffer.discountValue} ETB OFF`}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Valid until {new Date(specialOffer.endDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <div className="flex items-baseline space-x-2 mb-2">
-                    <span className="text-4xl font-bold text-gray-900">
-                      {formatPrice(service.price, service.priceType)}
-                    </span>
+                    {specialOffer ? (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="text-4xl font-bold text-orange-600">
+                            {formatPrice(specialOffer.discountedPrice, service.priceType)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-lg text-gray-400 line-through">
+                            {formatPrice(service.price, service.priceType)}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-4xl font-bold text-gray-900">
+                        {formatPrice(service.price, service.priceType)}
+                      </span>
+                    )}
                   </div>
                   <p className="text-gray-600 text-sm">
                     {service.priceType === 'hourly' ? 'Per hour rate' : 
@@ -428,29 +655,75 @@ const ServiceDetails = () => {
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-900">{service.providerName}</h4>
                     <div className="flex items-center space-x-1 mt-1">
-                      <Star size={16} className={`${getRatingColor(service.providerRating || 0)} fill-current`} />
-                      <span className={`text-sm font-semibold ${getRatingColor(service.providerRating || 0)}`}>
-                        {(service.providerRating || 0).toFixed(1)}
-                      </span>
+                      {providerRating !== null ? (
+                        <>
+                          <Star size={16} className={`${getRatingColor(providerRating)} fill-current`} />
+                          <span className={`text-sm font-semibold ${getRatingColor(providerRating)}`}>
+                            {providerRating.toFixed(1)}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Star size={16} className={`${getRatingColor(service.providerRating || 0)} fill-current`} />
+                          <span className={`text-sm font-semibold ${getRatingColor(service.providerRating || 0)}`}>
+                            {(service.providerRating || 0).toFixed(1)}
+                          </span>
+                        </>
+                      )}
                       <span className="text-gray-500 text-sm">(Verified)</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t border-gray-200 space-y-2">
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Phone size={16} />
-                    <span className="text-sm">Contact on booking</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Mail size={16} />
-                    <span className="text-sm">Email support available</span>
-                  </div>
+                  {providerInfo?.phone ? (
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <Phone size={16} />
+                      <a href={`tel:${providerInfo.phone}`} className="text-sm hover:text-orange-600 transition-colors">
+                        {providerInfo.phone}
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 text-gray-400">
+                      <Phone size={16} />
+                      <span className="text-sm">Contact on booking</span>
+                    </div>
+                  )}
+                  {providerInfo?.email ? (
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <Mail size={16} />
+                      <a href={`mailto:${providerInfo.email}`} className="text-sm hover:text-orange-600 transition-colors break-all">
+                        {providerInfo.email}
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 text-gray-400">
+                      <Mail size={16} />
+                      <span className="text-sm">Email support available</span>
+                    </div>
+                  )}
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Clock size={16} />
                     <span className="text-sm">Joined {service.createdAt ? new Date(service.createdAt).toLocaleDateString() : 'Recently'}</span>
                   </div>
                 </div>
+
+                {/* View Provider Details Button for Premium Individual Seekers */}
+                {isPremiumIndividualSeeker && service.providerId && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => navigate(`/provider/${service.providerId}/details`)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-lg hover:from-brand-secondary hover:to-brand-primary transition-all font-medium"
+                    >
+                      <FileText size={18} />
+                      <span>View Provider Details</span>
+                      <ExternalLink size={16} />
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Premium members can view provider documents and detailed information
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -460,6 +733,7 @@ const ServiceDetails = () => {
       {/* Booking Modal */}
       <BookingModal
         service={service}
+        specialOffer={specialOffer}
         isOpen={showBookingModal}
         onClose={() => setShowBookingModal(false)}
         onBookingSuccess={(booking) => {

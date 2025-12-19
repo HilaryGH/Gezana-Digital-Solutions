@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Calendar, X, Tag } from 'lucide-react';
+import { Plus, Settings, BarChart3, Star, DollarSign, Edit, Trash2, Calendar, X, Tag, Clock } from 'lucide-react';
 import { getMyServices, deleteService, type Service } from '../../api/services';
 import { getProviderBookings } from '../../api/bookings';
 import AddService from './AddService';
 import SpecialOffers from './SpecialOffers';
+import DutyStatus from './DutyStatus';
 import { getThumbnailUrl, handleImageError } from '../../utils/imageHelper';
+import axios from '../../api/axios';
 
 const ProviderDashboard: React.FC = () => {
   const location = useLocation();
@@ -17,6 +19,7 @@ const ProviderDashboard: React.FC = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showBookings, setShowBookings] = useState(false);
   const [showOffers, setShowOffers] = useState(false);
+  const [showDutyStatus, setShowDutyStatus] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [stats, setStats] = useState({
@@ -76,17 +79,50 @@ const ProviderDashboard: React.FC = () => {
         const activeServices = servicesData.filter(service => service.isAvailable).length;
         const totalEarnings = servicesData.reduce((sum, service) => sum + service.price, 0);
         
-        // Calculate average rating from services that actually have ratings
-        const servicesWithRatings = servicesData.filter(service => 
-          (service.providerRating && service.providerRating > 0) || 
-          (service.serviceRating && service.serviceRating > 0)
-        );
-        const averageRating = servicesWithRatings.length > 0
-          ? servicesWithRatings.reduce((sum, service) => {
-              const rating = service.serviceRating || service.providerRating || 0;
-              return sum + rating;
-            }, 0) / servicesWithRatings.length
-          : 0;
+        // Fetch average rating from reviews for all provider's services
+        let averageRating = 0;
+        try {
+          const serviceIds = servicesData.map(service => service.id);
+          
+          if (serviceIds.length > 0) {
+            // Fetch review statistics for each service
+            const reviewStatsPromises = serviceIds.map(async (serviceId) => {
+              try {
+                const response = await axios.get(`/reviews/service/${serviceId}`, {
+                  params: { page: 1, limit: 1 } // We only need the averageRating from response
+                });
+                return {
+                  averageRating: parseFloat(response.data.averageRating) || 0,
+                  totalReviews: response.data.totalReviews || 0
+                };
+              } catch (error) {
+                // If service has no reviews, return 0
+                return { averageRating: 0, totalReviews: 0 };
+              }
+            });
+            
+            const reviewStats = await Promise.all(reviewStatsPromises);
+            
+            // Calculate weighted average rating across all services
+            let totalWeightedRating = 0;
+            let totalReviewCount = 0;
+            
+            reviewStats.forEach((stats) => {
+              if (stats.totalReviews > 0) {
+                totalWeightedRating += stats.averageRating * stats.totalReviews;
+                totalReviewCount += stats.totalReviews;
+              }
+            });
+            
+            if (totalReviewCount > 0) {
+              averageRating = totalWeightedRating / totalReviewCount;
+            }
+          }
+        } catch (ratingError) {
+          console.error('Error fetching provider rating from reviews:', ratingError);
+          // Fallback to 0 if rating fetch fails
+          averageRating = 0;
+        }
         
         if (!isMounted) return;
         
@@ -110,16 +146,20 @@ const ProviderDashboard: React.FC = () => {
 
     fetchData();
 
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handle navigation state changes separately to catch state updates
+  useEffect(() => {
     // Check if navigation state requests to show special offers
     if (location.state?.showSpecialOffers) {
       setShowOffers(true);
       setShowBookings(false);
+      setShowDutyStatus(false);
     }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [location.state]);
+  }, [location.state, location.key]);
 
   const handleDeleteService = async (serviceId: string) => {
     if (window.confirm('Are you sure you want to delete this service?')) {
@@ -147,17 +187,50 @@ const ProviderDashboard: React.FC = () => {
       const activeServices = servicesData.filter(service => service.isAvailable).length;
       const totalEarnings = servicesData.reduce((sum, service) => sum + service.price, 0);
       
-      // Calculate average rating from services that actually have ratings
-      const servicesWithRatings = servicesData.filter(service => 
-        (service.providerRating && service.providerRating > 0) || 
-        (service.serviceRating && service.serviceRating > 0)
-      );
-      const averageRating = servicesWithRatings.length > 0
-        ? servicesWithRatings.reduce((sum, service) => {
-            const rating = service.serviceRating || service.providerRating || 0;
-            return sum + rating;
-          }, 0) / servicesWithRatings.length
-        : 0;
+      // Fetch average rating from reviews for all provider's services
+      let averageRating = 0;
+      try {
+        const serviceIds = servicesData.map(service => service.id);
+        
+        if (serviceIds.length > 0) {
+          // Fetch review statistics for each service
+          const reviewStatsPromises = serviceIds.map(async (serviceId) => {
+            try {
+              const response = await axios.get(`/reviews/service/${serviceId}`, {
+                params: { page: 1, limit: 1 } // We only need the averageRating from response
+              });
+              return {
+                averageRating: parseFloat(response.data.averageRating) || 0,
+                totalReviews: response.data.totalReviews || 0
+              };
+            } catch (error) {
+              // If service has no reviews, return 0
+              return { averageRating: 0, totalReviews: 0 };
+            }
+          });
+          
+          const reviewStats = await Promise.all(reviewStatsPromises);
+          
+          // Calculate weighted average rating across all services
+          let totalWeightedRating = 0;
+          let totalReviewCount = 0;
+          
+          reviewStats.forEach((stats) => {
+            if (stats.totalReviews > 0) {
+              totalWeightedRating += stats.averageRating * stats.totalReviews;
+              totalReviewCount += stats.totalReviews;
+            }
+          });
+          
+          if (totalReviewCount > 0) {
+            averageRating = totalWeightedRating / totalReviewCount;
+          }
+        }
+      } catch (ratingError) {
+        console.error('Error fetching provider rating from reviews:', ratingError);
+        // Fallback to 0 if rating fetch fails
+        averageRating = 0;
+      }
       
       setStats(prev => ({
         ...prev,
@@ -227,23 +300,30 @@ const ProviderDashboard: React.FC = () => {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => { setShowBookings(false); setShowOffers(false); }}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${!showBookings && !showOffers ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                onClick={() => { setShowBookings(false); setShowOffers(false); setShowDutyStatus(false); }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${!showBookings && !showOffers && !showDutyStatus ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 My Services
               </button>
               <button
-                onClick={() => { setShowBookings(true); setShowOffers(false); }}
+                onClick={() => { setShowBookings(true); setShowOffers(false); setShowDutyStatus(false); }}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${showBookings ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 Bookings ({stats.totalBookings})
               </button>
               <button
-                onClick={() => { setShowBookings(false); setShowOffers(true); }}
+                onClick={() => { setShowBookings(false); setShowOffers(true); setShowDutyStatus(false); }}
                 className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${showOffers ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 <Tag className="w-4 h-4" />
                 Special Offers
+              </button>
+              <button
+                onClick={() => { setShowBookings(false); setShowOffers(false); setShowDutyStatus(true); }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${showDutyStatus ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                <Clock className="w-4 h-4" />
+                Duty Status
               </button>
             <button
               onClick={() => setAddServiceOpen(true)}
@@ -325,10 +405,13 @@ const ProviderDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Services, Bookings, or Special Offers Section */}
+        {/* Services, Bookings, Special Offers, or Duty Status Section */}
         {showOffers ? (
           /* Special Offers Section */
           <SpecialOffers />
+        ) : showDutyStatus ? (
+          /* Duty Status Section */
+          <DutyStatus />
         ) : !showBookings ? (
           /* Services Section */
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100">

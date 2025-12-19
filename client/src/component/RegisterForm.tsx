@@ -33,6 +33,7 @@ const RegisterForm = () => {
     password: "",
     confirmPassword: "",
     idFile: null as File | null,
+    referralCode: "", // Optional referral code
   });
 
   const [providerForm, setProviderForm] = useState({
@@ -479,6 +480,25 @@ const RegisterForm = () => {
                     </div>
                   </div>
 
+                  {/* Referral Code (Optional) */}
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 font-inter">
+                      Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      name="referralCode" 
+                      placeholder="Enter referral code if you have one" 
+                      value={seekerForm.referralCode}
+                      onChange={handleSeekerChange} 
+                      className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-300 bg-white font-inter uppercase" 
+                      style={{ textTransform: 'uppercase' }}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Have a referral code? Enter it here to support the person who referred you!
+                    </p>
+                  </div>
+
                   {/* File Upload */}
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-gray-700 font-inter">
@@ -534,7 +554,7 @@ const RegisterForm = () => {
                   {/* Company Information */}
                   <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
                     <h3 className="text-lg font-semibold text-blue-800 mb-4 font-poppins">
-                      {providerSubRole === "freelancer" ? "Personal Information" : "Company Information"}
+                      {providerSubRole === "freelancer" ? "Skilled Information" : "Company Information"}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">

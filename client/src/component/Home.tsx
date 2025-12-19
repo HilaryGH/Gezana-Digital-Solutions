@@ -7,8 +7,8 @@ import { getRecentServices, getMostBookedServices, getServices, type Service } f
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
 import { getJobs, type Job } from "../api/jobs";
 import { applyForJob, type CreateJobApplicationData } from "../api/jobApplications";
+import { getActiveSpecialOffers, type SpecialOffer } from "../api/specialOffers";
 import { getCardImageUrl, handleImageError, normalizeImageUrl } from "../utils/imageHelper";
-import axios from "../api/axios";
 
 const serviceCategories = [
   {
@@ -94,7 +94,7 @@ const Home = () => {
   const [showJobsModal, setShowJobsModal] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [specialOffers, setSpecialOffers] = useState<any[]>([]);
+  const [specialOffers, setSpecialOffers] = useState<SpecialOffer[]>([]);
   const [loadingSpecialOffers, setLoadingSpecialOffers] = useState(false);
   const [applicationForm, setApplicationForm] = useState({
     // Personal Information
@@ -229,35 +229,12 @@ const Home = () => {
     const fetchSpecialOffers = async () => {
       setLoadingSpecialOffers(true);
       try {
-        console.log('Fetching special offers from /special-offers/active');
-        const response = await axios.get("/special-offers/active");
-        console.log('Special offers API response:', response.data);
-        
-        if (response.data && response.data.success) {
-          const offers = response.data.offers || [];
-          console.log('Setting special offers:', offers.length, 'offers found');
-          
-          // Log debug info if available
-          if (response.data.debug) {
-            console.log('Debug info:', response.data.debug);
-            console.log(`Total offers in DB: ${response.data.debug.totalOffers}`);
-            console.log(`After date filter: ${response.data.debug.afterDateFilter}`);
-            console.log(`Final count: ${response.data.debug.finalCount}`);
-          }
-          
-          setSpecialOffers(offers);
-        } else if (response.data && Array.isArray(response.data)) {
-          // Handle case where API returns array directly
-          console.log('Setting special offers (array response):', response.data.length, 'offers found');
-          setSpecialOffers(response.data);
-        } else {
-          console.warn('Unexpected response format:', response.data);
-          setSpecialOffers([]);
-        }
-      } catch (error: any) {
+        console.log('Fetching special offers...');
+        const offers = await getActiveSpecialOffers();
+        console.log('Special offers fetched:', offers.length, 'offers found');
+        setSpecialOffers(offers);
+      } catch (error) {
         console.error('Error fetching special offers:', error);
-        console.error('Error response:', error.response?.data);
-        console.error('Error status:', error.response?.status);
         setSpecialOffers([]);
       } finally {
         setLoadingSpecialOffers(false);
@@ -1563,7 +1540,16 @@ const Home = () => {
               </div>
             ) : specialOffers && specialOffers.length > 0 ? (
               <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-                {specialOffers.map((offer) => {
+                {specialOffers
+                  .filter((offer) => {
+                    // Filter out offers where service is null or missing
+                    const hasService = offer.service && (
+                      typeof offer.service === 'string' || 
+                      (typeof offer.service === 'object' && (offer.service._id || offer.service.id))
+                    );
+                    return hasService;
+                  })
+                  .map((offer) => {
                   const isPercentage = offer.discountType === "percentage";
                   const discountText = isPercentage 
                     ? `${offer.discountValue}% OFF` 
@@ -1572,13 +1558,7 @@ const Home = () => {
                   return (
                     <div 
                       key={offer._id} 
-                      className="flex-shrink-0 w-[320px] bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-orange-100 overflow-hidden group cursor-pointer"
-                      onClick={() => {
-                        const serviceId = offer.service?._id || offer.service?.id || offer.service;
-                        if (serviceId) {
-                          navigate(`/service/${serviceId}`);
-                        }
-                      }}
+                      className="flex-shrink-0 w-[320px] bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-orange-100 overflow-hidden group"
                     >
                       {/* Offer Image */}
                       {offer.image || (offer.service?.photos && offer.service.photos.length > 0) ? (
@@ -1667,14 +1647,50 @@ const Home = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const serviceId = offer.service?._id || offer.service?.id || offer.service;
+                            e.preventDefault();
+                            // Handle different service ID formats
+                            let serviceId: string | null = null;
+                            
+                            if (typeof offer.service === 'string') {
+                              // Service is a string ID (not populated)
+                              serviceId = offer.service;
+                            } else if (offer.service && typeof offer.service === 'object') {
+                              // Service is an object (populated or just has _id), try to get ID
+                              serviceId = offer.service._id || null;
+                              // If service only has _id (service was deleted), that's fine - we can still navigate
+                              if (serviceId && typeof serviceId === 'object') {
+                                serviceId = serviceId.toString();
+                              } else if (serviceId) {
+                                serviceId = String(serviceId);
+                              }
+                            }
+                            
                             if (serviceId) {
-                              navigate(`/service/${serviceId}`);
+                              // Pass special offer data via navigation state
+                              navigate(`/service/${serviceId}`, {
+                                state: {
+                                  specialOffer: {
+                                    _id: offer._id,
+                                    title: offer.title,
+                                    description: offer.description,
+                                    originalPrice: offer.originalPrice,
+                                    discountedPrice: offer.discountedPrice,
+                                    discountType: offer.discountType,
+                                    discountValue: offer.discountValue,
+                                    startDate: offer.startDate,
+                                    endDate: offer.endDate,
+                                    isActive: offer.isActive
+                                  }
+                                }
+                              });
+                            } else {
+                              console.error('No service ID found for offer:', offer);
+                              alert('Unable to view offer details. The service associated with this offer may have been removed.');
                             }
                           }}
                           className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-105 mt-2"
                         >
-                          View Offer
+                          View Details
                         </button>
                       </div>
                     </div>

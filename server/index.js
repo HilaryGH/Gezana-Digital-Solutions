@@ -162,6 +162,9 @@ app.use("/api/types", serviceTypeRoutes);
 const providerBookingsRouter = require("./routes/providerBookings");
 app.use("/api", providerBookingsRouter);
 
+const providerRoutes = require("./routes/provider");
+app.use("/api/provider", providerRoutes);
+
 const contactRoutes = require("./routes/contact");
 app.use("/api/contact", contactRoutes);
 
@@ -212,6 +215,9 @@ app.use("/api/special-offers", specialOffersRoutes);
 
 const statisticsRoutes = require("./routes/statistics");
 app.use("/api/statistics", statisticsRoutes);
+
+const referralsRoutes = require("./routes/referrals");
+app.use("/api/referrals", referralsRoutes);
 
 // Root route
 app.get("/", (req, res) => {

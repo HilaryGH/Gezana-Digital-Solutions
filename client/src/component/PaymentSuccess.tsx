@@ -9,7 +9,7 @@ const PaymentSuccess = () => {
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const { type, membership, amount, planName, transactionId, booking, service } = location.state || {};
+  const { type, membership, amount, planName, transactionId, booking, service, paymentMethod } = location.state || {};
   const isPremiumMembership = type === 'premium-membership';
   const isBooking = type === 'booking' || (!type && booking && service);
 
@@ -77,8 +77,14 @@ const PaymentSuccess = () => {
       userType: typeof booking.user 
     });
     
+    // Generate 4-digit invoice number for booking
+    // Use booking ID hash or timestamp to generate unique 4-digit number
+    const bookingIdStr = String(booking._id || booking.id || Date.now());
+    // Convert booking ID string to a number and get last 4 digits
+    const hash = bookingIdStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const invoiceNum = String((hash % 10000)).padStart(4, "0");
     const invoiceData = {
-      invoiceNumber: `INV-BKG-${booking._id || booking.id || Date.now()}`,
+      invoiceNumber: `INV-BKG-${invoiceNum}`,
       date: new Date().toISOString(),
       customer: {
         name: customerName,
@@ -248,7 +254,9 @@ Thank you for your premium membership!
       </h1>
           <p className="text-gray-600">
             {isPremiumMembership 
-              ? "Your premium membership has been activated successfully."
+              ? paymentMethod === 'cash'
+                ? "Your premium membership has been activated. Please complete cash payment within 7 days. An invoice has been generated."
+                : "Your premium membership has been activated successfully."
               : isBooking && booking?.paymentMethod === 'cash'
               ? "Your booking has been confirmed. Please pay in cash when the service is completed."
               : "Thank you for your payment. Your booking has been confirmed."}

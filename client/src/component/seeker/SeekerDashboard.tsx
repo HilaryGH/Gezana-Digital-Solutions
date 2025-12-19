@@ -7,6 +7,7 @@ import SeekerNavbar from "./SeekerNavbar";
 const SeekerDashboard = () => {
   const [seekerType, setSeekerType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   interface UserResponse {
     id: string;
@@ -48,13 +49,18 @@ const SeekerDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
-      <SeekerNavbar />
+      <SeekerNavbar activeSection={activeSection} onSectionChange={setActiveSection} />
 
       {/* Dashboard Content */}
       <div className="pt-6 md:pl-56 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md">
-            {seekerType === "individual" && <IndividualSeekerDashboard />}
+            {seekerType === "individual" && (
+              <IndividualSeekerDashboard 
+                activeSection={activeSection} 
+                onSectionChange={setActiveSection} 
+              />
+            )}
             {seekerType === "service" && <ServiceSeekerDashboard />}
             {!seekerType && (
               <div className="text-center text-red-600 font-semibold">

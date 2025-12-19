@@ -6,7 +6,12 @@ import { FaSearch, FaCalendarAlt, FaUser, FaGift, FaStar, FaSignOutAlt, FaMedal 
 import { MdDashboard } from "react-icons/md";
 import { HiSparkles, HiBadgeCheck } from "react-icons/hi";
 
-const SeekerNavbar = () => {
+interface SeekerNavbarProps {
+  activeSection?: string | null;
+  onSectionChange?: (section: string | null) => void;
+}
+
+const SeekerNavbar = ({ activeSection, onSectionChange }: SeekerNavbarProps = {}) => {
   const userName = localStorage.getItem("name") || "Service Seeker";
   const initials = userName.slice(0, 2).toUpperCase();
   const [isOpen, setIsOpen] = useState(false);
@@ -15,42 +20,54 @@ const SeekerNavbar = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
+  const handleNavClick = (section: string | null) => {
+    if (onSectionChange) {
+      onSectionChange(section);
+      setIsOpen(false);
+    }
+  };
+
 
   const navLinks = [
     { 
-      to: "/admin-dashboard", 
+      to: "/seeker-dashboard", 
       label: "Dashboard", 
       icon: MdDashboard,
       description: "Your Overview",
-      color: "purple"
+      color: "purple",
+      section: null
     },
     { 
       to: "/my-profile", 
       label: "My Profile", 
       icon: FaUser,
       description: "Profile Settings",
-      color: "blue"
+      color: "blue",
+      section: "profile"
     },
     { 
       to: "/my-bookings", 
       label: "My Bookings", 
       icon: FaCalendarAlt,
       description: "Track Services",
-      color: "green"
+      color: "green",
+      section: "bookings"
     },
     { 
-      to: "/admin/services", 
+      to: "/services", 
       label: "Browse Services", 
       icon: FaSearch,
       description: "Find Services",
-      color: "orange"
+      color: "orange",
+      section: "services"
     },
     { 
       to: "/loyalty", 
       label: "Loyalty Points", 
       icon: FaGift,
       description: "Rewards & Benefits",
-      color: "yellow"
+      color: "yellow",
+      section: "loyalty"
     },
   ];
 
@@ -167,6 +184,32 @@ const SeekerNavbar = () => {
               orange: 'text-brand-accent',
               yellow: 'text-brand-gold'
             };
+            
+            if (onSectionChange) {
+              const isActive = link.section === null ? !activeSection : activeSection === link.section;
+              return (
+                <button
+                  key={link.to}
+                  onClick={() => handleNavClick(link.section)}
+                  className={`group relative flex items-center space-x-3 py-3 px-4 rounded-xl text-sm transition-all duration-200 w-full text-left ${
+                    isActive
+                      ? "bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg transform scale-[1.02]"
+                      : "text-gray-700 hover:bg-brand-highlight/10 hover:text-brand-primary hover:transform hover:scale-[1.01]"
+                  }`}
+                >
+                  <IconComponent className={`w-5 h-5 ${isActive ? 'text-white' : colorMap[link.color]} group-hover:scale-110 transition-transform`} />
+                  <div className="flex-1">
+                    <p className="font-medium">{link.label}</p>
+                    <p className={`text-xs ${isActive ? 'text-brand-highlight' : 'text-gray-500'}`}>{link.description}</p>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'} opacity-0 group-hover:opacity-100 transition-all`} />
+                  
+                  {isActive && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"></div>
+                  )}
+                </button>
+              );
+            }
             
             return (
               <NavLink
@@ -289,6 +332,27 @@ const SeekerNavbar = () => {
                   orange: 'text-brand-accent',
                   yellow: 'text-brand-gold'
                 };
+                
+                if (onSectionChange) {
+                  const isActive = link.section === null ? !activeSection : activeSection === link.section;
+                  return (
+                    <button
+                      key={link.to}
+                      onClick={() => handleNavClick(link.section)}
+                      className={`flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 group w-full text-left ${
+                        isActive
+                          ? "text-white bg-gradient-to-r from-brand-primary to-brand-secondary"
+                          : "text-gray-700 hover:text-brand-primary hover:bg-brand-highlight/10"
+                      }`}
+                    >
+                      <IconComponent className={`w-5 h-5 ${isActive ? 'text-white' : colorMap[link.color]} group-hover:scale-110 transition-transform`} />
+                      <div>
+                        <p className="font-medium">{link.label}</p>
+                        <p className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'}`}>{link.description}</p>
+                      </div>
+                    </button>
+                  );
+                }
                 
                 return (
                   <NavLink

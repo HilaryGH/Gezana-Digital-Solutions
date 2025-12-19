@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, MapPin, Clock, Eye, Heart, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { type Service } from '../api/services';
 import BookingModal from './BookingModal';
+import DistanceDisplay from './DistanceDisplay';
 import { getCardImageUrl, handleImageError, normalizeImageUrl } from '../utils/imageHelper';
 
 interface ServiceCardProps {
@@ -365,16 +366,23 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           )}
         </div>
         
-        {/* Price in ETB */}
+        {/* Price and Distance */}
         <div className="flex items-center justify-between">
           <span className="text-base font-bold text-orange-600">
             {getPriceInETB()}
           </span>
-          {isExpanded ? (
-            <ChevronUp size={16} className="text-gray-400" />
-          ) : (
-            <ChevronDown size={16} className="text-gray-400" />
-          )}
+          <div className="flex items-center space-x-2">
+            {/* Distance Display */}
+            <DistanceDisplay 
+              distance={service.distance}
+              variant="badge"
+            />
+            {isExpanded ? (
+              <ChevronUp size={16} className="text-gray-400" />
+            ) : (
+              <ChevronDown size={16} className="text-gray-400" />
+            )}
+          </div>
         </div>
       </div>
 
@@ -424,6 +432,12 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 <span>{service.location}</span>
               </div>
             )}
+            {/* Distance in expanded view */}
+            <DistanceDisplay 
+              distance={service.distance}
+              variant="badge"
+              className="bg-blue-50 text-blue-600 px-3 py-1"
+            />
           </div>
 
           {/* Availability Status */}

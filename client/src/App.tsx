@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 
 import Navbar from "./component/Navbar";
@@ -51,8 +52,10 @@ import AdminInvestments from "./component/Admin/AdminInvestments";
 import AdminWomenInitiatives from "./component/Admin/AdminWomenInitiatives";
 import AdminJobs from "./component/Admin/AdminJobs";
 import PremiumMemberships from "./component/Admin/PremiumMemberships";
+import AdminReferrals from "./component/Admin/AdminReferrals";
 import SubmitTestimonial from "./component/Pages/SubmitTestimonial";
 import ServiceDetails from "./component/ServiceDetails";
+import ProviderDetails from "./component/ProviderDetails";
 import PaymentPage from "./component/PaymentPage";
 import AuthSuccess from "./component/AuthSuccess";
 import AuthError from "./component/AuthError";
@@ -87,6 +90,7 @@ const noNavbarRoutes = [
     "/admin/promotional-banners",
     "/admin/investments",
     "/admin/women-initiatives",
+    "/admin/referrals",
     "/provider/bookings",
     "/provider/service-lists",
   ];
@@ -111,6 +115,7 @@ const noNavbarRoutes = [
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/service/:id" element={<ServiceDetails />} />
+        <Route path="/provider/:providerId/details" element={<ProviderDetails />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/support" element={<SupportForm />} />
@@ -143,6 +148,10 @@ const noNavbarRoutes = [
         <Route path="/provider/add-service" element={<AddService />} />
         <Route path="/provider/bookings" element={<ProviderBookings />} />
         <Route path="/provider/service-lists" element={<ServiceList />} />
+        <Route 
+          path="/provider/special-offers" 
+          element={<Navigate to="/provider-dashboard" state={{ showSpecialOffers: true }} replace />} 
+        />
 
         {/* Admin Routes */}
         <Route
@@ -182,6 +191,14 @@ const noNavbarRoutes = [
           element={
             <AdminRoute>
               <PremiumMemberships />
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/referrals" 
+          element={
+            <AdminRoute>
+              <AdminReferrals />
             </AdminRoute>
           } 
         />

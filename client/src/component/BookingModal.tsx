@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Calendar, Clock, User, MessageSquare, CreditCard, CheckCircle } from 'lucide-react';
+import { X, Calendar, Clock, User, MessageSquare, CreditCard, CheckCircle, Tag } from 'lucide-react';
 import { type Service } from '../api/services';
 import axios from '../api/axios';
 import { normalizeImageUrl, handleImageError } from '../utils/imageHelper';
 
+interface SpecialOffer {
+  _id: string;
+  title: string;
+  description: string;
+  originalPrice: number;
+  discountedPrice: number;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
 interface BookingModalProps {
   service: Service;
+  specialOffer?: SpecialOffer | null;
   isOpen: boolean;
   onClose: () => void;
   onBookingSuccess?: (booking: any) => void;
@@ -17,6 +31,7 @@ interface BookingFormData {
   time: string;
   note: string;
   paymentMethod: 'cash' | 'online';
+  referralCode: string; // Optional referral code
   // Guest information
   fullName: string;
   email: string;
@@ -26,16 +41,20 @@ interface BookingFormData {
 
 const BookingModal: React.FC<BookingModalProps> = ({
   service,
+  specialOffer,
   isOpen,
   onClose,
   onBookingSuccess
 }) => {
+  // Use discounted price if special offer is available, otherwise use service price
+  const finalPrice = specialOffer ? specialOffer.discountedPrice : service.price;
   const navigate = useNavigate();
   const [formData, setFormData] = useState<BookingFormData>({
     date: '',
     time: '',
     note: '',
     paymentMethod: 'cash',
+    referralCode: '',
     fullName: '',
     email: '',
     phone: '',
@@ -183,6 +202,8 @@ const BookingModal: React.FC<BookingModalProps> = ({
         date: bookingDateTime.toISOString(),
         note: formData.note || '',
         paymentMethod: formData.paymentMethod,
+        // Referral code (if provided)
+        ...(formData.referralCode ? { referralCode: formData.referralCode.trim().toUpperCase() } : {}),
         // Guest information (only if not logged in)
         ...(isLoggedIn ? {} : {
           guestInfo: {
@@ -247,8 +268,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
             state: { 
               booking: bookingWithUserInfo,
               service: service,
-              amount: service.price || 0,
-              type: 'booking' // Add type to identify booking payment
+              amount: finalPrice || 0,
+              type: 'booking', // Add type to identify booking payment
+              specialOffer: specialOffer || null
             } 
           });
         } else {
@@ -260,8 +282,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
             state: {
               booking: bookingWithUserInfo,
               service: service,
-              amount: service.price || 0,
-              type: 'booking' // This will show the invoice
+              amount: finalPrice || 0,
+              type: 'booking', // This will show the invoice
+              specialOffer: specialOffer || null
             }
           });
         }
@@ -377,9 +400,30 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 </span>
               </div>
               <div className="mt-2">
-                <span className="text-2xl font-bold text-orange-600">
-                  {formatPrice(service.price, service.priceType)}
-                </span>
+                {specialOffer ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-orange-600" />
+                      <span className="text-xs text-orange-600 font-semibold">
+                        {specialOffer.discountType === 'percentage'
+                          ? `${specialOffer.discountValue}% OFF`
+                          : `${specialOffer.discountValue} ETB OFF`}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-orange-600">
+                        {formatPrice(specialOffer.discountedPrice, service.priceType)}
+                      </span>
+                      <span className="text-lg text-gray-400 line-through">
+                        {formatPrice(service.price, service.priceType)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold text-orange-600">
+                    {formatPrice(service.price, service.priceType)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -559,6 +603,25 @@ const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 </label>
               </div>
+            </div>
+
+            {/* Referral Code (Optional) */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-100">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <span className="text-purple-600">🎁</span> Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                name="referralCode"
+                value={formData.referralCode}
+                onChange={handleInputChange}
+                placeholder="Enter referral code if you have one"
+                className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 uppercase"
+                style={{ textTransform: 'uppercase' }}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Have a referral code? Enter it here to support the person who referred you!
+              </p>
             </div>
 
             {/* Additional Notes */}

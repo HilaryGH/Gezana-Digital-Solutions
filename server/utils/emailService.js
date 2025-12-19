@@ -124,6 +124,112 @@ const getWelcomeEmailTemplate = (userName, userRole) => {
   `;
 };
 
+// Welcome email template with referral code
+const getWelcomeEmailWithReferralTemplate = (userName, referralCode) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to HomeHub</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f8ff;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f8ff; padding: 20px;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              
+              <!-- Header with gradient -->
+              <tr>
+                <td style="background: linear-gradient(135deg, #2E3DD3 0%, #00AEEF 100%); padding: 40px 20px; text-align: center;">
+                  <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold;">Welcome to HomeHub!</h1>
+                  <p style="color: #00E5FF; margin: 10px 0 0 0; font-size: 16px;">Digital Solutions at Your Fingertips</p>
+                </td>
+              </tr>
+              
+              <!-- Main Content -->
+              <tr>
+                <td style="padding: 40px 30px;">
+                  <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">Hello, ${userName}! 👋</h2>
+                  
+                  <p style="color: #4b5563; line-height: 1.6; font-size: 16px; margin: 0 0 20px 0;">
+                    Thank you for joining <strong>HomeHub</strong> - Ethiopia's premier digital service marketplace! We're thrilled to have you as part of our growing community.
+                  </p>
+                  
+                  <div style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.18) 0%, rgba(46, 61, 211, 0.15) 100%); border-left: 4px solid #00AEEF; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #2E3DD3; margin: 0 0 10px 0; font-size: 18px;">🎉 Your Account is Ready!</h3>
+                    <p style="color: #00AEEF; margin: 0; line-height: 1.6;">
+                      Start exploring our wide range of services and connect with trusted providers in your area.
+                    </p>
+                  </div>
+                  
+                  <!-- Referral Code Section -->
+                  <div style="background: linear-gradient(135deg, rgba(247, 147, 30, 0.12) 0%, rgba(255, 198, 11, 0.18) 100%); border: 2px solid #F7931E; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center;">
+                    <h3 style="color: #F7931E; margin: 0 0 15px 0; font-size: 20px; font-weight: bold;">🎁 Your Unique Referral Code</h3>
+                    <p style="color: #4b5563; margin: 0 0 20px 0; font-size: 14px; line-height: 1.6;">
+                      Share your referral code with friends and family to help them discover HomeHub!
+                    </p>
+                    <div style="background-color: #ffffff; border: 3px dashed #F7931E; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                      <p style="color: #1f2937; margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 4px; font-family: 'Courier New', monospace;">
+                        ${referralCode}
+                      </p>
+                    </div>
+                    <p style="color: #6b7280; margin: 20px 0 0 0; font-size: 13px; line-height: 1.6;">
+                      When someone uses your code to register or purchase a service, you'll earn rewards! Share it on social media, with friends, or anywhere you think people would benefit from HomeHub's services.
+                    </p>
+                  </div>
+                  
+                  <h3 style="color: #1f2937; margin: 30px 0 15px 0; font-size: 20px;">What You Can Do:</h3>
+                  <ul style="color: #4b5563; line-height: 1.8; padding-left: 20px;">
+                    <li>🔍 Browse hundreds of verified services</li>
+                    <li>📅 Book services at your convenience</li>
+                    <li>💬 Chat with providers before booking</li>
+                    <li>⭐ Rate and review service providers</li>
+                    <li>🎁 Earn loyalty points with every booking</li>
+                    <li>👥 Share your referral code and earn rewards</li>
+                  </ul>
+                  
+                  <div style="margin: 30px 0; text-align: center;">
+                    <a href="https://homehubdigital.netlify.app/" 
+                       style="display: inline-block; background: linear-gradient(135deg, #2E3DD3 0%, #00AEEF 100%); color: #ffffff; padding: 15px 40px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; box-shadow: 0 6px 16px rgba(46, 61, 211, 0.25);">
+                      Get Started Now →
+                    </a>
+                  </div>
+                  
+                  <div style="background-color: rgba(0, 229, 255, 0.08); border-radius: 8px; padding: 20px; margin: 30px 0;">
+                    <h4 style="color: #1f2937; margin: 0 0 10px 0; font-size: 16px;">📱 Stay Connected:</h4>
+                    <p style="color: #6b7280; margin: 0; font-size: 14px; line-height: 1.6;">
+                      Follow us on social media for updates, tips, and exclusive offers!
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #000000; padding: 30px; text-align: center;">
+                  <p style="color: #9ca3af; margin: 0 0 10px 0; font-size: 14px;">
+                    Need help? Contact us at <a href="mailto:g.fikre2@gmail.com" style="color: #00AEEF; text-decoration: none;">g.fikre2@gmail.com</a>
+                  </p>
+                  <p style="color: #6b7280; margin: 0; font-size: 12px;">
+                    📍 Addis Ababa, Ethiopia | 📞 +251 911 508 734
+                  </p>
+                  <p style="color: #6b7280; margin: 15px 0 0 0; font-size: 12px;">
+                    © ${new Date().getFullYear()} HomeHub Digital Solutions. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+              
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
 // Send welcome email
 const sendWelcomeEmail = async (userEmail, userName, userRole) => {
   try {
@@ -142,6 +248,28 @@ const sendWelcomeEmail = async (userEmail, userName, userRole) => {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('❌ Error sending welcome email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Send welcome email with referral code
+const sendWelcomeEmailWithReferral = async (userEmail, userName, referralCode) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      subject: `Welcome to HomeHub! 🎉 Your Account is Ready + Your Referral Code`,
+      html: getWelcomeEmailWithReferralTemplate(userName, referralCode),
+      text: `Welcome to HomeHub, ${userName}! Your account has been successfully created. Your unique referral code is: ${referralCode}. Share it with friends to earn rewards! Visit https://homehubdigital.netlify.app/ to get started.`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Welcome email with referral code sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Error sending welcome email with referral:', error);
     return { success: false, error: error.message };
   }
 };
@@ -503,6 +631,7 @@ const sendPasswordResetEmail = async (userEmail, userName, resetToken) => {
 
 module.exports = {
   sendWelcomeEmail,
+  sendWelcomeEmailWithReferral,
   sendServicePublishedEmail,
   sendBookingConfirmationEmail,
   sendPasswordResetEmail,

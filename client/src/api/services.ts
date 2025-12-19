@@ -23,6 +23,7 @@ export interface Service {
   ratingCount?: number; // Number of ratings/reviews
   isAvailable: boolean;
   location: string;
+  distance?: number | null; // Distance in kilometers between user and provider
   createdAt: string;
   updatedAt: string;
 }

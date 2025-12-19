@@ -18,13 +18,20 @@ const bookingSchema = new mongoose.Schema({
   },
   note: { type: String },
   status: { type: String, default: "pending" },
+  // Distance in kilometers between seeker and provider
+  distance: {
+    type: Number,
+    default: null
+  },
   // Guest information for non-logged-in users
   guestInfo: {
     fullName: { type: String },
     email: { type: String },
     phone: { type: String },
     address: { type: String }
-  }
+  },
+  // Referral code used for this booking
+  referralCode: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Booking", bookingSchema);

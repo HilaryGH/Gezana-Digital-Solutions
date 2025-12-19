@@ -11,7 +11,7 @@ interface SpecialOffer {
     name: string;
     price: number;
     photos?: string[];
-  };
+  } | null;
   title: string;
   description: string;
   discountType: "percentage" | "fixed";
@@ -169,18 +169,22 @@ const SpecialOffers = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {offers.map((offer) => {
             const isValid = isOfferValid(offer);
+            // Check if service exists, if not, show a warning
+            const hasService = offer.service && offer.service.name;
+            const servicePhotos = offer.service?.photos;
+            
             return (
               <div
                 key={offer._id}
                 className={`bg-white rounded-lg shadow-md border-2 overflow-hidden transition-all ${
                   isValid ? "border-green-200" : "border-gray-200"
-                }`}
+                } ${!hasService ? "border-red-200 opacity-75" : ""}`}
               >
                 {/* Offer Image or Service Photo */}
-                {offer.image || (offer.service.photos && offer.service.photos.length > 0) ? (
+                {offer.image || (servicePhotos && servicePhotos.length > 0) ? (
                   <div className="h-40 bg-gray-200 overflow-hidden">
                     <img
-                      src={getCardImageUrl(offer.image || offer.service.photos[0]) || offer.image || offer.service.photos[0]}
+                      src={getCardImageUrl(offer.image || servicePhotos[0]) || offer.image || servicePhotos[0]}
                       alt={offer.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -213,7 +217,13 @@ const SpecialOffers = () => {
                   {/* Service Info */}
                   <div className="mb-3 pb-3 border-b border-gray-200">
                     <p className="text-xs text-gray-500 mb-1">Service</p>
-                    <p className="text-sm font-medium text-gray-900">{offer.service.name}</p>
+                    {hasService ? (
+                      <p className="text-sm font-medium text-gray-900">{offer.service?.name || "Unknown Service"}</p>
+                    ) : (
+                      <p className="text-sm font-medium text-red-600 italic">
+                        Service no longer available
+                      </p>
+                    )}
                   </div>
 
                   {/* Pricing */}
@@ -276,9 +286,20 @@ const SpecialOffers = () => {
                       )}
                     </button>
                     <button
-                      onClick={() => handleEdit(offer)}
-                      className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                      title="Edit"
+                      onClick={() => {
+                        if (!hasService) {
+                          alert("Cannot edit this offer because the associated service has been deleted. Please delete this offer and create a new one.");
+                          return;
+                        }
+                        handleEdit(offer);
+                      }}
+                      className={`px-3 py-2 rounded-lg transition-colors ${
+                        hasService
+                          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      }`}
+                      title={hasService ? "Edit" : "Cannot edit - service deleted"}
+                      disabled={!hasService}
                     >
                       <Edit className="w-4 h-4" />
                     </button>

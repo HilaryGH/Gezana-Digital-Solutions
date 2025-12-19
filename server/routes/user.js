@@ -31,6 +31,85 @@ router.put("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// Save user location endpoint
+router.post("/location", authMiddleware, async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+
+    // Validate missing coordinates
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: latitude and longitude are required"
+      });
+    }
+
+    // Validate coordinate types (handle string numbers from form submissions)
+    const lat = typeof latitude === 'string' ? parseFloat(latitude) : latitude;
+    const lng = typeof longitude === 'string' ? parseFloat(longitude) : longitude;
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid coordinate types: latitude and longitude must be valid numbers"
+      });
+    }
+
+    // Validate coordinate ranges
+    if (lat < -90 || lat > 90) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude: must be between -90 and 90"
+      });
+    }
+
+    if (lng < -180 || lng > 180) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid longitude: must be between -180 and 180"
+      });
+    }
+
+    // Find user
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Update user location - set latitude and longitude
+    // The pre-save middleware will automatically create the GeoJSON coordinates field
+    user.latitude = lat;
+    user.longitude = lng;
+    
+    await user.save();
+
+    // Return success response with saved location
+    res.status(200).json({
+      success: true,
+      message: "Location saved successfully",
+      location: {
+        latitude: user.latitude,
+        longitude: user.longitude,
+        coordinates: user.coordinates ? {
+          type: user.coordinates.type,
+          coordinates: user.coordinates.coordinates
+        } : null
+      }
+    });
+
+  } catch (error) {
+    console.error("Error saving user location:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save location. Please try again later.",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Add this at the top if not already
 const isAdmin = require("../middleware/isAdmin"); // you need to create this if missing
 

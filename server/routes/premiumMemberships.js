@@ -243,17 +243,31 @@ router.patch("/:id/payment", authMiddleware, async (req, res) => {
     if (transactionId) membership.transactionId = transactionId;
     if (paymentMethod) membership.paymentMethod = paymentMethod;
 
-    // If payment is successful, activate membership
-    if (paymentStatus === "paid" && membership.status === "pending") {
-      membership.status = "active";
-      membership.startDate = new Date();
-      const endDate = new Date();
-      if (membership.period === "month") {
-        endDate.setMonth(endDate.getMonth() + 1);
-      } else if (membership.period === "year") {
-        endDate.setFullYear(endDate.getFullYear() + 1);
+    // If payment is successful (paid), activate membership and generate invoice
+    if (paymentStatus === "paid") {
+      if (membership.status === "pending") {
+        membership.status = "active";
+        membership.startDate = new Date();
+        const endDate = new Date();
+        if (membership.period === "month") {
+          endDate.setMonth(endDate.getMonth() + 1);
+        } else if (membership.period === "year") {
+          endDate.setFullYear(endDate.getFullYear() + 1);
+        }
+        membership.endDate = endDate;
       }
-      membership.endDate = endDate;
+      
+      // Generate invoice number if not exists (for both cash and online payments)
+      if (!membership.invoiceNumber) {
+        try {
+          const count = await PremiumMembership.countDocuments();
+          membership.invoiceNumber = `INV-${String(count + 1).padStart(4, "0")}`;
+        } catch (countError) {
+          console.error("Error counting memberships for invoice:", countError);
+          // Fallback to timestamp-based invoice number
+          membership.invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+        }
+      }
     }
 
     await membership.save();
@@ -325,8 +339,23 @@ router.get("/:id/invoice", authMiddleware, async (req, res) => {
     }
 
     // Generate invoice data
+    // Generate 4-digit invoice number if not exists
+    let invoiceNumber = membership.invoiceNumber;
+    if (!invoiceNumber && membership.paymentStatus === "paid") {
+      try {
+        const count = await PremiumMembership.countDocuments();
+        invoiceNumber = `INV-${String(count + 1).padStart(4, "0")}`;
+        // Save invoice number to membership
+        membership.invoiceNumber = invoiceNumber;
+        await membership.save();
+      } catch (countError) {
+        console.error("Error generating invoice number:", countError);
+        // Fallback to timestamp-based invoice number
+        invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+      }
+    }
     const invoice = {
-      invoiceNumber: membership.invoiceNumber || `INV-${membership._id}`,
+      invoiceNumber: invoiceNumber,
       date: membership.createdAt,
       membershipId: membership._id,
       customer: {
@@ -373,6 +402,10 @@ router.get("/:id/invoice", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+
+
+
 
 
 

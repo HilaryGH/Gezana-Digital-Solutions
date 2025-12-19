@@ -83,6 +83,12 @@ const AdminNavbar = () => {
       icon: FaHeart,
       description: "Manage Applications"
     },
+    { 
+      to: "/admin/referrals", 
+      label: "Referrals", 
+      icon: FaUserFriends,
+      description: "Track Referral Program"
+    },
   ];
 
   useEffect(() => {
