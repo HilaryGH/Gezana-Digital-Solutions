@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ServiceCard from "./ServiceCard";
 import { ChevronDown, X, Star, Tag } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
 import { getRecentServices, getMostBookedServices, getServices, type Service } from "../api/services";
@@ -75,7 +74,6 @@ const serviceCategories = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState<number | null>(null);
   const [showServicesModal, setShowServicesModal] = useState(false);
   const [recentServices, setRecentServices] = useState<Service[]>([]);
@@ -119,11 +117,9 @@ const Home = () => {
 
   // Handle search query from URL parameters
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const search = urlParams.get('search');
-    if (search) {
-      setSearchQuery(search);
-    }
+    // URL search params can be handled here if needed in the future
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const search = urlParams.get('search');
   }, []);
 
   // Detect mobile screen size
@@ -1545,7 +1541,7 @@ const Home = () => {
                     // Filter out offers where service is null or missing
                     const hasService = offer.service && (
                       typeof offer.service === 'string' || 
-                      (typeof offer.service === 'object' && (offer.service._id || offer.service.id))
+                      (typeof offer.service === 'object' && offer.service._id)
                     );
                     return hasService;
                   })
@@ -1561,10 +1557,10 @@ const Home = () => {
                       className="flex-shrink-0 w-[320px] bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-orange-100 overflow-hidden group"
                     >
                       {/* Offer Image */}
-                      {offer.image || (offer.service?.photos && offer.service.photos.length > 0) ? (
+                      {offer.image || (offer.service && typeof offer.service === 'object' && offer.service.photos && offer.service.photos.length > 0) ? (
                         <div className="relative w-full h-48 overflow-hidden">
                           <img
-                            src={getCardImageUrl(offer.image || offer.service.photos[0]) || offer.image || offer.service.photos[0]}
+                            src={getCardImageUrl(offer.image || (offer.service && typeof offer.service === 'object' && offer.service.photos ? offer.service.photos[0] : '')) || offer.image || (offer.service && typeof offer.service === 'object' && offer.service.photos ? offer.service.photos[0] : '')}
                             alt={offer.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
@@ -1656,12 +1652,16 @@ const Home = () => {
                               serviceId = offer.service;
                             } else if (offer.service && typeof offer.service === 'object') {
                               // Service is an object (populated or just has _id), try to get ID
-                              serviceId = offer.service._id || null;
+                              const serviceIdObj = offer.service._id;
                               // If service only has _id (service was deleted), that's fine - we can still navigate
-                              if (serviceId && typeof serviceId === 'object') {
-                                serviceId = serviceId.toString();
-                              } else if (serviceId) {
-                                serviceId = String(serviceId);
+                              if (serviceIdObj) {
+                                if (typeof serviceIdObj === 'string') {
+                                  serviceId = serviceIdObj;
+                                } else if (typeof serviceIdObj === 'object' && serviceIdObj !== null) {
+                                  serviceId = String(serviceIdObj);
+                                } else {
+                                  serviceId = String(serviceIdObj);
+                                }
                               }
                             }
                             
@@ -1700,7 +1700,7 @@ const Home = () => {
             ) : (
               <div className="text-left py-8">
                 <p className="text-gray-500 text-sm">No special offers available at the moment. Check back soon for exciting deals!</p>
-                {process.env.NODE_ENV === 'development' && (
+                {import.meta.env.DEV && (
                   <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-xs text-yellow-800">
                       <strong>Debug Info:</strong> Check browser console and server logs for details.
@@ -2249,11 +2249,18 @@ const Home = () => {
                     setApplicationError(null);
                     setApplicationSuccess(false);
                     setApplicationForm({
-                      coverLetter: '',
-                      resume: null,
                       fullName: '',
+                      dateOfBirth: '',
+                      gender: '',
+                      nationality: '',
                       email: '',
                       phone: '',
+                      alternativePhone: '',
+                      address: '',
+                      city: '',
+                      country: '',
+                      coverLetter: '',
+                      resume: null,
                     });
                   }}
                   className="text-white hover:text-gray-200 transition-colors"
@@ -2279,11 +2286,18 @@ const Home = () => {
                       setShowApplicationModal(false);
                       setApplicationSuccess(false);
                       setApplicationForm({
-                        coverLetter: '',
-                        resume: null,
                         fullName: '',
+                        dateOfBirth: '',
+                        gender: '',
+                        nationality: '',
                         email: '',
                         phone: '',
+                        alternativePhone: '',
+                        address: '',
+                        city: '',
+                        country: '',
+                        coverLetter: '',
+                        resume: null,
                       });
                     }}
                     className="px-6 py-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all"
@@ -2564,11 +2578,18 @@ const Home = () => {
                         setShowApplicationModal(false);
                         setApplicationError(null);
                         setApplicationForm({
-                          coverLetter: '',
-                          resume: null,
                           fullName: '',
+                          dateOfBirth: '',
+                          gender: '',
+                          nationality: '',
                           email: '',
                           phone: '',
+                          alternativePhone: '',
+                          address: '',
+                          city: '',
+                          country: '',
+                          coverLetter: '',
+                          resume: null,
                         });
                       }}
                       className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
