@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle, Download, ArrowLeft, FileText, Calendar, CreditCard, User, Building } from "lucide-react";
+import { CheckCircle, Download, ArrowLeft, FileText, Calendar, CreditCard, User, Building, Shield } from "lucide-react";
 import axios from "../api/axios";
 
 const PaymentSuccess = () => {
@@ -8,10 +8,24 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   const { type, membership, amount, planName, transactionId, booking, service, paymentMethod } = location.state || {};
   const isPremiumMembership = type === 'premium-membership';
   const isBooking = type === 'booking' || (!type && booking && service);
+
+  // Get user role from localStorage
+  useEffect(() => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setUserRole(user.role || null);
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+  }, []);
 
   useEffect(() => {
     if (isPremiumMembership && membership?._id) {
@@ -548,7 +562,7 @@ Thank you for your premium membership!
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Home</span>
           </button>
-          {isPremiumMembership && (
+          {isPremiumMembership && userRole === 'provider' && (
             <button
               onClick={() => {
                 // Navigate to provider dashboard and show special offers
@@ -561,7 +575,51 @@ Thank you for your premium membership!
               Create Special Offers
             </button>
           )}
+          {isPremiumMembership && userRole === 'seeker' && (
+            <>
+              <button
+                onClick={() => navigate('/services')}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+              >
+                Browse Services
+              </button>
+              <button
+                onClick={() => navigate('/seeker-dashboard')}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+              >
+                Go to Dashboard
+              </button>
+            </>
+          )}
         </div>
+        
+        {/* Premium Access Info for Service Seekers */}
+        {isPremiumMembership && userRole === 'seeker' && (
+          <div className="mt-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border-2 border-purple-200">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <Shield className="w-8 h-8 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  🎉 Premium Access Activated!
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  As a premium member, you now have exclusive access to view detailed information about service providers, including their documents, business details, and comprehensive service information.
+                </p>
+                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 mb-4">
+                  <li>View provider documents and credentials</li>
+                  <li>Access detailed business information</li>
+                  <li>See comprehensive service provider profiles</li>
+                  <li>Make informed decisions with full transparency</li>
+                </ul>
+                <p className="text-sm font-semibold text-purple-700">
+                  Click on any service to view the "View Provider Details" button and explore provider information!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

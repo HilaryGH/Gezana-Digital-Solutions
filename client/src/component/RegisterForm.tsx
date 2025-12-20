@@ -50,6 +50,7 @@ const RegisterForm = () => {
     tin: "",
     gender: "",
     femaleLedOrOwned: "",
+    workExperience: "",
     branches: [{ city: "", location: "" }],
     banks: [{ bankName: "", accountNumber: "" }],
     password: "",
@@ -57,6 +58,8 @@ const RegisterForm = () => {
     license: null as File | null,
     tradeRegistration: null as File | null,
     professionalCertificate: null as File | null,
+    governmentId: null as File | null,
+    crCertificate: null as File | null,
     photo: null as File | null,
     servicePhotos: [] as File[],
     video: null as File | null,
@@ -628,6 +631,25 @@ const RegisterForm = () => {
                           </select>
                         </div>
                       )}
+                      {/* Work Experience - For all service providers */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Work Experience (in years) *
+                        </label>
+                        <select 
+                          name="workExperience" 
+                          required 
+                          value={providerForm.workExperience} 
+                          onChange={handleProviderChange} 
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                        >
+                          <option value="" disabled>Select Work Experience</option>
+                          <option value="1 year">1 year</option>
+                          <option value="1+ year to 3 years">1+ year to 3 years</option>
+                          <option value="3+ year to 5 years">3+ year to 5 years</option>
+                          <option value="5+ years">5+ years</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -765,22 +787,52 @@ const RegisterForm = () => {
                   <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
                     <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">Required Documents</h3>
                     <div className="space-y-4">
-                      {/* For Freelancers: Professional Certificate */}
+                      {/* For Freelancers: Required Documents */}
                       {providerSubRole === "freelancer" && (
-                        <div className="space-y-2">
-                          <label className="block text-sm font-semibold text-gray-700 font-inter">
-                            Professional Certificate *
-                          </label>
-                          <input 
-                            type="file" 
-                            name="professionalCertificate" 
-                            accept="application/pdf,image/*" 
-                            required
-                            onChange={handleProviderChange} 
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
-                          />
-                          <p className="text-xs text-gray-500">Upload your professional certificate or credentials</p>
-                        </div>
+                        <>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              Government ID / Driving Licence / Passport *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="governmentId" 
+                              accept="application/pdf,image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload your government ID, driving licence, or passport</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              CR Certificate *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="crCertificate" 
+                              accept="application/pdf,image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload your CR (Commercial Registration) certificate</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              Professional Certificate *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="professionalCertificate" 
+                              accept="application/pdf,image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload your professional certificate or credentials</p>
+                          </div>
+                        </>
                       )}
 
                       {/* For Small/Specialized Business: Business License and Trade Registration */}

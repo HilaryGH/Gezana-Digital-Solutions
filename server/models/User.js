@@ -104,6 +104,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["female-led", "female-owned", "non-female"],
     },
+    workExperience: {
+      type: String,
+      enum: ["1 year", "1+ year to 3 years", "3+ year to 5 years", "5+ years"],
+    },
     businessStatus: [{ type: String }],
     
     // Provider branches
@@ -122,6 +126,8 @@ const userSchema = new mongoose.Schema(
     license: { type: String }, // File path
     tradeRegistration: { type: String }, // File path
     professionalCertificate: { type: String }, // File path
+    governmentId: { type: String }, // File path - Government ID/Driving Licence/Passport for freelancers
+    crCertificate: { type: String }, // File path - CR Certificate for freelancers
     photo: { type: String }, // File path
     servicePhotos: [{ type: String }], // Array of file paths
     video: { type: String }, // File path

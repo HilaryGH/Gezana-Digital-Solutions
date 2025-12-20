@@ -248,7 +248,7 @@ const ProviderNavbar = () => {
         <div className="p-4 border-t border-gray-200">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl py-3 font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+            className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-secondary hover:to-brand-primary text-white rounded-xl py-3 font-semibold transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
             <FaSignOutAlt className="w-4 h-4" />
             <span>Logout</span>
@@ -356,7 +356,7 @@ const ProviderNavbar = () => {
 
             <button
               onClick={handleLogout}
-                className="mt-6 w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl py-4 font-semibold transition-all duration-300"
+                className="mt-6 w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-secondary hover:to-brand-primary text-white rounded-xl py-4 font-semibold transition-all duration-300"
             >
                 <FaSignOutAlt className="w-4 h-4" />
                 <span>Logout</span>

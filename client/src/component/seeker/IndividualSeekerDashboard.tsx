@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Star, Gift, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, Users, Copy, Check, ArrowLeft, Search } from "lucide-react";
 import axios from "../../api/axios";
-import { FaGift, FaCalendarAlt, FaStar } from "react-icons/fa";
+import { FaGift, FaCalendarAlt, FaStar, FaSignOutAlt } from "react-icons/fa";
 
 interface Booking {
   _id: string;
@@ -767,12 +767,28 @@ const IndividualSeekerDashboard = ({
     );
   }
 
+  const handleLogout = () => {
+    if (confirm("Are you sure you want to logout?")) {
+      localStorage.clear();
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
-        <p className="text-gray-600">Here's an overview of your activity and bookings</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
+          <p className="text-gray-600">Here's an overview of your activity and bookings</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-secondary hover:to-brand-primary text-white rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+        >
+          <FaSignOutAlt className="w-4 h-4" />
+          <span>Logout</span>
+        </button>
       </div>
 
       {/* Stats Cards */}

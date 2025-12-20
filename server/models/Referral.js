@@ -50,3 +50,4 @@ referralSchema.index({ referralCode: 1 });
 module.exports = mongoose.model("Referral", referralSchema);
 
 
+

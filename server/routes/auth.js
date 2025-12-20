@@ -40,6 +40,8 @@ router.post("/register", upload.fields([
   { name: 'license', maxCount: 1 },
   { name: 'tradeRegistration', maxCount: 1 },
   { name: 'professionalCertificate', maxCount: 1 },
+  { name: 'governmentId', maxCount: 1 },
+  { name: 'crCertificate', maxCount: 1 },
   { name: 'photo', maxCount: 1 },
   { name: 'servicePhotos', maxCount: 5 },
   { name: 'video', maxCount: 1 },
@@ -72,6 +74,7 @@ router.post("/register", upload.fields([
       serviceType,
       gender,
       femaleLedOrOwned,
+      workExperience,
       branches,
       banks,
       businessStatus,
@@ -164,6 +167,10 @@ router.post("/register", upload.fields([
       if (femaleLedOrOwned) {
         userData.femaleLedOrOwned = femaleLedOrOwned;
       }
+      // Add work experience for all service providers
+      if (workExperience) {
+        userData.workExperience = workExperience;
+      }
 
       // Parse JSON fields
       if (branches) {
@@ -202,6 +209,12 @@ router.post("/register", upload.fields([
         }
         if (req.files.professionalCertificate) {
           userData.professionalCertificate = getFileUrl(req.files.professionalCertificate[0]);
+        }
+        if (req.files.governmentId) {
+          userData.governmentId = getFileUrl(req.files.governmentId[0]);
+        }
+        if (req.files.crCertificate) {
+          userData.crCertificate = getFileUrl(req.files.crCertificate[0]);
         }
         if (req.files.photo) {
           userData.photo = getFileUrl(req.files.photo[0]);
