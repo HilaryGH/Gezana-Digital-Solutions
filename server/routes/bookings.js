@@ -322,49 +322,8 @@ router.post("/", async (req, res) => {
       }
     }
 
-    // Send booking confirmation notifications
-    try {
-      const customerInfo = userId ? {
-        name: populatedBooking.user?.name,
-        email: populatedBooking.user?.email,
-        phone: populatedBooking.user?.phone,
-        whatsapp: populatedBooking.user?.whatsapp
-      } : {
-        name: guestInfo.fullName,
-        email: guestInfo.email,
-        phone: guestInfo.phone,
-        whatsapp: guestInfo.phone // Use phone as whatsapp for guests
-      };
-
-      const bookingDetails = {
-        serviceName: serviceDoc.name,
-        providerName: serviceDoc.provider?.name || 'Provider',
-        date: new Date(date).toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        time: new Date(date).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        price: serviceDoc.price,
-        location: serviceDoc.location || 'To be determined'
-      };
-
-      const notificationResults = await sendBookingConfirmationNotifications(
-        customerInfo,
-        bookingDetails
-      );
-      
-      console.log("Booking confirmation notifications sent:", notificationResults);
-    } catch (notifError) {
-      console.error("Error sending booking notifications:", notifError);
-      // Don't fail booking if notifications fail
-    }
-
-    // Return populated booking with user info, guestInfo, and distance
+    // Return populated booking with user info, guestInfo, and distance immediately
+    // Send response first to prevent timeout, then send notifications in background
     const responseData = populatedBooking.toObject();
     responseData.distance = booking.distance; // Include distance in response
     
@@ -372,6 +331,51 @@ router.post("/", async (req, res) => {
       ...responseData,
       distance: booking.distance, // Distance in kilometers
       distanceUnit: 'km'
+    });
+
+    // Send booking confirmation notifications asynchronously (non-blocking)
+    // This prevents timeout issues in production where external APIs (Twilio, email) may be slow
+    setImmediate(async () => {
+      try {
+        const customerInfo = userId ? {
+          name: populatedBooking.user?.name,
+          email: populatedBooking.user?.email,
+          phone: populatedBooking.user?.phone,
+          whatsapp: populatedBooking.user?.whatsapp
+        } : {
+          name: guestInfo.fullName,
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+          whatsapp: guestInfo.phone // Use phone as whatsapp for guests
+        };
+
+        const bookingDetails = {
+          serviceName: serviceDoc.name,
+          providerName: serviceDoc.provider?.name || 'Provider',
+          date: new Date(date).toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          time: new Date(date).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          price: serviceDoc.price,
+          location: serviceDoc.location || 'To be determined'
+        };
+
+        const notificationResults = await sendBookingConfirmationNotifications(
+          customerInfo,
+          bookingDetails
+        );
+        
+        console.log("✅ Booking confirmation notifications sent:", notificationResults);
+      } catch (notifError) {
+        console.error("❌ Error sending booking notifications:", notifError);
+        // Don't fail booking if notifications fail - booking is already created
+      }
     });
   } catch (err) {
     console.error("❌ Booking failed:", err);
