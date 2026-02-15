@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, X, Star, Tag } from "lucide-react";
-import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel } from "react-icons/fa";
+import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel, FaPhone, FaWhatsapp, FaEnvelope, FaComments, FaTimes } from "react-icons/fa";
 import { getRecentServices, getMostBookedServices, getServices, type Service } from "../api/services";
 import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
 import { getJobs, type Job } from "../api/jobs";
@@ -94,6 +94,8 @@ const Home = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [specialOffers, setSpecialOffers] = useState<SpecialOffer[]>([]);
   const [loadingSpecialOffers, setLoadingSpecialOffers] = useState(false);
+  const [showCommunicationWidget, setShowCommunicationWidget] = useState(false);
+  const communicationWidgetRef = useRef<HTMLDivElement>(null);
   const [applicationForm, setApplicationForm] = useState({
     // Personal Information
     fullName: '',
@@ -151,6 +153,26 @@ const Home = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [isMobile]);
+
+  // Close communication widget when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        communicationWidgetRef.current &&
+        !communicationWidgetRef.current.contains(event.target as Node)
+      ) {
+        setShowCommunicationWidget(false);
+      }
+    };
+
+    if (showCommunicationWidget) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCommunicationWidget]);
 
   // Fetch recently added services
   useEffect(() => {
@@ -2610,6 +2632,104 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      {/* Swift Communication Widget */}
+      <div ref={communicationWidgetRef} className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
+        {/* Communication Options */}
+        {showCommunicationWidget && (
+          <div className="mb-4 space-y-3 flex flex-col-reverse">
+            {/* Phone */}
+            <a
+              href="tel:+251911508734"
+              className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group animate-[slideUp_0.3s_ease-out]`}
+              onClick={() => setShowCommunicationWidget(false)}
+              style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
+            >
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors flex-shrink-0">
+                <FaPhone className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">Phone</span>
+            </a>
+
+            {/* WhatsApp */}
+            <a
+              href="https://wa.me/251911508734"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group animate-[slideUp_0.3s_ease-out]`}
+              onClick={() => setShowCommunicationWidget(false)}
+              style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
+            >
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors flex-shrink-0">
+                <FaWhatsapp className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">WhatsApp</span>
+            </a>
+
+            {/* Email */}
+            <a
+              href="mailto:g.fikre2@gmail.com"
+              className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group animate-[slideUp_0.3s_ease-out]`}
+              onClick={() => setShowCommunicationWidget(false)}
+              style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
+            >
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center group-hover:bg-orange-600 transition-colors flex-shrink-0">
+                <FaEnvelope className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">Email</span>
+            </a>
+
+            {/* App Chat */}
+            <button
+              onClick={() => {
+                // Navigate to chat or open chat modal
+                navigate('/contact');
+                setShowCommunicationWidget(false);
+              }}
+              className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group w-full animate-[slideUp_0.3s_ease-out]`}
+              style={{ animationDelay: '0.4s', animationFillMode: 'both' }}
+            >
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors flex-shrink-0">
+                <FaComments className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">App Chat</span>
+            </button>
+          </div>
+        )}
+
+        {/* Main Toggle Button */}
+        <button
+          onClick={() => setShowCommunicationWidget(!showCommunicationWidget)}
+          className={`w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
+            showCommunicationWidget
+              ? 'bg-gradient-to-r from-orange-600 to-orange-700 rotate-45'
+              : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+          }`}
+          aria-label="Open communication options"
+        >
+          {showCommunicationWidget ? (
+            <FaTimes className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          ) : (
+            <FaComments className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          )}
+        </button>
+      </div>
+
+      {/* Add custom animation styles */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `
+      }} />
     </>
   );
 };

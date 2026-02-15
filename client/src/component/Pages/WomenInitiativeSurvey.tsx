@@ -538,9 +538,9 @@ const WomenInitiativeSurvey: React.FC<SurveyModalProps> = ({ isOpen, onClose }) 
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Areas Currently Involved In</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Skill & Experience</label>
                     <div className="space-y-2">
-                      {["Infant Care", "Food Preparation", "Nutrition and Dietary Services", "Spa and Beauty Services", "Fashion and Design"].map((area) => (
+                      {["Home Maintenance", "Appliance Repair", "Personal Care", "Housemaid Services", "Cleaning Services", "Hotel/Lounge Services"].map((area) => (
                         <label key={area} className="flex items-center space-x-2">
                           <input
                             type="checkbox"
@@ -586,9 +586,9 @@ const WomenInitiativeSurvey: React.FC<SurveyModalProps> = ({ isOpen, onClose }) 
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Skills Needing Improvement</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Training Needed</label>
                     <div className="space-y-2">
-                      {["Infant Care Techniques", "Healthy Cooking Practices", "Nutritional Knowledge", "Spa Treatments", "Beauty Techniques", "Fashion Design Skills"].map((skill) => (
+                      {["Home Maintenance", "Appliance Repair", "Personal Care", "Housemaid Services", "Cleaning Services", "Hotel/Lounge Services"].map((skill) => (
                         <label key={skill} className="flex items-center space-x-2">
                           <input
                             type="checkbox"

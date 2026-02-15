@@ -3,11 +3,11 @@ import {
 } from "./chunk-VHWGK3ZV.js";
 import {
   require_react
-} from "./chunk-TVFQMRVC.js";
+} from "./chunk-6GAV2S6I.js";
 import {
   __commonJS,
   __toESM
-} from "./chunk-G3PMV62Z.js";
+} from "./chunk-DC5AMYBS.js";
 
 // node_modules/void-elements/index.js
 var require_void_elements = __commonJS({

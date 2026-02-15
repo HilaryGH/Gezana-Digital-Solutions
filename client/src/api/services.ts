@@ -157,29 +157,6 @@ export const getFallbackCategories = (): ServiceCategory[] => [
     ]
   },
   {
-    id: '5',
-    name: 'Household & Home Services',
-    icon: '🏠',
-    subcategories: [
-      'Gardening',
-      'Laundry',
-      'Home Organization',
-      'Pest Control',
-      'Home Security',
-      'Maintenance',
-      'Interior Design',
-      'Furniture Assembly',
-      'Landscaping',
-      'Pool Maintenance',
-      'Gutter Cleaning',
-      'Pressure Washing',
-      'Home Staging',
-      'Decluttering',
-      'Storage Solutions',
-      'Seasonal Services'
-    ]
-  },
-  {
     id: '6',
     name: 'Hotel/Lounge Services',
     icon: '🏨',

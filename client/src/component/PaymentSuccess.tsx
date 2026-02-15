@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle, Download, ArrowLeft, FileText, Calendar, CreditCard, User, Building, Shield } from "lucide-react";
+import QRCode from "react-qr-code";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import axios from "../api/axios";
 
 const PaymentSuccess = () => {
@@ -8,6 +11,8 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const invoicePdfRef = useRef<HTMLDivElement>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
 
   const { type, membership, amount, planName, transactionId, booking, service, paymentMethod } = location.state || {};
@@ -98,7 +103,7 @@ const PaymentSuccess = () => {
     const hash = bookingIdStr.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const invoiceNum = String((hash % 10000)).padStart(4, "0");
     const invoiceData = {
-      invoiceNumber: `INV-BKG-${invoiceNum}`,
+      invoiceNumber: invoiceNum, // Use only 4 digits
       date: new Date().toISOString(),
       customer: {
         name: customerName,
@@ -154,119 +159,84 @@ const PaymentSuccess = () => {
     }
   };
 
-  const handleDownloadInvoice = () => {
-    if (!invoice) return;
+  const handleDownloadInvoice = async () => {
+    if (!invoice || !invoicePdfRef.current) return;
     
-    let invoiceContent = '';
-    
-    if (isBooking) {
-      // Booking invoice
-      invoiceContent = `
-═══════════════════════════════════════════════════════
-              HOMEHUB DIGITAL SOLUTIONS
-═══════════════════════════════════════════════════════
+    try {
+      // Capture the invoice element
+      const canvas = await html2canvas(invoicePdfRef.current, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: invoicePdfRef.current.scrollWidth,
+        windowHeight: invoicePdfRef.current.scrollHeight,
+      });
 
-BOOKING INVOICE
-Invoice Number: ${invoice.invoiceNumber}
-Date: ${new Date(invoice.date).toLocaleDateString()}
+      // Calculate PDF dimensions with margins
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeight = 297; // A4 height in mm
+      const margin = 10; // 10mm margin on all sides
+      const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = pdfHeight - (margin * 2);
+      
+      // Calculate aspect ratios
+      const canvasAspectRatio = canvas.width / canvas.height;
+      const pageAspectRatio = contentWidth / contentHeight;
+      
+      let imgWidth, imgHeight;
+      
+      // Scale to fit within one page
+      if (canvasAspectRatio > pageAspectRatio) {
+        // Canvas is wider - fit to width
+        imgWidth = contentWidth;
+        imgHeight = contentWidth / canvasAspectRatio;
+      } else {
+        // Canvas is taller - fit to height
+        imgHeight = contentHeight;
+        imgWidth = contentHeight * canvasAspectRatio;
+      }
+      
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Center the image on the page
+      const xPosition = margin + (contentWidth - imgWidth) / 2;
+      const yPosition = margin + (contentHeight - imgHeight) / 2;
+      
+      // Add image to single page
+      pdf.addImage(
+        canvas.toDataURL('image/png'),
+        'PNG',
+        xPosition,
+        yPosition,
+        imgWidth,
+        imgHeight
+      );
 
-CUSTOMER INFORMATION
-Name: ${invoice.customer.name}
-Email: ${invoice.customer.email}
-Phone: ${invoice.customer.phone}
-Address: ${invoice.customer.address}
-
-BOOKING DETAILS
-Booking ID: ${invoice.booking.id}
-Service Date: ${new Date(invoice.booking.date).toLocaleDateString()}
-Service Time: ${new Date(invoice.booking.date).toLocaleTimeString()}
-Status: ${invoice.booking.status}
-${invoice.booking.note ? `Notes: ${invoice.booking.note}` : ''}
-
-SERVICE INFORMATION
-Service: ${invoice.service.name}
-Category: ${invoice.service.category}
-Provider: ${invoice.service.provider}
-Location: ${invoice.service.location}
-
-PAYMENT DETAILS
-Subtotal: ${invoice.amount.subtotal} ${invoice.amount.currency}
-Tax: ${invoice.amount.tax} ${invoice.amount.currency}
-Total: ${invoice.amount.total} ${invoice.amount.currency}
-
-Payment Status: ${invoice.payment.status}
-Payment Method: ${invoice.payment.method || 'N/A'}
-Transaction ID: ${invoice.payment.transactionId || 'N/A'}
-Paid At: ${new Date(invoice.payment.paidAt).toLocaleString()}
-
-Thank you for your booking!
-      `;
-    } else {
-      // Premium membership invoice
-      invoiceContent = `
-═══════════════════════════════════════════════════════
-              HOMEHUB DIGITAL SOLUTIONS
-═══════════════════════════════════════════════════════
-
-INVOICE
-Invoice Number: ${invoice.invoiceNumber}
-Date: ${new Date(invoice.date).toLocaleDateString()}
-
-CUSTOMER INFORMATION
-Name: ${invoice.customer.name}
-Email: ${invoice.customer.email}
-Phone: ${invoice.customer.phone}
-${invoice.customer.organization ? `Organization: ${invoice.customer.organization}` : ''}
-${invoice.customer.role ? `Role: ${invoice.customer.role}` : ''}
-
-PLAN DETAILS
-Plan: ${invoice.plan.name}
-Type: ${invoice.plan.type}
-Period: ${invoice.plan.period}
-
-PAYMENT DETAILS
-Subtotal: ${invoice.amount.subtotal} ${invoice.amount.currency}
-Tax: ${invoice.amount.tax} ${invoice.amount.currency}
-Total: ${invoice.amount.total} ${invoice.amount.currency}
-
-Payment Status: ${invoice.payment.status}
-Payment Method: ${invoice.payment.method || 'N/A'}
-Transaction ID: ${invoice.payment.transactionId || 'N/A'}
-${invoice.payment.paidAt ? `Paid At: ${new Date(invoice.payment.paidAt).toLocaleString()}` : ''}
-
-MEMBERSHIP PERIOD
-Start Date: ${invoice.dates.startDate ? new Date(invoice.dates.startDate).toLocaleDateString() : 'N/A'}
-End Date: ${invoice.dates.endDate ? new Date(invoice.dates.endDate).toLocaleDateString() : 'N/A'}
-
-Thank you for your premium membership!
-      `;
+      // Download PDF
+      pdf.save(`invoice-${invoice.invoiceNumber}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
     }
-
-    const blob = new Blob([invoiceContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `invoice-${invoice.invoiceNumber}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
   };
 
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 pt-20 pb-12">
+    <div className="min-h-screen bg-gray-100 pt-24 pb-8">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-            <CheckCircle className="w-12 h-12 text-green-600" />
+        {/* Success Header - Compact */}
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+            <CheckCircle className="w-7 h-7 text-green-600" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-xl font-bold text-gray-900 mb-1">
             {isBooking && booking?.paymentMethod === 'cash' 
               ? "Booking Confirmed! 🎉"
               : "Payment Successful! 🎉"}
-      </h1>
-          <p className="text-gray-600">
+          </h1>
+          <p className="text-xs text-gray-600">
             {isPremiumMembership 
               ? paymentMethod === 'cash'
                 ? "Your premium membership has been activated. Please complete cash payment within 7 days. An invoice has been generated."
@@ -412,128 +382,121 @@ Thank you for your premium membership!
             )}
           </div>
         ) : (
-          /* Booking Confirmation with Invoice */
-          <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-            {/* Invoice Header with Logo */}
-            <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
-              <div className="flex items-center space-x-4">
-                <img 
-                  src="/logo correct.png" 
-                  alt="HomeHub Logo" 
-                  className="w-16 h-16 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Booking Invoice</h2>
-                  <p className="text-sm text-gray-600">HomeHub Digital Solutions</p>
-                </div>
-              </div>
-              {invoice && (
-                <button
-                  onClick={handleDownloadInvoice}
-                  className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download Invoice</span>
-                </button>
-              )}
-            </div>
-
+          /* Booking Confirmation with Invoice - Receipt Style, Single Page */
+          <div ref={invoiceRef} className="bg-white shadow-lg p-4 md:p-5 mb-6 max-w-2xl mx-auto border-2 border-gray-400">
             {invoice ? (
-              <div className="space-y-6">
-                {/* Invoice Header */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-200">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Invoice Number</p>
-                    <p className="font-semibold text-gray-900">{invoice.invoiceNumber}</p>
+              <div className="space-y-2 text-xs" style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
+                {/* Header with Logo and Invoice Info - Receipt Style */}
+                <div className="text-center border-b-2 border-gray-400 pb-2 mb-2">
+                  <div className="flex items-center justify-center space-x-2 mb-1">
+                    <img 
+                      src="/logo correct.png" 
+                      alt="HomeHub Digital Solutions Logo" 
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <h2 className="text-sm font-bold text-gray-900">HomeHub Digital Solutions</h2>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Date</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(invoice.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Customer Information */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <User className="w-5 h-5 mr-2 text-orange-600" />
-                    Customer Information
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><span className="font-medium">Name:</span> {invoice.customer.name}</p>
-                    <p><span className="font-medium">Email:</span> {invoice.customer.email}</p>
-                    <p><span className="font-medium">Phone:</span> {invoice.customer.phone}</p>
-                    <p><span className="font-medium">Address:</span> {invoice.customer.address}</p>
+                  <div className="text-xs space-y-0.5">
+                    <p className="text-gray-700">Invoice Date: {new Date(invoice.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</p>
+                    <p className="text-gray-700">Invoice #: {invoice.invoiceNumber}</p>
                   </div>
                 </div>
 
-                {/* Booking Details */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Calendar className="w-5 h-5 mr-2 text-orange-600" />
-                    Booking Details
-                  </h3>
-                  <div className="bg-orange-50 rounded-lg p-4 space-y-2">
-                    <p><span className="font-medium">Booking ID:</span> {invoice.booking.id}</p>
-                    <p><span className="font-medium">Service Date:</span> {new Date(invoice.booking.date).toLocaleDateString()}</p>
-                    <p><span className="font-medium">Service Time:</span> {new Date(invoice.booking.date).toLocaleTimeString()}</p>
-                    <p><span className="font-medium">Status:</span> <span className="capitalize">{invoice.booking.status}</span></p>
-                    {invoice.booking.note && (
-                      <p><span className="font-medium">Notes:</span> {invoice.booking.note}</p>
-                    )}
-                  </div>
+                {/* Company Information - Receipt Style */}
+                <div className="text-center border-b border-gray-300 pb-2 mb-2">
+                  <p className="text-xs font-semibold text-gray-900">HomeHub Digital Solutions</p>
+                  <p className="text-xs text-gray-600">TIN: XXX | Addis Ababa, Ethiopia</p>
+                  <p className="text-xs text-gray-600">Phone: +251 989 177 777</p>
                 </div>
 
-                {/* Service Information */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-orange-600" />
-                    Service Information
-                  </h3>
-                  <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-                    <p><span className="font-medium">Service:</span> {invoice.service.name}</p>
-                    <p><span className="font-medium">Category:</span> {invoice.service.category}</p>
-                    <p><span className="font-medium">Provider:</span> {invoice.service.provider}</p>
-                    <p><span className="font-medium">Location:</span> {invoice.service.location}</p>
-                  </div>
+                {/* Customer Information - Receipt Style */}
+                <div className="border-b border-gray-300 pb-2 mb-2">
+                  <p className="text-xs font-semibold text-gray-900">Customer: {invoice.customer.name}</p>
+                  <p className="text-xs text-gray-600 flex items-center">
+                    <span className="mr-1">⏳</span>
+                    Status: Pending Payment
+                  </p>
                 </div>
 
-                {/* Payment Details */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <CreditCard className="w-5 h-5 mr-2 text-orange-600" />
-                    Payment Details
-                  </h3>
-                  <div className="bg-green-50 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Subtotal:</span>
-                      <span>{invoice.amount.subtotal} {invoice.amount.currency}</span>
+                {/* Service Details - Receipt Style */}
+                <div className="border-t border-b border-gray-400 py-2 my-2">
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-gray-900">{invoice.service.name}</p>
+                        <p className="text-xs text-gray-600">{invoice.service.category}</p>
+                        <p className="text-xs text-gray-600">{invoice.service.location}</p>
+                      </div>
+                      <div className="text-right ml-4">
+                        <p className="text-xs font-bold text-gray-900">{invoice.amount.total.toFixed(2)} ETB</p>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Tax:</span>
-                      <span>{invoice.amount.tax} {invoice.amount.currency}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-green-200 font-bold text-lg">
-                      <span>Total:</span>
-                      <span className="text-green-600">{invoice.amount.total} {invoice.amount.currency}</span>
-                    </div>
-                    <div className="pt-2 border-t border-green-200 space-y-1">
-                      <p><span className="font-medium">Status:</span> <span className="text-green-600 capitalize">{invoice.payment.status}</span></p>
-                      {invoice.payment.method && (
-                        <p><span className="font-medium">Method:</span> {invoice.payment.method}</p>
-                      )}
-                      {invoice.payment.transactionId && (
-                        <p><span className="font-medium">Transaction ID:</span> {invoice.payment.transactionId}</p>
-                      )}
-                      {invoice.payment.paidAt && (
-                        <p><span className="font-medium">Paid At:</span> {new Date(invoice.payment.paidAt).toLocaleString()}</p>
+                  </div>
+                </div>
+
+                {/* Payment Summary - Receipt Style */}
+                <div className="border-t-2 border-b-2 border-gray-400 py-2 my-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-gray-900">Total Amount Due:</span>
+                    <span className="text-sm font-bold text-gray-900">{invoice.amount.total.toFixed(2)} ETB</span>
+                  </div>
+                </div>
+
+                {/* Status - Receipt Style */}
+                <div className="text-center border-b border-gray-300 pb-2 mb-2">
+                  <p className="text-xs text-gray-600 flex items-center justify-center">
+                    <span className="mr-1">⏳</span>
+                    Status: Pending
+                  </p>
+                </div>
+
+                {/* QR Code Section - Receipt Style */}
+                <div className="text-center border-t border-gray-300 pt-2 mt-2">
+                  <p className="text-xs font-semibold text-gray-700 mb-1">Scan to verify this invoice</p>
+                  <div className="flex justify-center">
+                    <div className="bg-white p-2 border-2 border-gray-400">
+                      {invoice && (
+                        <QRCode
+                          value={`INVOICE:${invoice.invoiceNumber}|DATE:${new Date(invoice.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}|AMOUNT:${invoice.amount.total} ${invoice.amount.currency}|CUSTOMER:${invoice.customer.name}|SERVICE:${invoice.service.name}|COMPANY:HomeHub Digital Solutions`}
+                          size={80}
+                          level="M"
+                          bgColor="#FFFFFF"
+                          fgColor="#000000"
+                        />
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Action Buttons - Compact */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    onClick={handleDownloadInvoice}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-semibold"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Invoice</span>
+                  </button>
+                  {invoice.payment.status === 'pending' && (
+                    <button
+                      onClick={() => {
+                        navigate('/payment', {
+                          state: {
+                            booking: booking,
+                            service: service,
+                            amount: invoice.amount.total,
+                            type: 'booking'
+                          }
+                        });
+                      }}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm font-semibold"
+                    >
+                      Complete Purchase
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -553,13 +516,103 @@ Thank you for your premium membership!
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Hidden Invoice for PDF Generation (without buttons) */}
+        {invoice && isBooking && (
+          <div ref={invoicePdfRef} className="fixed -left-[9999px] top-0 bg-white shadow-lg p-4 md:p-5 max-w-2xl border-2 border-gray-400">
+            <div className="space-y-2 text-xs" style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
+              {/* Header with Logo and Invoice Info - Receipt Style */}
+              <div className="text-center border-b-2 border-gray-400 pb-2 mb-2">
+                <div className="flex items-center justify-center space-x-2 mb-1">
+                  <img 
+                    src="/logo correct.png" 
+                    alt="HomeHub Digital Solutions Logo" 
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  <h2 className="text-sm font-bold text-gray-900">HomeHub Digital Solutions</h2>
+                </div>
+                <div className="text-xs space-y-0.5">
+                  <p className="text-gray-700">Invoice Date: {new Date(invoice.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-gray-700">Invoice #: {invoice.invoiceNumber}</p>
+                </div>
+              </div>
+
+              {/* Company Information - Receipt Style */}
+              <div className="text-center border-b border-gray-300 pb-1 mb-1">
+                <p className="text-xs font-semibold text-gray-900">HomeHub Digital Solutions</p>
+                <p className="text-xs text-gray-600">TIN: XXX | Addis Ababa, Ethiopia</p>
+                <p className="text-xs text-gray-600">Phone: +251 989 177 777</p>
+              </div>
+
+              {/* Customer Information - Receipt Style */}
+              <div className="border-b border-gray-300 pb-1 mb-1">
+                <p className="text-xs font-semibold text-gray-900">Customer: {invoice.customer.name}</p>
+                <p className="text-xs text-gray-600 flex items-center">
+                  <span className="mr-1">⏳</span>
+                  Status: Pending Payment
+                </p>
+              </div>
+
+              {/* Service Details - Receipt Style */}
+              <div className="border-t border-b border-gray-400 py-1 my-1">
+                <div className="space-y-0.5">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-900">{invoice.service.name}</p>
+                      <p className="text-xs text-gray-600">{invoice.service.category}</p>
+                      <p className="text-xs text-gray-600">{invoice.service.location}</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <p className="text-xs font-bold text-gray-900">{invoice.amount.total.toFixed(2)} ETB</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Summary - Receipt Style */}
+              <div className="border-t-2 border-b-2 border-gray-400 py-1 my-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-900">Total Amount Due:</span>
+                  <span className="text-xs font-bold text-gray-900">{invoice.amount.total.toFixed(2)} ETB</span>
+                </div>
+              </div>
+
+              {/* Status - Receipt Style */}
+              <div className="text-center border-b border-gray-300 pb-1 mb-1">
+                <p className="text-xs text-gray-600 flex items-center justify-center">
+                  <span className="mr-1">⏳</span>
+                  Status: Pending
+                </p>
+              </div>
+
+              {/* QR Code Section - Receipt Style */}
+              <div className="text-center border-t border-gray-300 pt-1 mt-1">
+                <p className="text-xs font-semibold text-gray-700 mb-0.5">Scan to verify this invoice</p>
+                <div className="flex justify-center">
+                  <div className="bg-white p-1 border-2 border-gray-400">
+                    <QRCode
+                      value={`INVOICE:${invoice.invoiceNumber}|DATE:${new Date(invoice.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })}|AMOUNT:${invoice.amount.total} ${invoice.amount.currency}|CUSTOMER:${invoice.customer.name}|SERVICE:${invoice.service.name}|COMPANY:HomeHub Digital Solutions`}
+                      size={50}
+                      level="M"
+                      bgColor="#FFFFFF"
+                      fgColor="#000000"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons - Back to Home */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center space-x-3 px-8 py-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
             <span>Back to Home</span>
           </button>
           {isPremiumMembership && userRole === 'provider' && (

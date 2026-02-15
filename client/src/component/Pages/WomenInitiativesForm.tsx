@@ -580,88 +580,62 @@ const WomenInitiativesForm = () => {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Skills and Experience</label>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-2">Areas Currently Involved In</label>
-                            <div className="space-y-2">
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Infant Care</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Food Preparation</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Nutrition and Dietary Services</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Spa and Beauty Services</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Fashion and Design</span>
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-2">Years of Experience</label>
-                            <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E3DD3] focus:border-[#2E3DD3]" />
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-2">Specific Skills Possessed</label>
-                            <textarea rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E3DD3] focus:border-[#2E3DD3]"></textarea>
-                          </div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Skill & Experience</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Home Maintenance</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Appliance Repair</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Personal Care</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Housemaid Services</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Cleaning Services</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Hotel/Lounge Services</span>
+                          </label>
                         </div>
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Training Needs</label>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-2">Skills Needing Improvement</label>
-                            <div className="space-y-2">
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Infant Care Techniques</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Healthy Cooking Practices</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Nutritional Knowledge</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Spa Treatments</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Beauty Techniques</span>
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
-                                <span className="text-sm">Fashion Design Skills</span>
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-2">Preferred Training Format</label>
-                            <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E3DD3] focus:border-[#2E3DD3]">
-                              <option>Select</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm text-gray-600 mb-2">Preferred Duration</label>
-                            <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2E3DD3] focus:border-[#2E3DD3]">
-                              <option>Select</option>
-                            </select>
-                          </div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-3">Training Needed</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Home Maintenance</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Appliance Repair</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Personal Care</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Housemaid Services</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Cleaning Services</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <input type="checkbox" className="rounded border-gray-300 text-[#2E3DD3] focus:ring-[#2E3DD3]" />
+                            <span className="text-sm">Hotel/Lounge Services</span>
+                          </label>
                         </div>
                       </div>
                       

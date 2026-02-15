@@ -92,6 +92,27 @@ const RegisterForm = () => {
     }
   };
 
+  // Handle bank account changes
+  const handleBankChange = (index: number, field: 'bankName' | 'accountNumber', value: string) => {
+    const updatedBanks = [...providerForm.banks];
+    updatedBanks[index] = { ...updatedBanks[index], [field]: value };
+    setProviderForm({ ...providerForm, banks: updatedBanks });
+  };
+
+  // Add new bank account
+  const addBankAccount = () => {
+    setProviderForm({
+      ...providerForm,
+      banks: [...providerForm.banks, { bankName: "", accountNumber: "" }]
+    });
+  };
+
+  // Remove bank account
+  const removeBankAccount = (index: number) => {
+    const updatedBanks = providerForm.banks.filter((_, i) => i !== index);
+    setProviderForm({ ...providerForm, banks: updatedBanks });
+  };
+
   // ---------------- NETWORK TEST ----------------
   const testNetworkConnection = async () => {
     try {
@@ -589,7 +610,6 @@ const RegisterForm = () => {
                 <option value="Cleaning Services">Cleaning Services</option>
                 <option value="Appliance Repair">Appliance Repair</option>
                 <option value="Personal Care">Personal Care</option>
-                <option value="Household & Home Services">Household & Home Services</option>
               </select>
                       </div>
                       {/* Gender field for Freelancer */}
@@ -783,6 +803,99 @@ const RegisterForm = () => {
                     </div>
                   </div>
 
+                  {/* Bank Accounts */}
+                  <div className="bg-gradient-to-r from-yellow-50 to-yellow-25 p-4 rounded-xl border border-yellow-100">
+                    <h3 className="text-lg font-semibold text-yellow-800 mb-4 font-poppins">Bank Accounts</h3>
+                    <div className="space-y-4">
+                      {providerForm.banks.map((bank, index) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-sm font-semibold text-gray-700">Bank Account {index + 1}</h4>
+                            {providerForm.banks.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeBankAccount(index)}
+                                className="text-red-600 hover:text-red-700 text-sm font-medium"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-semibold text-gray-700 font-inter">
+                                Select Bank *
+                              </label>
+                              <select
+                                value={bank.bankName}
+                                onChange={(e) => handleBankChange(index, 'bankName', e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 bg-white font-inter"
+                                required
+                              >
+                                <option value="" disabled>Select Bank</option>
+                                <option value="Abay Bank">Abay Bank</option>
+                                <option value="Abyssinia Bank">Abyssinia Bank</option>
+                                <option value="Addis Bank">Addis Bank</option>
+                                <option value="Addis International Bank">Addis International Bank</option>
+                                <option value="Ahadu Bank">Ahadu Bank</option>
+                                <option value="Amhara Bank">Amhara Bank</option>
+                                <option value="Awash Bank">Awash Bank</option>
+                                <option value="Bank of Abyssinia">Bank of Abyssinia</option>
+                                <option value="Berhan Bank">Berhan Bank</option>
+                                <option value="Bunna Bank">Bunna Bank</option>
+                                <option value="Commercial Bank of Ethiopia">Commercial Bank of Ethiopia</option>
+                                <option value="Cooperative Bank of Oromia">Cooperative Bank of Oromia</option>
+                                <option value="Dashen Bank">Dashen Bank</option>
+                                <option value="Development Bank of Ethiopia">Development Bank of Ethiopia</option>
+                                <option value="Enat Bank">Enat Bank</option>
+                                <option value="Ethiopian Investment Bank">Ethiopian Investment Bank</option>
+                                <option value="Ethiopian Insurance Corporation">Ethiopian Insurance Corporation</option>
+                                <option value="Gadaa Bank">Gadaa Bank</option>
+                                <option value="Goh Betoch Bank">Goh Betoch Bank</option>
+                                <option value="Hibret Bank">Hibret Bank</option>
+                                <option value="Lion International Bank">Lion International Bank</option>
+                                <option value="M-Birr">M-Birr</option>
+                                <option value="M-Pesa">M-Pesa</option>
+                                <option value="Nib International Bank">Nib International Bank</option>
+                                <option value="Oromia Bank">Oromia Bank</option>
+                                <option value="Rammis Bank">Rammis Bank</option>
+                                <option value="Shabelle Bank">Shabelle Bank</option>
+                                <option value="Sidama Bank">Sidama Bank</option>
+                                <option value="Siinqee Bank">Siinqee Bank</option>
+                                <option value="Tsehay Bank">Tsehay Bank</option>
+                                <option value="United Bank">United Bank</option>
+                                <option value="Wegagen Bank">Wegagen Bank</option>
+                                <option value="ZamZam Bank">ZamZam Bank</option>
+                                <option value="Zemen Bank">Zemen Bank</option>
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <label className="block text-sm font-semibold text-gray-700 font-inter">
+                                Account Number *
+                              </label>
+                              <input
+                                type="text"
+                                value={bank.accountNumber}
+                                onChange={(e) => handleBankChange(index, 'accountNumber', e.target.value)}
+                                placeholder="Enter account number"
+                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-300 bg-white font-inter"
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addBankAccount}
+                        className="w-full sm:w-auto px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        <span className="text-xl">+</span>
+                        <span>Add Bank Account</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Document Uploads */}
                   <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
                     <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">Required Documents</h3>
@@ -806,13 +919,12 @@ const RegisterForm = () => {
                           </div>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              CR Certificate *
+                              CR Certificate <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="crCertificate" 
                               accept="application/pdf,image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
@@ -820,13 +932,12 @@ const RegisterForm = () => {
                           </div>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              Professional Certificate *
+                              Professional Certificate <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="professionalCertificate" 
                               accept="application/pdf,image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />

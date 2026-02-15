@@ -1,6 +1,24 @@
 // Load environment variables FIRST before using them
 const dotenv = require("dotenv");
-dotenv.config();
+const path = require("path");
+
+// Load .env file from server directory
+const envPath = path.join(__dirname, '.env');
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.warn("⚠️  Warning: .env file not found or error loading it:", result.error.message);
+  console.log("📁 Looking for .env at:", envPath);
+} else {
+  console.log("✅ Environment variables loaded from .env file");
+  // Log that MONGO_URI is loaded (without showing the actual value)
+  if (process.env.MONGO_URI) {
+    const mongoURIPreview = process.env.MONGO_URI.includes('@') 
+      ? process.env.MONGO_URI.split('@')[1] 
+      : process.env.MONGO_URI;
+    console.log("📦 MONGO_URI loaded:", mongoURIPreview.substring(0, 50) + "...");
+  }
+}
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -28,25 +46,41 @@ app.set('trust proxy', true);
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:5173",
   "https://homehubdigital.netlify.app",
-  "http://localhost:5173"
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000"
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    
+    // In development, allow all localhost and 127.0.0.1 origins
+    if (process.env.NODE_ENV !== 'production') {
+      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('192.168.') || origin.includes('10.0.')) {
+        console.log('✅ CORS: Allowing origin in development:', origin);
+        return callback(null, true);
+      }
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ CORS: Allowing origin:', origin);
       callback(null, true);
     } else {
+      console.warn('⚠️  CORS: Blocking origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 
 // Serve uploaded files at /uploads path (use absolute path for reliability)
-const path = require("path");
 const fs = require("fs");
 const uploadsPath = path.join(__dirname, 'uploads');
 
@@ -221,7 +255,25 @@ app.use("/api/referrals", referralsRoutes);
 
 // Root route
 app.get("/", (req, res) => {
-  res.send("Gezana backend is running 🚀");
+  res.json({
+    message: "Gezana backend is running 🚀",
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT
+  });
+});
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT,
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 // Diagnostic route to check uploads directory
@@ -241,17 +293,65 @@ app.get("/api/health/uploads", (req, res) => {
 });
 
 // DB & Server
+// Check if MONGO_URI is set
+const mongoURI = process.env.MONGO_URI;
+
+if (!mongoURI) {
+  console.error("❌ MONGO_URI is not set in environment variables!");
+  console.error("📝 Please create a .env file in the server directory with:");
+  console.error("   MONGO_URI=mongodb://localhost:27017/gezana");
+  console.error("   Or use MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/gezana");
+  process.exit(1);
+}
+
+console.log("🔌 Attempting to connect to MongoDB...");
+console.log("📍 Connection string:", mongoURI.replace(/\/\/([^:]+):([^@]+)@/, '//$1:***@')); // Hide password in logs
+
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(mongoURI, {
+    // Connection options for better reliability
+    serverSelectionTimeoutMS: 10000, // Timeout after 10s
+    socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    connectTimeoutMS: 10000, // Give up initial connection after 10s
+    maxPoolSize: 10, // Maintain up to 10 socket connections
+    minPoolSize: 5, // Maintain at least 5 socket connections
+    // For MongoDB Atlas, these options help with connection stability
+    retryWrites: true,
+    w: 'majority'
+  })
   .then(() => {
-    console.log("✅ MongoDB connected");
+    console.log("✅ MongoDB connected successfully");
+    console.log("📊 Database:", mongoose.connection.db.databaseName);
+    console.log("🌐 Host:", mongoose.connection.host);
 
     // Start subscription maintenance scheduler
     const { scheduleSubscriptionMaintenance } = require("./utils/subscriptionManager");
     scheduleSubscriptionMaintenance();
 
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📡 API available at: http://localhost:${PORT}/api`);
+    });
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+    console.error("\n💡 Troubleshooting tips:");
+    console.error("   1. Make sure MongoDB is running: mongod");
+    console.error("   2. Check if MongoDB service is started");
+    console.error("   3. Verify MONGO_URI in .env file is correct");
+    console.error("   4. For MongoDB Atlas, check network access and credentials");
+    console.error("   5. Check firewall settings if using remote MongoDB");
+    process.exit(1);
+  });
+
+// Handle MongoDB connection events
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️  MongoDB disconnected');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
 
 
