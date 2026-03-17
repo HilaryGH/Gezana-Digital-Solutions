@@ -7,7 +7,7 @@ type User = {
   name: string;
   email: string;
   phone?: string;
-  role: "seeker" | "provider" | "admin";
+  role: "seeker" | "provider" | "agent" | "admin";
   createdAt: string;
 };
 

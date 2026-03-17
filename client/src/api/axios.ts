@@ -2,6 +2,12 @@ import axios from "axios";
 
 // Environment-aware base URL
 const getBaseURL = () => {
+  // Allow overriding via env var (recommended for production)
+  const envBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+  if (envBase && envBase.trim()) {
+    return envBase.replace(/\/$/, "");
+  }
+
   // Check if we're in development mode
   if (import.meta.env.DEV) {
     // In development, try to use the actual hostname from the current page
@@ -23,7 +29,9 @@ const getBaseURL = () => {
     // Fallback to localhost for desktop
     return "http://localhost:5000/api";
   }
-  return "https://gezana-api.onrender.com/api"; // Production server
+  // Production server (fallback)
+  // NOTE: keep this aligned with the deployed backend instance
+  return "https://gezana-api-m8u7.onrender.com/api";
 };
 
 const instance = axios.create({

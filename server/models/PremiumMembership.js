@@ -105,7 +105,7 @@ premiumMembershipSchema.pre("save", async function (next) {
 // Index for efficient queries
 premiumMembershipSchema.index({ user: 1, status: 1 });
 premiumMembershipSchema.index({ paymentStatus: 1 });
-premiumMembershipSchema.index({ invoiceNumber: 1 });
+// Note: invoiceNumber already creates an index via { unique: true, sparse: true } on the field definition.
 
 module.exports = mongoose.model("PremiumMembership", premiumMembershipSchema);
 

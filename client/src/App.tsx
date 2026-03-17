@@ -26,6 +26,7 @@ import RegisterForm from "./component/RegisterForm";
 import CancelBooking from "./component/seeker/CancelBooking";
 import SeekerDashboard from "./component/seeker/SeekerDashboard";
 import ProviderDashboard from "./component/Provider/ProviderDashboard";
+import AgentDashboard from "./component/Agent/AgentDashboard";
 import AdminDashboard from "./component/Admin/AdminDashboard";
 import AdminRoute from "./component/AdminRoute";
 import MarketingSupportRoute from "./component/MarketingSupportRoute";
@@ -77,6 +78,7 @@ const noNavbarRoutes = [
     "/auth/error",
     "/seeker-dashboard",
     "/provider-dashboard",
+    "/agent-dashboard",
     "/admin-dashboard",
     "/support-dashboard",
     "/marketing-dashboard",
@@ -152,6 +154,9 @@ const noNavbarRoutes = [
           path="/provider/special-offers" 
           element={<Navigate to="/provider-dashboard" state={{ showSpecialOffers: true }} replace />} 
         />
+
+        {/* Agent Routes */}
+        <Route path="/agent-dashboard" element={<AgentDashboard />} />
 
         {/* Admin Routes */}
         <Route

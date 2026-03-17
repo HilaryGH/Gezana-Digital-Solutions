@@ -191,6 +191,31 @@ const formatProviderResponse = (providerDoc, req) => {
   };
 };
 
+const formatAgentResponse = (agentDoc, req) => {
+  const agent = agentDoc.toObject ? agentDoc.toObject() : agentDoc;
+
+  return {
+    _id: agent._id,
+    name: agent.name,
+    email: agent.email,
+    phone: agent.phone,
+    role: agent.role,
+    agentType: agent.agentType,
+    cityOfResidence: agent.cityOfResidence,
+    primaryLocation: agent.primaryLocation,
+    agentEnabled: agent.agentEnabled,
+    createdAt: agent.createdAt,
+    documents: {
+      agentIdDocument: toPublicFileUrl(req, agent.agentIdDocument),
+      agentWorkExperience: toPublicFileUrl(req, agent.agentWorkExperience),
+      agentPhoto: toPublicFileUrl(req, agent.agentPhoto),
+      corporateBusinessRegistration: toPublicFileUrl(req, agent.corporateBusinessRegistration),
+      corporateBusinessLicense: toPublicFileUrl(req, agent.corporateBusinessLicense),
+      corporateTin: toPublicFileUrl(req, agent.corporateTin),
+    },
+  };
+};
+
 // GET all providers (admin only)
 router.get("/admin/providers", authMiddleware, async (req, res) => {
   if (!["admin", "superadmin"].includes(req.user.role)) {
@@ -256,6 +281,55 @@ router.patch("/admin/providers/:providerId/verify", authMiddleware, async (req, 
   } catch (err) {
     console.error("Error updating provider verification:", err);
     res.status(500).json({ message: "Failed to update provider verification" });
+  }
+});
+
+// GET all agents (admin only)
+router.get("/admin/agents", authMiddleware, async (req, res) => {
+  if (!["admin", "superadmin"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  try {
+    const agents = await User.find({ role: "agent" })
+      .select("-password")
+      .sort({ createdAt: -1 });
+
+    const formattedAgents = agents.map((agent) => formatAgentResponse(agent, req));
+    res.json(formattedAgents);
+  } catch (err) {
+    console.error("Error fetching agents:", err);
+    res.status(500).json({ message: "Failed to fetch agents" });
+  }
+});
+
+// Enable/disable agent (admin only)
+router.patch("/admin/agents/:agentId/enable", authMiddleware, async (req, res) => {
+  if (!["admin", "superadmin"].includes(req.user.role)) {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  const { enabled } = req.body;
+  if (typeof enabled !== "boolean") {
+    return res.status(400).json({ message: "enabled must be boolean" });
+  }
+
+  try {
+    const agent = await User.findOneAndUpdate(
+      { _id: req.params.agentId, role: "agent" },
+      { agentEnabled: enabled },
+      { new: true }
+    ).select("-password");
+
+    if (!agent) return res.status(404).json({ message: "Agent not found" });
+
+    res.json({
+      message: enabled ? "Agent enabled" : "Agent disabled",
+      agent,
+    });
+  } catch (err) {
+    console.error("Error enabling agent:", err);
+    res.status(500).json({ message: "Failed to update agent" });
   }
 });
 router.get("/loyalty", authMiddleware, async (req, res) => {

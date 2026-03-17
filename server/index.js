@@ -42,42 +42,29 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', true);
 
 // Middleware
-// CORS configuration - allow production and development URLs
 const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:5173",
-  "https://homehubdigital.netlify.app",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000"
-].filter(Boolean);
+  'https://homehub.et',
+  'https://homehubdigital.netlify.app',
+  process.env.CLIENT_URL || 'http://localhost:5173',
+];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // In development, allow all localhost and 127.0.0.1 origins
-    if (process.env.NODE_ENV !== 'production') {
-      if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('192.168.') || origin.includes('10.0.')) {
-        console.log('✅ CORS: Allowing origin in development:', origin);
-        return callback(null, true);
-      }
-    }
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log('✅ CORS: Allowing origin:', origin);
-      callback(null, true);
-    } else {
-      console.warn('⚠️  CORS: Blocking origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin); // echo origin
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE,PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); // critical for cookies/sessions
+  }
+
+  // Handle OPTIONS preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+ 
 app.use(express.json());
 
 // Serve uploaded files at /uploads path (use absolute path for reliability)
@@ -201,6 +188,9 @@ app.use("/api/provider", providerRoutes);
 
 const contactRoutes = require("./routes/contact");
 app.use("/api/contact", contactRoutes);
+
+const agentsRoutes = require("./routes/agents");
+app.use("/api/agents", agentsRoutes);
 
 app.use("/api/payments", require("./routes/payment"));
 

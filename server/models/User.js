@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["seeker", "provider", "admin", "superadmin", "support", "marketing"],
+      enum: ["seeker", "provider", "agent", "admin", "superadmin", "support", "marketing"],
       default: "seeker",
     },
     loyaltyPoints: {
@@ -197,7 +197,23 @@ const userSchema = new mongoose.Schema(
     referralEarnings: {
       type: Number,
       default: 0
-    }
+    },
+
+    // Agent specific fields
+    agentType: {
+      type: String,
+      enum: ["individual", "corporate"],
+    },
+    cityOfResidence: { type: String },
+    primaryLocation: { type: String },
+    agentEnabled: { type: Boolean, default: true }, // auto-enabled
+    // Agent attachments
+    agentIdDocument: { type: String }, // Fayda/Kebele ID/Passport/Driving licence
+    agentWorkExperience: { type: String }, // Work Experience document
+    agentPhoto: { type: String }, // Photo
+    corporateBusinessRegistration: { type: String }, // Business Registration
+    corporateBusinessLicense: { type: String }, // Business License
+    corporateTin: { type: String }, // TIN document
   },
   { timestamps: true }
 );
@@ -205,8 +221,7 @@ const userSchema = new mongoose.Schema(
 // Create 2dsphere index for geospatial queries (sparse index - only indexes documents with valid coordinates)
 userSchema.index({ coordinates: '2dsphere' }, { sparse: true });
 
-// Index for referral code lookups
-userSchema.index({ referralCode: 1 }, { unique: true, sparse: true });
+// Note: referralCode already creates an index via { unique: true, sparse: true } on the field definition.
 
 // Pre-save middleware to sync latitude/longitude with coordinates
 userSchema.pre('save', function(next) {

@@ -432,12 +432,64 @@ router.patch("/:id/payment", async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
+    const prevPaymentStatus = booking.paymentStatus;
+
     // Update payment status and method
     if (req.body.paymentStatus) booking.paymentStatus = req.body.paymentStatus;
     if (req.body.paymentMethod) booking.paymentMethod = req.body.paymentMethod;
 
     const updated = await booking.save();
     console.log("✅ Booking payment status updated:", updated._id, "Status:", updated.paymentStatus);
+
+    // Commission / referral earnings: only when transitioning to PAID
+    if (prevPaymentStatus !== "paid" && updated.paymentStatus === "paid" && updated.referralCode) {
+      try {
+        const referralCode = updated.referralCode.trim().toUpperCase();
+        const referrer = await User.findOne({ referralCode }).select("_id role");
+
+        // Only agents earn commission for now
+        if (referrer && referrer.role === "agent") {
+          // Get service price to calculate commission
+          const service = await Service.findById(updated.service).select("price");
+          const price = Number(service?.price || 0);
+
+          const commissionRate = Number(process.env.AGENT_COMMISSION_RATE || 0.05); // default 5%
+          const commissionAmount = Math.max(0, +(price * commissionRate).toFixed(2));
+
+          // Update referral record for this booking if exists; otherwise create it
+          const existingReferral = await Referral.findOne({
+            referrer: referrer._id,
+            bookingId: updated._id,
+          }).select("_id rewardAmount");
+
+          if (!existingReferral) {
+            await Referral.create({
+              referrer: referrer._id,
+              referredUser: updated.user || null,
+              referralCode,
+              usedInPurchase: true,
+              bookingId: updated._id,
+              rewardAmount: commissionAmount,
+              status: "completed",
+            });
+            await User.findByIdAndUpdate(referrer._id, {
+              $inc: { referralEarnings: commissionAmount },
+            });
+          } else if (!existingReferral.rewardAmount || existingReferral.rewardAmount === 0) {
+            await Referral.findByIdAndUpdate(existingReferral._id, {
+              $set: { rewardAmount: commissionAmount, usedInPurchase: true, status: "completed" },
+            });
+            await User.findByIdAndUpdate(referrer._id, {
+              $inc: { referralEarnings: commissionAmount },
+            });
+          }
+        }
+      } catch (refErr) {
+        console.error("Referral commission update failed:", refErr);
+        // Don't fail the payment update response
+      }
+    }
+
     res.json(updated);
   } catch (err) {
     console.error("Booking payment update failed:", err);

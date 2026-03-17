@@ -15,8 +15,9 @@ interface RegistrationResponse {
 
 
 const RegisterForm = () => {
-  const [role, setRole] = useState<"seeker" | "provider">("seeker");
+  const [role, setRole] = useState<"seeker" | "provider" | "agent">("seeker");
   const [providerSubRole, setProviderSubRole] = useState<string>("");
+  const [agentType, setAgentType] = useState<"individual" | "corporate">("individual");
   const [businessStatus] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -66,6 +67,26 @@ const RegisterForm = () => {
     priceList: null as File | null,
   });
 
+  const [agentForm, setAgentForm] = useState({
+    fullName: "",
+    companyName: "",
+    phone: "",
+    email: "",
+    whatsapp: "",
+    telegram: "",
+    cityOfResidence: "",
+    city: "", // corporate city
+    primaryLocation: "",
+    password: "",
+    confirmPassword: "",
+    agentIdDocument: null as File | null,
+    agentWorkExperience: null as File | null,
+    agentPhoto: null as File | null,
+    corporateBusinessRegistration: null as File | null,
+    corporateBusinessLicense: null as File | null,
+    corporateTin: null as File | null,
+  });
+
   const [consent, setConsent] = useState(false);
 
   // ---------------- HANDLERS ----------------
@@ -89,6 +110,15 @@ const RegisterForm = () => {
       }
     } else {
       setProviderForm({ ...providerForm, [name]: value });
+    }
+  };
+
+  const handleAgentChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, files } = e.target as HTMLInputElement;
+    if (files && files[0]) {
+      setAgentForm({ ...agentForm, [name]: files[0] });
+    } else {
+      setAgentForm({ ...agentForm, [name]: value });
     }
   };
 
@@ -195,6 +225,48 @@ const RegisterForm = () => {
           navigate("/login");
         }
       } else {
+        if (role === "agent") {
+          if (agentForm.password !== agentForm.confirmPassword) {
+            setError("Passwords do not match");
+            setIsLoading(false);
+            return;
+          }
+
+          // Minimal required validation
+          if (!agentForm.email || !agentForm.phone) {
+            setError("Email and phone are required.");
+            setIsLoading(false);
+            return;
+          }
+          if (agentType === "individual" && !agentForm.fullName) {
+            setError("Full name is required for individual agents.");
+            setIsLoading(false);
+            return;
+          }
+          if (agentType === "corporate" && !agentForm.companyName) {
+            setError("Company name is required for corporate agents.");
+            setIsLoading(false);
+            return;
+          }
+
+          const formData = new FormData();
+          Object.entries(agentForm).forEach(([key, value]) => {
+            if (value) formData.append(key, value as any);
+          });
+          formData.append("role", "agent");
+          formData.append("agentType", agentType);
+
+          const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+
+          if (response.data.message) {
+            alert("Agent account created successfully! Please login. An admin will enable your account to access professionals.");
+            navigate("/login");
+          }
+        } else {
         // Provider registration
         if (!providerForm.companyName || !providerForm.serviceType || !providerSubRole) {
           setError("Company name, service type, and provider type are required.");
@@ -233,6 +305,7 @@ const RegisterForm = () => {
         if (response.data.message) {
           alert("Account created successfully! Please login to continue.");
           navigate("/login");
+        }
         }
       }
     } catch (err: any) {
@@ -344,43 +417,20 @@ const RegisterForm = () => {
               </div>
             )}
 
-        {/* Role Selector */}
+        {/* Role Selector (Dropdown) */}
             <div className="mb-6">
               <label className="block text-sm font-semibold mb-3 text-gray-700 font-inter">
-                I am registering as:
+                Register as:
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRole("seeker")}
-                  className={`p-4 rounded-xl border-2 transition-all duration-300 font-medium ${
-                    role === "seeker"
-                      ? "border-blue-600 bg-blue-50 text-blue-700 shadow-lg"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-25"
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">👤</div>
-                    <div className="text-sm font-semibold">Service Seeker</div>
-                    <div className="text-xs text-gray-500 mt-1">Find services</div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("provider")}
-                  className={`p-4 rounded-xl border-2 transition-all duration-300 font-medium ${
-                    role === "provider"
-                      ? "border-blue-600 bg-blue-50 text-blue-700 shadow-lg"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-25"
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🏢</div>
-                    <div className="text-sm font-semibold">Service Provider</div>
-                    <div className="text-xs text-gray-500 mt-1">Offer services</div>
-                  </div>
-                </button>
-              </div>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value as any)}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+              >
+                <option value="seeker">Service Seeker</option>
+                <option value="provider">Service Provider</option>
+                <option value="agent">Register as Agent (Individual / Corporate)</option>
+              </select>
         </div>
 
         {/* Provider Sub-role */}
@@ -413,6 +463,23 @@ const RegisterForm = () => {
                     </button>
                   ))}
                 </div>
+          </div>
+        )}
+
+        {/* Agent Type */}
+        {role === "agent" && (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-3 text-gray-700 font-inter">
+              Agent Type
+            </label>
+            <select
+              value={agentType}
+              onChange={(e) => setAgentType(e.target.value as any)}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+            >
+              <option value="individual">Individual</option>
+              <option value="corporate">Corporate</option>
+            </select>
           </div>
         )}
 
@@ -1072,6 +1139,275 @@ const RegisterForm = () => {
                 </div>
           )}
 
+          {/* Agent Fields */}
+          {role === "agent" && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4 font-poppins">
+                  Agent Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {agentType === "individual" ? (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700 font-inter">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        required
+                        onChange={handleAgentChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700 font-inter">
+                        Company Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="companyName"
+                        required
+                        onChange={handleAgentChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      WhatsApp
+                    </label>
+                    <input
+                      type="tel"
+                      name="whatsapp"
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Telegram
+                    </label>
+                    <input
+                      type="text"
+                      name="telegram"
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                    />
+                  </div>
+
+                  {agentType === "individual" ? (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700 font-inter">
+                        City of Residence *
+                      </label>
+                      <input
+                        type="text"
+                        name="cityOfResidence"
+                        required
+                        onChange={handleAgentChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700 font-inter">
+                        City *
+                      </label>
+                      <input
+                        type="text"
+                        name="city"
+                        required
+                        onChange={handleAgentChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Primary Location *
+                    </label>
+                    <input
+                      type="text"
+                      name="primaryLocation"
+                      required
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
+                <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">
+                  Attachments
+                </h3>
+                <div className="space-y-4">
+                  {agentType === "individual" ? (
+                    <>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Fayda/Kebele ID/Passport/Driving licence *
+                        </label>
+                        <input
+                          type="file"
+                          name="agentIdDocument"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Work Experience *
+                        </label>
+                        <input
+                          type="file"
+                          name="agentWorkExperience"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Photo *
+                        </label>
+                        <input
+                          type="file"
+                          name="agentPhoto"
+                          accept="image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Business Registration *
+                        </label>
+                        <input
+                          type="file"
+                          name="corporateBusinessRegistration"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Business License *
+                        </label>
+                        <input
+                          type="file"
+                          name="corporateBusinessLicense"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          TIN *
+                        </label>
+                        <input
+                          type="file"
+                          name="corporateTin"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Photo *
+                        </label>
+                        <input
+                          type="file"
+                          name="agentPhoto"
+                          accept="image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-gray-50 to-gray-25 p-4 rounded-xl border border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 font-poppins">
+                  Account Security
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Password *
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      required
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Confirm Password *
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      required
+                      onChange={handleAgentChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Consent */}
               <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
                 <div className="flex items-start space-x-3">
@@ -1103,10 +1439,10 @@ const RegisterForm = () => {
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      {role === "seeker" ? "Creating Account..." : "Registering Provider..."}
+                      {role === "seeker" ? "Creating Account..." : role === "agent" ? "Registering Agent..." : "Registering Provider..."}
                     </div>
                   ) : (
-                    role === "seeker" ? "Create Account" : "Register as Provider"
+                    role === "seeker" ? "Create Account" : role === "agent" ? "Register as Agent" : "Register as Provider"
                   )}
           </button>
               </div>

@@ -45,7 +45,14 @@ router.post("/register", upload.fields([
   { name: 'photo', maxCount: 1 },
   { name: 'servicePhotos', maxCount: 5 },
   { name: 'video', maxCount: 1 },
-  { name: 'priceList', maxCount: 1 }
+  { name: 'priceList', maxCount: 1 },
+  // Agent uploads
+  { name: 'agentIdDocument', maxCount: 1 },
+  { name: 'agentWorkExperience', maxCount: 1 },
+  { name: 'agentPhoto', maxCount: 1 },
+  { name: 'corporateBusinessRegistration', maxCount: 1 },
+  { name: 'corporateBusinessLicense', maxCount: 1 },
+  { name: 'corporateTin', maxCount: 1 }
 ]), async (req, res) => {
   try {
     console.log("Registration request received");
@@ -75,6 +82,10 @@ router.post("/register", upload.fields([
       gender,
       femaleLedOrOwned,
       workExperience,
+      // Agent fields
+      agentType,
+      cityOfResidence,
+      primaryLocation,
       branches,
       banks,
       businessStatus,
@@ -227,6 +238,48 @@ router.post("/register", upload.fields([
         }
         if (req.files.priceList) {
           userData.priceList = getFileUrl(req.files.priceList[0]);
+        }
+      }
+    } else if (role === "agent") {
+      // Agent registration (individual or corporate)
+      userData.agentType = agentType;
+      userData.agentEnabled = true; // auto-enable agents
+      userData.whatsapp = whatsapp;
+      userData.telegram = telegram;
+      userData.primaryLocation = primaryLocation;
+      // Generate referral code for agents so they can share it
+      userData.referralCode = await generateReferralCode();
+
+      if (agentType === "corporate") {
+        userData.name = companyName; // display name
+        userData.companyName = companyName;
+        userData.city = city; // corporate city
+      } else {
+        userData.name = fullName;
+        userData.cityOfResidence = cityOfResidence;
+        userData.city = cityOfResidence;
+      }
+
+      // Handle agent file uploads (Cloudinary/local via fileHelper)
+      const { getFileUrl } = require("../utils/fileHelper");
+      if (req.files) {
+        if (req.files.agentIdDocument) {
+          userData.agentIdDocument = getFileUrl(req.files.agentIdDocument[0]);
+        }
+        if (req.files.agentWorkExperience) {
+          userData.agentWorkExperience = getFileUrl(req.files.agentWorkExperience[0]);
+        }
+        if (req.files.agentPhoto) {
+          userData.agentPhoto = getFileUrl(req.files.agentPhoto[0]);
+        }
+        if (req.files.corporateBusinessRegistration) {
+          userData.corporateBusinessRegistration = getFileUrl(req.files.corporateBusinessRegistration[0]);
+        }
+        if (req.files.corporateBusinessLicense) {
+          userData.corporateBusinessLicense = getFileUrl(req.files.corporateBusinessLicense[0]);
+        }
+        if (req.files.corporateTin) {
+          userData.corporateTin = getFileUrl(req.files.corporateTin[0]);
         }
       }
     } else if (role === "admin") {
