@@ -61,6 +61,7 @@ import PaymentPage from "./component/PaymentPage";
 import AuthSuccess from "./component/AuthSuccess";
 import AuthError from "./component/AuthError";
 import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
+import ProfessionalsCommunityForm from "./component/Pages/ProfessionalsCommunityForm";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
 function AppContent() {
@@ -69,6 +70,7 @@ function AppContent() {
   // Routes where Navbar should NOT be shown
 const noNavbarRoutes = [
     "/signup",
+    "/professionals-community",
     "/login",
     "/forgot-password",
     "/reset-password",
@@ -130,6 +132,7 @@ const noNavbarRoutes = [
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup" element={<RegisterForm />} />
         <Route path="/providers" element={<ProvidersDirectory />} />
+        <Route path="/professionals-community" element={<ProfessionalsCommunityForm />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/submit-testimonial" element={<SubmitTestimonial />} />

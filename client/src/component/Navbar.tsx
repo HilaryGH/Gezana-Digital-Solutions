@@ -283,25 +283,6 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-8">
-              {/* Search Bar */}
-              <div className="relative">
-                <button
-                  onClick={toggleSearch}
-                  className={`flex items-center space-x-2 px-5 py-2 rounded-lg transition-all duration-300 group border min-w-[220px] lg:min-w-[260px] ${
-                    scrolled 
-                      ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200' 
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
-                  }`}
-                >
-                  <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs lg:text-sm font-medium whitespace-nowrap font-mono max-w-[220px] lg:max-w-[260px] truncate">
-                    {t('common.search')}{" "}
-                    <span className="text-gray-700">{typedText}</span>
-                    <span className="ml-0.5 inline-block w-[2px] h-4 bg-gray-700 align-middle animate-pulse"></span>
-                  </span>
-                </button>
-              </div>
-
               {/* Navigation Links */}
               <div className="flex items-center space-x-6">
                 <Link 
@@ -354,27 +335,6 @@ const Navbar = () => {
                 {menuOpen ? <FaTimes size={22} /> : <HiMenuAlt3 size={22} />}
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile Search Bar - Below navbar, similar to desktop */}
-        <div className="lg:hidden container mx-auto px-4 pb-3">
-          <div className="relative">
-            <button
-              onClick={toggleSearch}
-              className={`w-full flex items-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300 group border ${
-                scrolled 
-                  ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
-              }`}
-            >
-              <IoSearchOutline className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              <span className="text-sm font-medium whitespace-nowrap font-mono flex-1 text-left truncate">
-                {t('common.search')}{" "}
-                <span className="text-gray-700">{typedText}</span>
-                <span className="ml-0.5 inline-block w-[2px] h-4 bg-gray-700 align-middle animate-pulse"></span>
-              </span>
-            </button>
           </div>
         </div>
 

@@ -96,6 +96,7 @@ const userSchema = new mongoose.Schema(
     city: { type: String },
     location: { type: String },
     tin: { type: String },
+    tinDocument: { type: String }, // TIN document upload (PDF/image)
     gender: {
       type: String,
       enum: ["male", "female"],
@@ -207,6 +208,8 @@ const userSchema = new mongoose.Schema(
     cityOfResidence: { type: String },
     primaryLocation: { type: String },
     agentEnabled: { type: Boolean, default: true }, // auto-enabled
+    // Agent registration details
+    agentTin: { type: String }, // Registration TIN (number/text)
     // Agent attachments
     agentIdDocument: { type: String }, // Fayda/Kebele ID/Passport/Driving licence
     agentWorkExperience: { type: String }, // Work Experience document

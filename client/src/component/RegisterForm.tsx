@@ -17,7 +17,7 @@ interface RegistrationResponse {
 const RegisterForm = () => {
   const [role, setRole] = useState<"seeker" | "provider" | "agent">("seeker");
   const [providerSubRole, setProviderSubRole] = useState<string>("");
-  const [agentType, setAgentType] = useState<"individual" | "corporate">("individual");
+  const [agentType, setAgentType] = useState<"individual" | "corporate">("individual"); // "individual" = Standard Agent, "corporate" = Super/Elite Agent
   const [businessStatus] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -58,6 +58,7 @@ const RegisterForm = () => {
     confirmPassword: "",
     license: null as File | null,
     tradeRegistration: null as File | null,
+    tinDocument: null as File | null,
     professionalCertificate: null as File | null,
     governmentId: null as File | null,
     crCertificate: null as File | null,
@@ -75,16 +76,18 @@ const RegisterForm = () => {
     whatsapp: "",
     telegram: "",
     cityOfResidence: "",
-    city: "", // corporate city
+    city: "", // corporate / super agent city
     primaryLocation: "",
     password: "",
     confirmPassword: "",
     agentIdDocument: null as File | null,
     agentWorkExperience: null as File | null,
     agentPhoto: null as File | null,
-    corporateBusinessRegistration: null as File | null,
-    corporateBusinessLicense: null as File | null,
-    corporateTin: null as File | null,
+    // Super / Elite (corporate) agent attachments
+    corporateBusinessRegistration: null as File | null, // Fayda ID / Driving licence / Passport
+    corporateBusinessLicense: null as File | null, // Credentials
+    corporateTin: null as File | null, // CR Certificate
+    corporateAchievementsCertificate: null as File | null, // Achievements & Recognitions Certificate
   });
 
   const [consent, setConsent] = useState(false);
@@ -239,12 +242,12 @@ const RegisterForm = () => {
             return;
           }
           if (agentType === "individual" && !agentForm.fullName) {
-            setError("Full name is required for individual agents.");
+            setError("Full name is required for Standard Agents.");
             setIsLoading(false);
             return;
           }
           if (agentType === "corporate" && !agentForm.companyName) {
-            setError("Company name is required for corporate agents.");
+            setError("Company name is required for Super / Elite Agents.");
             setIsLoading(false);
             return;
           }
@@ -429,7 +432,7 @@ const RegisterForm = () => {
               >
                 <option value="seeker">Service Seeker</option>
                 <option value="provider">Service Provider</option>
-                <option value="agent">Register as Agent (Individual / Corporate)</option>
+                <option value="agent">Register as Agent (Standard / Super)</option>
               </select>
         </div>
 
@@ -477,8 +480,8 @@ const RegisterForm = () => {
               onChange={(e) => setAgentType(e.target.value as any)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
             >
-              <option value="individual">Individual</option>
-              <option value="corporate">Corporate</option>
+              <option value="individual">Standard Agent</option>
+              <option value="corporate">Super / Elite Agent</option>
             </select>
           </div>
         )}
@@ -677,6 +680,8 @@ const RegisterForm = () => {
                 <option value="Cleaning Services">Cleaning Services</option>
                 <option value="Appliance Repair">Appliance Repair</option>
                 <option value="Personal Care">Personal Care</option>
+                <option value="Housemaid Services">Housemaid Services</option>
+                <option value="Hotel & Lounge Services">Hotel & Lounge Services</option>
               </select>
                       </div>
                       {/* Gender field for Freelancer */}
@@ -1046,6 +1051,20 @@ const RegisterForm = () => {
                           </div>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              TIN Document *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="tinDocument" 
+                              accept="application/pdf,image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload your TIN certificate/document</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
                               Professional Certificate (Optional)
                             </label>
                             <input 
@@ -1056,6 +1075,20 @@ const RegisterForm = () => {
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
                             <p className="text-xs text-gray-500">Upload professional certificates if applicable</p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-gray-700 font-inter">
+                              Main Photo *
+                            </label>
+                            <input 
+                              type="file" 
+                              name="photo" 
+                              accept="image/*" 
+                              required
+                              onChange={handleProviderChange} 
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                            />
+                            <p className="text-xs text-gray-500">Upload a clear photo for your service center/business profile</p>
                           </div>
                         </>
                       )}
@@ -1319,7 +1352,33 @@ const RegisterForm = () => {
                     <>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Business Registration *
+                          Fayda/Kebele ID/Passport/Driving licence *
+                        </label>
+                        <input
+                          type="file"
+                          name="agentIdDocument"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Work Experience *
+                        </label>
+                        <input
+                          type="file"
+                          name="agentWorkExperience"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Trade Registration *
                         </label>
                         <input
                           type="file"
@@ -1329,6 +1388,7 @@ const RegisterForm = () => {
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
+                        <p className="text-xs text-gray-500">Upload your trade registration certificate</p>
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
@@ -1342,14 +1402,29 @@ const RegisterForm = () => {
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
+                        <p className="text-xs text-gray-500">Upload your business license document</p>
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          TIN *
+                          TIN Document *
                         </label>
                         <input
                           type="file"
                           name="corporateTin"
+                          accept="application/pdf,image/*"
+                          required
+                          onChange={handleAgentChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        <p className="text-xs text-gray-500">Upload your TIN certificate/document</p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Achievements &amp; Recognitions Certificate *
+                        </label>
+                        <input
+                          type="file"
+                          name="corporateAchievementsCertificate"
                           accept="application/pdf,image/*"
                           required
                           onChange={handleAgentChange}

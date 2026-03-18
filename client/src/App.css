@@ -1,8 +1,4 @@
-/* Fonts */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@500;600&display=swap");
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Note: Global fonts + Tailwind layers are defined in `src/index.css` */
 
 /* body {
   font-family: "Inter", sans-serif;

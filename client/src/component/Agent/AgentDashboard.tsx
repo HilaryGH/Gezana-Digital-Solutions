@@ -63,6 +63,13 @@ type MyProfessional = {
   createdAt: string;
 };
 
+type ServicesOfferedItem = {
+  id: string;
+  serviceName: string;
+  price: string;
+  description: string;
+};
+
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
@@ -80,7 +87,15 @@ const AgentDashboard = () => {
     location: "",
     serviceType: "",
     notes: "",
+    profileImage: null as string | null,
+    experience: "",
+    startingPrice: "",
+    pricingType: "fixed" as "fixed" | "hourly",
+    verified: false,
   });
+  const [servicesOffered, setServicesOffered] = useState<ServicesOfferedItem[]>([
+    { id: `svc_${Date.now()}`, serviceName: "", price: "", description: "" },
+  ]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -170,12 +185,34 @@ const AgentDashboard = () => {
         return;
       }
 
+      const computedServiceType = servicesOffered
+        .map((s) => s.serviceName.trim())
+        .filter(Boolean)
+        .join(", ");
+
+      const serviceDescriptions = servicesOffered
+        .map((s) => s.description.trim())
+        .filter(Boolean);
+
+      const computedNotes = [addForm.notes.trim(), ...serviceDescriptions]
+        .filter(Boolean)
+        .join("\n\n");
+
+      if (!computedServiceType) {
+        setError("Please add at least one Service Name in Services Offered.");
+        return;
+      }
+
       await axios.post(
         "/agents/my-professionals",
         {
           ...addForm,
+          serviceType: computedServiceType,
+          notes: computedNotes,
           fullName: addForm.fullName.trim(),
           phone: addForm.phone.trim(),
+          experience: addForm.experience ? Number(addForm.experience) : undefined,
+          startingPrice: addForm.startingPrice ? Number(addForm.startingPrice) : undefined,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -190,7 +227,13 @@ const AgentDashboard = () => {
         location: "",
         serviceType: "",
         notes: "",
+        profileImage: null,
+        experience: "",
+        startingPrice: "",
+        pricingType: "fixed",
+        verified: false,
       });
+      setServicesOffered([{ id: `svc_${Date.now()}`, serviceName: "", price: "", description: "" }]);
       await refreshMyProfessionals();
       alert("Professional added (pending review)");
     } catch (e: any) {
@@ -198,6 +241,47 @@ const AgentDashboard = () => {
     } finally {
       setAdding(false);
     }
+  };
+
+  const handleProfileImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setAddForm((prev) => ({ ...prev, profileImage: null }));
+      return;
+    }
+
+    // Convert to data URL so we can keep the existing JSON POST contract.
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : null;
+      setAddForm((prev) => ({ ...prev, profileImage: result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const updateServiceOffered = (
+    id: string,
+    patch: Partial<Omit<ServicesOfferedItem, "id">>
+  ) => {
+    setServicesOffered((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...patch } : s))
+    );
+  };
+
+  const addAnotherService = () => {
+    setServicesOffered((prev) => [
+      ...prev,
+      { id: `svc_${Date.now()}_${Math.random().toString(36).slice(2)}`, serviceName: "", price: "", description: "" },
+    ]);
+  };
+
+  const removeServiceOffered = (id: string) => {
+    setServicesOffered((prev) => {
+      const next = prev.filter((s) => s.id !== id);
+      return next.length ? next : [{ id: `svc_${Date.now()}`, serviceName: "", price: "", description: "" }];
+    });
   };
 
   return (
@@ -363,70 +447,271 @@ const AgentDashboard = () => {
               <h2 className="text-lg font-semibold text-gray-900">Add Professional</h2>
               <p className="text-sm text-gray-600">Add a professional lead to your list.</p>
 
-              <form onSubmit={submitProfessional} className="mt-4 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="Full Name *"
-                    value={addForm.fullName}
-                    onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
-                    required
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="Phone *"
-                    value={addForm.phone}
-                    onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
-                    required
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="Email"
-                    value={addForm.email}
-                    onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="Service Type"
-                    value={addForm.serviceType}
-                    onChange={(e) => setAddForm({ ...addForm, serviceType: e.target.value })}
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="City"
-                    value={addForm.city}
-                    onChange={(e) => setAddForm({ ...addForm, city: e.target.value })}
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="Location"
-                    value={addForm.location}
-                    onChange={(e) => setAddForm({ ...addForm, location: e.target.value })}
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="WhatsApp"
-                    value={addForm.whatsapp}
-                    onChange={(e) => setAddForm({ ...addForm, whatsapp: e.target.value })}
-                  />
-                  <input
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                    placeholder="Telegram"
-                    value={addForm.telegram}
-                    onChange={(e) => setAddForm({ ...addForm, telegram: e.target.value })}
-                  />
+              <form onSubmit={submitProfessional} className="mt-4 space-y-4">
+                {/* Basic Info */}
+                <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
+                  <div className="text-sm font-semibold text-gray-900 mb-3">
+                    Basic Info
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="Full Name *"
+                      value={addForm.fullName}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, fullName: e.target.value })
+                      }
+                      required
+                    />
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="Phone *"
+                      value={addForm.phone}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, phone: e.target.value })
+                      }
+                      required
+                    />
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="Email"
+                      value={addForm.email}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, email: e.target.value })
+                      }
+                    />
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="WhatsApp"
+                      value={addForm.whatsapp}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, whatsapp: e.target.value })
+                      }
+                    />
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="Telegram"
+                      value={addForm.telegram}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, telegram: e.target.value })
+                      }
+                    />
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="City"
+                      value={addForm.city}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, city: e.target.value })
+                      }
+                    />
+                    <input
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition sm:col-span-2"
+                      placeholder="Location"
+                      value={addForm.location}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, location: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
-                <textarea
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200"
-                  placeholder="Notes (optional)"
-                  value={addForm.notes}
-                  onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
-                  rows={3}
-                />
+
+                {/* Services */}
+                <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
+                  <div className="text-sm font-semibold text-gray-900 mb-3">
+                    Services Offered
+                  </div>
+
+                  <div className="space-y-3">
+                    {servicesOffered.map((svc, idx) => (
+                      <div
+                        key={svc.id}
+                        className="rounded-xl border border-gray-200 p-3 bg-gray-50"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="text-xs font-semibold text-gray-700">
+                            Service {idx + 1}
+                          </div>
+                          {servicesOffered.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeServiceOffered(svc.id)}
+                              className="text-sm px-2 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <input
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition sm:col-span-2"
+                            placeholder="Service Name *"
+                            value={svc.serviceName}
+                            onChange={(e) =>
+                              updateServiceOffered(svc.id, {
+                                serviceName: e.target.value,
+                              })
+                            }
+                          />
+
+                          <input
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                            placeholder="Price (optional)"
+                            value={svc.price}
+                            onChange={(e) =>
+                              updateServiceOffered(svc.id, {
+                                price: e.target.value,
+                              })
+                            }
+                          />
+
+                          <div className="sm:col-span-1" />
+
+                          <textarea
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition sm:col-span-2"
+                            placeholder="Description (optional)"
+                            value={svc.description}
+                            onChange={(e) =>
+                              updateServiceOffered(svc.id, {
+                                description: e.target.value,
+                              })
+                            }
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={addAnotherService}
+                      className="w-full px-4 py-2 rounded-lg border border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
+                    >
+                      Add Another Service
+                    </button>
+                  </div>
+                </div>
+
+                {/* Professional Details */}
+                <div className="rounded-xl border border-gray-200 p-4 bg-white shadow-sm">
+                  <div className="text-sm font-semibold text-gray-900 mb-3">
+                    Professional Details
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Profile Image */}
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Profile Image Upload
+                      </label>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfileImageChange}
+                          className="w-full sm:w-auto"
+                        />
+                        {addForm.profileImage && (
+                          <img
+                            src={addForm.profileImage}
+                            alt="Profile preview"
+                            className="w-14 h-14 rounded-full object-cover border border-gray-200"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="Experience (years)"
+                      value={addForm.experience}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, experience: e.target.value })
+                      }
+                    />
+
+                    <textarea
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition sm:col-span-2"
+                      placeholder="Short Bio"
+                      value={addForm.notes}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, notes: e.target.value })
+                      }
+                      rows={3}
+                    />
+
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                      placeholder="Starting Price"
+                      value={addForm.startingPrice}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, startingPrice: e.target.value })
+                      }
+                    />
+
+                    {/* Pricing Type */}
+                    <div className="rounded-lg border border-gray-200 p-3 bg-white">
+                      <div className="text-sm font-semibold text-gray-700 mb-2">
+                        Pricing Type
+                      </div>
+                      <label className="flex items-center gap-2 text-sm text-gray-700 mb-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="pricingType"
+                          value="fixed"
+                          checked={addForm.pricingType === "fixed"}
+                          onChange={() =>
+                            setAddForm((prev) => ({ ...prev, pricingType: "fixed" }))
+                          }
+                        />
+                        Fixed
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="pricingType"
+                          value="hourly"
+                          checked={addForm.pricingType === "hourly"}
+                          onChange={() =>
+                            setAddForm((prev) => ({ ...prev, pricingType: "hourly" }))
+                          }
+                        />
+                        Hourly
+                      </label>
+                    </div>
+
+                    {/* Verified toggle */}
+                    <label className="flex items-center gap-3 sm:col-span-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={addForm.verified}
+                        onChange={(e) =>
+                          setAddForm((prev) => ({
+                            ...prev,
+                            verified: e.target.checked,
+                          }))
+                        }
+                        className="h-4 w-4"
+                      />
+                      <span className="text-sm font-semibold text-gray-700">
+                        Verified
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={adding}
-                  className="w-full px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+                  className="w-full px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 transition"
                 >
                   {adding ? "Adding..." : "Add Professional"}
                 </button>

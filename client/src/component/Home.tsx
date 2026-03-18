@@ -86,6 +86,55 @@ const Home = () => {
   const [loadingCategoryServices, setLoadingCategoryServices] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Hero UI state (conversion-focused search input). This only affects client-side navigation.
+  const [heroQuery, setHeroQuery] = useState<string>("");
+  const heroLocation = "Addis Ababa";
+
+  const goToServicesFromHero = (query?: string) => {
+    const trimmed = (query ?? "").trim();
+    const params = new URLSearchParams();
+    params.set("location", heroLocation);
+    if (trimmed) params.set("query", trimmed);
+    navigate(`/services?${params.toString()}`);
+  };
+
+  // Legacy modal state (kept only to prevent TS errors; the card now navigates to a dedicated page).
+  const [showProfessionalsCommunityForm, setShowProfessionalsCommunityForm] =
+    useState(false);
+  const [professionalsCommunityForm, setProfessionalsCommunityForm] = useState<{
+    fullName: string;
+    email: string;
+    phone: string;
+    whatsapp: string;
+    linkedin: string;
+    currentLocation: string;
+    specialization: string;
+    cv: File | null;
+    credentials: File | null;
+  }>({
+    fullName: "",
+    email: "",
+    phone: "",
+    whatsapp: "",
+    linkedin: "",
+    currentLocation: "",
+    specialization: "",
+    cv: null,
+    credentials: null,
+  });
+  const [professionalsCommunityError, setProfessionalsCommunityError] = useState<string | null>(null);
+  const [professionalsCommunitySuccess, setProfessionalsCommunitySuccess] = useState(false);
+
+  const handleProfessionalsFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key: "cv" | "credentials"
+  ) => {
+    const file = e.target.files?.[0] ?? null;
+    setProfessionalsCommunityForm((prev) => ({ ...prev, [key]: file }));
+    setProfessionalsCommunityError(null);
+  };
+
   const [imageRotationIndex, setImageRotationIndex] = useState(0);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
@@ -288,7 +337,7 @@ const Home = () => {
       <section className="w-full flex flex-col pt-20 relative overflow-hidden">
         {/* Hero Section - Split Left and Right */}
         <div 
-          className="relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden z-10"
+          className="hidden relative w-full min-h-screen flex flex-col lg:flex-row overflow-hidden z-10"
           onMouseEnter={() => setIsNightMode(true)}
           onMouseLeave={() => setIsNightMode(false)}
         >
@@ -1036,6 +1085,122 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Conversion-focused Hero (Uber/Airbnb style). Legacy decorative hero above is hidden. */}
+        <div
+          className="relative w-full overflow-hidden"
+          // Navbar is fixed; `pt-20` on the parent section offsets by ~80px.
+          // This keeps the hero within the visible viewport (no extra page scroll).
+          style={{ height: "calc(100vh - 80px)" }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(135deg, #eef2ff, #ffffff)" }}
+          />
+
+          <div className="relative max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-8 sm:py-10 lg:py-12">
+            <div className="relative rounded-[28px] border border-white/70 bg-white/55 backdrop-blur-md overflow-hidden shadow-sm">
+              <div className="absolute inset-0 pointer-events-none opacity-60" style={{
+                backgroundImage: "radial-gradient(circle at 10% 10%, rgba(99,102,241,0.18), transparent 40%), radial-gradient(circle at 90% 20%, rgba(59,130,246,0.18), transparent 35%)"
+              }} />
+
+              <div className="relative grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-10 h-full p-5 sm:p-6 lg:p-8">
+              {/* Left: text + search + CTAs */}
+              <div>
+                <div className="inline-flex items-center rounded-full border border-blue-100 bg-gradient-to-r from-white/80 to-white/50 px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700 transition-colors duration-300">
+                  Home Services, Redefined & Delivered
+                </div>
+
+                <h1 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+                  Find Trusted Home Services Near You
+                </h1>
+
+                <p className="mt-4 text-base sm:text-lg text-gray-600">
+                  Book verified professionals in minutes.
+                </p>
+
+                {/* Search Bar */}
+                <form
+                  className="mt-7"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    goToServicesFromHero(heroQuery);
+                  }}
+                >
+                  <div className="group flex items-center rounded-2xl border border-gray-200 bg-white/80 px-4 py-4 shadow-sm transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-200 focus-within:border-blue-300">
+                    <input
+                      value={heroQuery}
+                      onChange={(e) => setHeroQuery(e.target.value)}
+                      type="text"
+                      placeholder="Search cleaning, plumbing, electrician..."
+                      className="w-full bg-transparent outline-none text-gray-900 placeholder-gray-500 text-sm sm:text-base"
+                      aria-label="Search services"
+                    />
+                    <div className="ml-4 pl-4 border-l border-gray-200 hidden sm:flex items-center">
+                      <span className="text-sm font-semibold text-gray-800">Addis Ababa</span>
+                    </div>
+                    <div className="ml-3 sm:hidden">
+                      <span className="text-xs font-semibold text-gray-800">Addis Ababa</span>
+                    </div>
+                  </div>
+                </form>
+
+                {/* CTA Buttons */}
+                <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => goToServicesFromHero(heroQuery)}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 shadow-sm hover:from-blue-700 hover:to-blue-400 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+                  >
+                    Book a Service
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/signup")}
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-blue-700 border border-blue-600/25 bg-white/70 hover:bg-white hover:border-blue-600/35 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                  >
+                    Become a Provider
+                  </button>
+                </div>
+
+                {/* Trust Indicators */}
+                <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm sm:text-[15px] text-gray-700">
+                  <div className="flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200 group-hover:bg-white/60">
+                    <span aria-hidden>⭐</span>
+                    <span className="font-semibold text-gray-900">4.8 rating</span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200">
+                    <span aria-hidden>✔</span>
+                    <span className="font-semibold text-gray-900">Verified providers</span>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200">
+                    <span aria-hidden>⚡</span>
+                    <span className="font-semibold text-gray-900">Fast booking</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: hero image */}
+              <div className="lg:pl-4">
+                <div className="relative rounded-[22px] border border-white/70 bg-white/35 backdrop-blur-sm overflow-hidden transition-all duration-500 hover:translate-y-[-4px] hover:shadow-md">
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    backgroundImage: "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(59,130,246,0.06), rgba(16,185,129,0.08))",
+                    opacity: 0.7
+                  }} />
+
+                  <img
+                    src="/hero.png"
+                    alt="Trusted home services"
+                    className="relative z-10 w-full max-w-[520px] mx-auto lg:mx-0 object-contain"
+                    style={{ animation: "heroFloat 7s ease-in-out infinite" }}
+                  />
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Services Modal */}
         {showServicesModal && currentCategoryIndex !== null && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => {
@@ -1345,7 +1510,7 @@ const Home = () => {
             {loadingMostBooked ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[...Array(3)].map((_, index) => (
-                  <div key={index} className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
+                  <div key={index} className="bg-white rounded-2xl border border-white/60 shadow-sm overflow-hidden animate-pulse">
                     <div className="w-full h-80 bg-gray-200"></div>
                     <div className="p-4 space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -1362,7 +1527,7 @@ const Home = () => {
                     className="relative group cursor-pointer"
                     onClick={() => navigate(`/service/${service.id}`)}
                   >
-                    <div className="relative w-full h-96 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <div className="relative w-full h-96 rounded-2xl overflow-hidden border border-white/40 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
                       {/* Service Image */}
                       {service.photos && service.photos.length > 0 ? (
                         <img
@@ -1380,7 +1545,7 @@ const Home = () => {
                             return normalized || photoUrl || '';
                           })()}
                           alt={service.title || (service as any).name || 'Service'}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-115 transition-transform duration-700 ease-out"
                           loading="lazy"
                           onError={(e) => {
                             const target = e.currentTarget;
@@ -1423,96 +1588,73 @@ const Home = () => {
                         </div>
                       )}
 
-                      {/* Creative SVG Overlay - Narrow at top, full width at bottom */}
-                      <div className="absolute inset-0 pointer-events-none">
-                        <svg 
-                          className="w-full h-full" 
-                          viewBox="0 0 100 100" 
-                          preserveAspectRatio="none"
-                          style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
-                        >
-                          <defs>
-                            <linearGradient id={`gradient-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" stopColor="rgba(46, 61, 211, 0.75)" stopOpacity="0.8" />
-                              <stop offset="30%" stopColor="rgba(46, 61, 211, 0.8)" stopOpacity="0.85" />
-                              <stop offset="60%" stopColor="rgba(0, 174, 239, 0.85)" stopOpacity="0.9" />
-                              <stop offset="100%" stopColor="rgba(247, 147, 30, 0.95)" stopOpacity="1" />
-                            </linearGradient>
-                          </defs>
-                          {/* SVG Path: Starts narrow at top (15% width), expands smoothly to full width at bottom */}
-                          <path
-                            d="M 0,0 
-                               L 7.5,0 
-                               Q 12,8 18,15
-                               Q 25,25 35,35
-                               Q 50,50 70,65
-                               Q 85,80 100,90
-                               L 100,100 
-                               L 0,100 
-                               Z"
-                            fill={`url(#gradient-${index})`}
-                            className="transition-opacity duration-300 group-hover:opacity-100"
-                          />
-                        </svg>
-                      </div>
+                      {/* Premium image shading + subtle highlights */}
+                      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/70 via-black/25 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div
+                        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        style={{
+                          backgroundImage:
+                            'radial-gradient(circle at 15% 0%, rgba(255,255,255,0.16), transparent 55%), radial-gradient(circle at 90% 10%, rgba(56,189,248,0.14), transparent 45%)',
+                        }}
+                      />
 
-                      {/* Content Overlay - Positioned on the SVG overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                        {/* Title */}
-                        <h3 className="text-white font-bold text-xl mb-2 drop-shadow-lg line-clamp-2">
-                          {service.title || (service as any).name}
-                        </h3>
-                        
-                        {/* Category */}
-                        {service.category && (
-                          <div className="mb-3">
-                            <span className="bg-white/30 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
-                              {service.category}
-                            </span>
-                          </div>
-                        )}
+                      {/* Content Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 z-10">
+                        <div className="rounded-2xl bg-black/35 backdrop-blur-md border border-white/10 p-4 sm:p-5 transition-all duration-300 group-hover:bg-black/30">
+                          {/* Title */}
+                          <h3 className="text-white font-semibold text-lg sm:text-xl mb-2 tracking-tight line-clamp-2">
+                            {service.title || (service as any).name}
+                          </h3>
 
-                        {/* Price and Rating side by side */}
-                        <div className="flex items-center space-x-2 mb-3">
-                          {/* Price */}
-                          <span className="text-white font-bold text-lg drop-shadow-lg">
-                            {service.price ? `${service.price} ETB` : 'Contact'}
-                          </span>
-                          {/* Rating in brackets */}
-                          {service.serviceRating !== null && service.serviceRating !== undefined ? (
-                            <span className="text-white/90 text-sm drop-shadow-lg">
-                              ({service.serviceRating.toFixed(1)}⭐)
-                            </span>
-                          ) : (
-                            <span className="text-white/70 text-sm">
-                              (No rating)
-                            </span>
+                          {/* Category */}
+                          {service.category && (
+                            <div className="mb-3">
+                              <span className="bg-white/15 text-white/95 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
+                                {service.category}
+                              </span>
+                            </div>
                           )}
-                        </div>
 
-                        {/* Location */}
-                        {service.location && (
-                          <div className="flex items-center space-x-1 text-white/90 text-sm mb-3">
-                            <span>📍</span>
-                            <span className="truncate">{service.location}</span>
+                          {/* Price + Rating */}
+                          <div className="flex items-center flex-wrap gap-2 mb-3">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white font-semibold text-sm border border-white/10">
+                              {service.price ? `${service.price} ETB` : 'Contact'}
+                            </span>
+                            {service.serviceRating !== null && service.serviceRating !== undefined ? (
+                              <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-semibold border border-white/10">
+                                {service.serviceRating.toFixed(1)}⭐
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-semibold border border-white/10">
+                                No rating
+                              </span>
+                            )}
                           </div>
-                        )}
 
-                        {/* View Details Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/service/${service.id}`);
-                          }}
-                          className="bg-white/95 backdrop-blur-sm text-orange-600 px-3 py-1.5 rounded-full font-semibold text-xs hover:bg-white hover:scale-105 transition-all duration-300 transform shadow-lg"
-                        >
-                          View Details
-                        </button>
+                          {/* Location */}
+                          {service.location && (
+                            <div className="flex items-center gap-2 text-white/85 text-sm mb-3">
+                              <span aria-hidden>📍</span>
+                              <span className="truncate">{service.location}</span>
+                            </div>
+                          )}
+
+                          {/* View Details Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/service/${service.id}`);
+                            }}
+                            className="inline-flex items-center justify-center bg-white text-gray-900 px-4 py-2 rounded-full font-semibold text-xs hover:bg-white/90 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm border border-white/20"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
 
                       {/* Booking Badge */}
                       <div className="absolute top-4 right-4 z-20">
-                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center space-x-1">
+                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg ring-1 ring-white/25 flex items-center gap-1 transition-transform duration-300 group-hover:scale-105">
                           <span>🔥</span>
                           <span>Most Booked</span>
                         </div>
@@ -1829,8 +1971,8 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Two Column Grid with Creative Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Grid with Creative Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Women's Initiative - Brand Blue */}
               <div 
                 onClick={() => navigate('/women-initiative')}
@@ -1894,9 +2036,360 @@ const Home = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Professionals Community - Brand Neutral */}
+              <div
+                onClick={() => navigate("/professionals-community")}
+                className="group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 cursor-pointer overflow-hidden border-2 border-blue-100 hover:border-blue-400"
+              >
+                {/* Animated Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                {/* Decorative Corner Accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-600/10 via-blue-600/10 to-transparent rounded-bl-full"></div>
+
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11a4 4 0 100-8 4 4 0 000 8z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 21v-2a4 4 0 00-3-3.87" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 3.13a4 4 0 010 7.75" />
+                    </svg>
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 transition-all">
+                    Professionals Community
+                  </h3>
+
+                  <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                    Connect with skilled pros, discover opportunities, and grow your service business with a supportive community.
+                  </p>
+
+                  <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
+                    Explore now Professionals Community
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* Professionals Community Form Modal */}
+        {showProfessionalsCommunityForm && (
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+            onClick={() => setShowProfessionalsCommunityForm(false)}
+          >
+            <div
+              className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold">Professionals Community</h2>
+                    <p className="text-white/90 mt-1">
+                      Join us by filling the form below
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+                    onClick={() => setShowProfessionalsCommunityForm(false)}
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="bg-white/15 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold">
+                    healthcare and wellness
+                  </span>
+                  <span className="bg-white/15 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold">
+                    Fresh Graduate
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {professionalsCommunityError && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 font-medium">
+                    {professionalsCommunityError}
+                  </div>
+                )}
+                {professionalsCommunitySuccess && (
+                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 font-medium">
+                    ✅ Thanks! Your request has been received. We'll reach out soon.
+                  </div>
+                )}
+
+                {!professionalsCommunitySuccess && (
+                  <form
+                    className="space-y-5"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setProfessionalsCommunityError(null);
+
+                      const {
+                        fullName,
+                        email,
+                        phone,
+                        currentLocation,
+                        specialization,
+                        cv,
+                        credentials,
+                      } = professionalsCommunityForm;
+
+                      if (!fullName.trim()) return setProfessionalsCommunityError("Full Name is required.");
+                      if (!email.trim()) return setProfessionalsCommunityError("Email is required.");
+                      if (!phone.trim()) return setProfessionalsCommunityError("Phone is required.");
+                      if (!currentLocation.trim())
+                        return setProfessionalsCommunityError("Current Location is required.");
+                      if (!specialization.trim())
+                        return setProfessionalsCommunityError("Please select Specialization.");
+                      if (!cv) return setProfessionalsCommunityError("Please upload your CV.");
+                      if (!credentials)
+                        return setProfessionalsCommunityError("Please upload your Credentials.");
+
+                      // Frontend-only submission (no backend/API calls per your request).
+                      setProfessionalsCommunitySuccess(true);
+                    }}
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Full Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={professionalsCommunityForm.fullName}
+                          onChange={(e) =>
+                            setProfessionalsCommunityForm((prev) => ({
+                              ...prev,
+                              fullName: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                          placeholder="Full Name"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Email <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          value={professionalsCommunityForm.email}
+                          onChange={(e) =>
+                            setProfessionalsCommunityForm((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                          placeholder="Email"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Phone <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          value={professionalsCommunityForm.phone}
+                          onChange={(e) =>
+                            setProfessionalsCommunityForm((prev) => ({
+                              ...prev,
+                              phone: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                          placeholder="Phone"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Current Location <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={professionalsCommunityForm.currentLocation}
+                          onChange={(e) =>
+                            setProfessionalsCommunityForm((prev) => ({
+                              ...prev,
+                              currentLocation: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                          placeholder="Current Location"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          WhatsApp <span className="text-gray-500 text-xs">(Optional)</span>
+                        </label>
+                        <input
+                          type="tel"
+                          value={professionalsCommunityForm.whatsapp}
+                          onChange={(e) =>
+                            setProfessionalsCommunityForm((prev) => ({
+                              ...prev,
+                              whatsapp: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                          placeholder="WhatsApp (Optional)"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          LinkedIn Profile <span className="text-gray-500 text-xs">(Optional)</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={professionalsCommunityForm.linkedin}
+                          onChange={(e) =>
+                            setProfessionalsCommunityForm((prev) => ({
+                              ...prev,
+                              linkedin: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                          placeholder="LinkedIn Profile (Optional)"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Specialization <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={professionalsCommunityForm.specialization}
+                        onChange={(e) =>
+                          setProfessionalsCommunityForm((prev) => ({
+                            ...prev,
+                            specialization: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+                        required
+                      >
+                        <option value="">-- Select Specialization --</option>
+                        <option value="healthcare and wellness">
+                          healthcare and wellness
+                        </option>
+                        <option value="education and training">
+                          education and training
+                        </option>
+                        <option value="technology and design">
+                          technology and design
+                        </option>
+                        <option value="business and operations">
+                          business and operations
+                        </option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          Upload CV <span className="text-red-500">*</span>
+                        </label>
+                        <label className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.doc,.docx"
+                            onChange={(e) => handleProfessionalsFileChange(e, "cv")}
+                            required
+                          />
+                          <span className="text-xl">📄</span>
+                          <span className="text-sm text-gray-600">
+                            {professionalsCommunityForm.cv
+                              ? professionalsCommunityForm.cv.name
+                              : "No file chosen"}
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          Upload Credentials <span className="text-red-500">*</span>
+                        </label>
+                        <label className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            onChange={(e) => handleProfessionalsFileChange(e, "credentials")}
+                            required
+                          />
+                          <span className="text-xl">🗂️</span>
+                          <span className="text-sm text-gray-600">
+                            {professionalsCommunityForm.credentials
+                              ? professionalsCommunityForm.credentials.name
+                              : "No file chosen"}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-end">
+                      <button
+                        type="submit"
+                        className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+                      >
+                        Submit
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {professionalsCommunitySuccess && (
+                  <div className="flex items-center justify-end mt-6 gap-3">
+                    <button
+                      type="button"
+                      className="px-6 py-3 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all duration-300"
+                      onClick={() => {
+                        setShowProfessionalsCommunityForm(false);
+                        setProfessionalsCommunitySuccess(false);
+                        setProfessionalsCommunityError(null);
+                        setProfessionalsCommunityForm({
+                          fullName: "",
+                          email: "",
+                          phone: "",
+                          whatsapp: "",
+                          linkedin: "",
+                          currentLocation: "",
+                          specialization: "",
+                          cv: null,
+                          credentials: null,
+                        });
+                      }}
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Join Our Community Section */}
         <section className="relative w-full bg-gradient-to-b from-white via-blue-50/20 to-white py-16 overflow-hidden">
@@ -2727,6 +3220,11 @@ const Home = () => {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
         }
       `
       }} />

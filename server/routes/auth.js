@@ -39,6 +39,7 @@ router.post("/register", upload.fields([
   { name: 'idFile', maxCount: 1 },
   { name: 'license', maxCount: 1 },
   { name: 'tradeRegistration', maxCount: 1 },
+  { name: 'tinDocument', maxCount: 1 },
   { name: 'professionalCertificate', maxCount: 1 },
   { name: 'governmentId', maxCount: 1 },
   { name: 'crCertificate', maxCount: 1 },
@@ -84,6 +85,7 @@ router.post("/register", upload.fields([
       workExperience,
       // Agent fields
       agentType,
+      agentTin,
       cityOfResidence,
       primaryLocation,
       branches,
@@ -218,6 +220,9 @@ router.post("/register", upload.fields([
         if (req.files.tradeRegistration) {
           userData.tradeRegistration = getFileUrl(req.files.tradeRegistration[0]);
         }
+        if (req.files.tinDocument) {
+          userData.tinDocument = getFileUrl(req.files.tinDocument[0]);
+        }
         if (req.files.professionalCertificate) {
           userData.professionalCertificate = getFileUrl(req.files.professionalCertificate[0]);
         }
@@ -247,6 +252,7 @@ router.post("/register", upload.fields([
       userData.whatsapp = whatsapp;
       userData.telegram = telegram;
       userData.primaryLocation = primaryLocation;
+      if (agentTin) userData.agentTin = agentTin;
       // Generate referral code for agents so they can share it
       userData.referralCode = await generateReferralCode();
 
