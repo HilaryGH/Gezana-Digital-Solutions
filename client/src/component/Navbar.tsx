@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt } from "react-icons/fa";
+import { FaTimes, FaShieldAlt, FaStar, FaSearch, FaMapMarkerAlt, FaBolt } from "react-icons/fa";
 import { MdConnectWithoutContact } from "react-icons/md";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { IoSearchOutline } from "react-icons/io5";
@@ -215,13 +215,16 @@ const Navbar = () => {
         <div className={`hidden md:block w-full transition-all duration-500 ${
           scrolled ? 'h-0 overflow-hidden' : 'h-12'
         }`}>
-          <div className="bg-black text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute inset-0" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`,
               }}></div>
             </div>
+            {/* Subtle glow */}
+            <div className="pointer-events-none absolute -left-20 -top-16 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
+            <div className="pointer-events-none absolute right-0 -top-20 h-56 w-56 rounded-full bg-sky-500/15 blur-3xl" />
             
             <div className="relative z-10 flex items-center justify-between px-6 py-3">
               <div className="flex items-center space-x-4">
@@ -231,34 +234,40 @@ const Navbar = () => {
                 </div>
                 <button
                   onClick={() => navigate('/register?role=provider')}
-                  className="text-sm font-medium hover:text-orange-400 transition-colors cursor-pointer"
+                  className="text-sm font-medium text-white/90 hover:text-white transition-colors cursor-pointer"
                 >
-                  🎉 <span className="font-bold">{stats.newProvidersThisWeek >= 500 ? `${stats.newProvidersThisWeek}+` : stats.newProvidersThisWeek}</span> new service providers joined this week!
+                  <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/10 mr-2">🎉</span>
+                  <span className="font-bold text-white">{stats.newProvidersThisWeek >= 500 ? `${stats.newProvidersThisWeek}+` : stats.newProvidersThisWeek}</span>{" "}
+                  <span className="text-white/80">new service providers joined this week</span>
                 </button>
               </div>
               
               <div className="hidden md:flex items-center space-x-6">
                 <button
                   onClick={() => navigate('/services')}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                  className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors cursor-pointer group"
                 >
-                  <span className="text-xs">⚡</span>
-                  <span className="text-xs font-medium">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/90 group-hover:bg-white/15 transition-colors">
+                    <FaBolt className="w-3.5 h-3.5" />
+                  </span>
+                  <span className="text-xs font-medium tracking-wide">
                     {statsLoading ? '...' : `${stats.completedBookings.toLocaleString()}`} Completed Bookings
                   </span>
                 </button>
                 <button
                   onClick={() => navigate('/services')}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                  className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors cursor-pointer group"
                 >
-                  <span className="text-xs">🛡️</span>
-                  <span className="text-xs font-medium">
-                    {statsLoading ? '...' : `${stats.averageRating.toFixed(1)}⭐`} Rating
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/90 group-hover:bg-white/15 transition-colors">
+                    <FaStar className="w-3.5 h-3.5" />
+                  </span>
+                  <span className="text-xs font-medium tracking-wide">
+                    {statsLoading ? '...' : `${stats.averageRating.toFixed(1)}`} Rating
                   </span>
                 </button>
                 <Link 
                   to="/community"
-                  className="bg-white text-black hover:bg-gray-100 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1"
+                  className="bg-white/10 text-white hover:bg-white/15 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ease-out transform hover:scale-105 flex items-center space-x-1 border border-white/15 shadow-[0_10px_30px_-20px_rgba(0,0,0,0.8)]"
                 >
                   <MdConnectWithoutContact className="w-3 h-3" />
                   <span>Join Community</span>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Filter, MapPin, DollarSign, SlidersHorizontal, X, Grid, List } from 'lucide-react';
+import { Search, MapPin, DollarSign, X, Grid, List } from 'lucide-react';
 import { getServices, getServiceCategories, type Service, type ServiceSearchParams } from '../../api/services';
+import axios from '../../api/axios';
 import ServiceCard from '../ServiceCard';
 import BookingModal from '../BookingModal';
-import { normalizeImageUrl } from '../../utils/imageHelper';
 
 const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,10 +13,13 @@ const ServicesPage: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+
+  // If the logged-in user is an agent, show only services provided by
+  // the professionals created via the Agent Dashboard.
+  const [agentProviderIds, setAgentProviderIds] = useState<string[] | null>(null);
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
@@ -46,10 +49,42 @@ const ServicesPage: React.FC = () => {
     fetchCategories();
   }, []);
 
+  // Fetch agent-added professionals (verified providers) and extract provider IDs.
+  // This endpoint is auth-protected; if it fails (no token / not an agent), we fall back
+  // to showing the normal services list.
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAgentProviderIds(null);
+      return;
+    }
+
+    const run = async () => {
+      try {
+        const res = await axios.get<{ professionals: Array<{ _id: string }> }>('/agents/professionals');
+        setAgentProviderIds((res.data?.professionals || []).map((p) => p._id));
+      } catch (e) {
+        // Not an agent (403) or token invalid/expired (401) => don't apply agent filtering.
+        setAgentProviderIds(null);
+      }
+    };
+
+    run();
+  }, []);
+
   // Fetch services
   useEffect(() => {
     fetchServices();
-  }, [selectedCategory, selectedSubcategory, minPrice, maxPrice, location, searchQuery, sortBy]);
+  }, [
+    selectedCategory,
+    selectedSubcategory,
+    minPrice,
+    maxPrice,
+    location,
+    searchQuery,
+    sortBy,
+    agentProviderIds
+  ]);
 
   const fetchServices = async (page: number = 1) => {
     setLoading(true);
@@ -67,6 +102,15 @@ const ServicesPage: React.FC = () => {
 
       const response = await getServices(params);
       let fetchedServices = response.services || [];
+
+      // Filter by services offered by agent-added professionals.
+      // If `agentProviderIds` is null, we assume the user isn't an agent (or endpoint failed),
+      // so we show the full services list as before.
+      if (agentProviderIds && agentProviderIds.length > 0) {
+        fetchedServices = fetchedServices.filter((s) => agentProviderIds.includes(s.providerId));
+      } else if (agentProviderIds && agentProviderIds.length === 0) {
+        fetchedServices = [];
+      }
 
       // Apply sorting
       if (sortBy === 'price_low') {

@@ -53,7 +53,7 @@ Your Provider account is now active! 🚀
 
 Get started now: ${process.env.CLIENT_URL || 'http://localhost:5173'}
 
-Need help? Reply to this message or call +251 911 508 734
+Need help? Reply to this message or call +25199 457 8759
 
 _Gezana Digital Solutions - Connecting Services, Building Trust_ 🤝`
       : `🎉 *Welcome to Gezana, ${userName}!*
@@ -67,7 +67,7 @@ Your account is ready! 🌟
 
 Explore services: ${process.env.CLIENT_URL || 'http://localhost:5173'}
 
-Need help? Reply to this message or call +251 911 508 734
+Need help? Reply to this message or call +25199 457 8759
 
 _Gezana Digital Solutions - Your Trusted Service Marketplace_ 💼`;
 

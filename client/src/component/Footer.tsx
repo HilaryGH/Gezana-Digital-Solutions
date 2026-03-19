@@ -135,17 +135,17 @@ const Footer = () => {
             
             {/* Contact Info */}
             <div className="space-y-3">
-              <a href="tel:+251911508734" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
+              <a href="tel:+251994578759" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
                   <FaPhone className="w-3.5 h-3.5 text-blue-400" />
                 </div>
-                <span className="group-hover:translate-x-1 transition-transform">+251 911 508 734</span>
+                <span className="group-hover:translate-x-1 transition-transform">+25199 457 8759</span>
               </a>
-              <a href="mailto:g.fikre2@gmail.com" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
+              <a href="mailto:CEO@Homehub.et" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
                   <FaEnvelope className="w-3.5 h-3.5 text-blue-400" />
                 </div>
-                <span className="group-hover:translate-x-1 transition-transform">g.fikre2@gmail.com</span>
+                <span className="group-hover:translate-x-1 transition-transform">CEO@Homehub.et</span>
               </a>
               <div className="flex items-center space-x-3 text-sm text-gray-300">
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -319,6 +319,13 @@ const Footer = () => {
               <span className="text-gray-600">•</span>
               <a href="/cookies" className="text-gray-400 hover:text-blue-400 transition-colors font-medium">
                 Cookie Policy
+              </a>
+              <span className="text-gray-600">•</span>
+              <a
+                href="/agents-partnership-agreement"
+                className="text-gray-400 hover:text-blue-400 transition-colors font-medium"
+              >
+                Agents Partnership
               </a>
             </div>
             <div className="flex items-center space-x-2 text-gray-400 text-sm">

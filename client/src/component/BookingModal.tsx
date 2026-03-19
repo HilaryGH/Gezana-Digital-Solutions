@@ -388,7 +388,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
             )}
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900">{service.title}</h3>
-              <p className="text-sm text-gray-600 mb-2">{service.description}</p>
+              {/* Hide description when a special offer is being applied */}
+              {!specialOffer && (
+                <p className="text-sm text-gray-600 mb-2">{service.description}</p>
+              )}
               <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <span className="flex items-center space-x-1">
                   <User className="w-4 h-4" />

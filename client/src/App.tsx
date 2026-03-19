@@ -62,6 +62,7 @@ import AuthSuccess from "./component/AuthSuccess";
 import AuthError from "./component/AuthError";
 import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
 import ProfessionalsCommunityForm from "./component/Pages/ProfessionalsCommunityForm";
+import AgentsPartnershipAgreementPage from "./component/Pages/AgentsPartnershipAgreementPage";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
 function AppContent() {
@@ -131,6 +132,10 @@ const noNavbarRoutes = [
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup" element={<RegisterForm />} />
+        <Route
+          path="/agents-partnership-agreement"
+          element={<AgentsPartnershipAgreementPage />}
+        />
         <Route path="/providers" element={<ProvidersDirectory />} />
         <Route path="/professionals-community" element={<ProfessionalsCommunityForm />} />
         <Route path="/payment" element={<PaymentPage />} />

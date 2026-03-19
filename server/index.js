@@ -288,13 +288,12 @@ const mongoURI = process.env.MONGO_URI;
 
 if (!mongoURI) {
   console.error("❌ MONGO_URI is not set in environment variables!");
-  console.error("📝 Please create a .env file in the server directory with:");
-  console.error("   MONGO_URI=mongodb://localhost:27017/gezana");
-  console.error("   Or use MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/gezana");
+  console.error("📝 Set MONGO_URI in server/.env to your MongoDB Atlas connection string, e.g.:");
+  console.error("   MONGO_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/DATABASE");
   process.exit(1);
 }
 
-console.log("🔌 Attempting to connect to MongoDB...");
+console.log("🔌 Attempting to connect to MongoDB (MONGO_URI only — no local fallback)...");
 console.log("📍 Connection string:", mongoURI.replace(/\/\/([^:]+):([^@]+)@/, '//$1:***@')); // Hide password in logs
 
 mongoose
@@ -307,7 +306,7 @@ mongoose
     minPoolSize: 5, // Maintain at least 5 socket connections
     // For MongoDB Atlas, these options help with connection stability
     retryWrites: true,
-    w: 'majority'
+    w: "majority",
   })
   .then(() => {
     console.log("✅ MongoDB connected successfully");
@@ -326,12 +325,12 @@ mongoose
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
-    console.error("\n💡 Troubleshooting tips:");
-    console.error("   1. Make sure MongoDB is running: mongod");
-    console.error("   2. Check if MongoDB service is started");
-    console.error("   3. Verify MONGO_URI in .env file is correct");
-    console.error("   4. For MongoDB Atlas, check network access and credentials");
-    console.error("   5. Check firewall settings if using remote MongoDB");
+    console.error("\n💡 Atlas troubleshooting (MONGO_URI must reach the cloud cluster):");
+    console.error("   1. Atlas → Network Access: add your current public IP (or 0.0.0.0/0 for testing only)");
+    console.error("   2. Atlas → Database Access: user/password must match MONGO_URI");
+    console.error("   3. Connection string: use mongodb+srv://... from Atlas “Connect” (correct cluster host)");
+    console.error("   4. If password has special characters, URL-encode it in MONGO_URI");
+    console.error("   5. Corporate/VPN/firewall may block outbound 27017 — try another network");
     process.exit(1);
   });
 
@@ -341,7 +340,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error('❌ MongoDB connection error:', err);
+  console.error('❌ MongoDB connection error:', err.message || err);
 });
 
 

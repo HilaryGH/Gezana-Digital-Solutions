@@ -104,10 +104,10 @@ const getWelcomeEmailTemplate = (userName, userRole) => {
               <tr>
                 <td style="background-color: #000000; padding: 30px; text-align: center;">
                   <p style="color: #9ca3af; margin: 0 0 10px 0; font-size: 14px;">
-                    Need help? Contact us at <a href="mailto:g.fikre2@gmail.com" style="color: #00AEEF; text-decoration: none;">g.fikre2@gmail.com</a>
+                    Need help? Contact us at <a href="mailto:CEO@Homehub.et" style="color: #00AEEF; text-decoration: none;">CEO@Homehub.et</a>
                   </p>
                   <p style="color: #6b7280; margin: 0; font-size: 12px;">
-                    📍 Addis Ababa, Ethiopia | 📞 +251 911 508 734
+                    📍 Addis Ababa, Ethiopia | 📞 +25199 457 8759
                   </p>
                   <p style="color: #6b7280; margin: 15px 0 0 0; font-size: 12px;">
                     © ${new Date().getFullYear()} HomeHub Digital Solutions. All rights reserved.
@@ -210,10 +210,10 @@ const getWelcomeEmailWithReferralTemplate = (userName, referralCode) => {
               <tr>
                 <td style="background-color: #000000; padding: 30px; text-align: center;">
                   <p style="color: #9ca3af; margin: 0 0 10px 0; font-size: 14px;">
-                    Need help? Contact us at <a href="mailto:g.fikre2@gmail.com" style="color: #00AEEF; text-decoration: none;">g.fikre2@gmail.com</a>
+                    Need help? Contact us at <a href="mailto:CEO@Homehub.et" style="color: #00AEEF; text-decoration: none;">CEO@Homehub.et</a>
                   </p>
                   <p style="color: #6b7280; margin: 0; font-size: 12px;">
-                    📍 Addis Ababa, Ethiopia | 📞 +251 911 508 734
+                    📍 Addis Ababa, Ethiopia | 📞 +25199 457 8759
                   </p>
                   <p style="color: #6b7280; margin: 15px 0 0 0; font-size: 12px;">
                     © ${new Date().getFullYear()} HomeHub Digital Solutions. All rights reserved.
@@ -471,7 +471,7 @@ const getBookingConfirmationEmailTemplate = (userName, bookingDetails) => {
 
       <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
         If you have any questions or need to make changes, please contact us at 
-        <a href="tel:+251911508734" style="color: #00AEEF;">+251 911 508 734</a>
+        <a href="tel:+251994578759" style="color: #00AEEF;">+25199 457 8759</a>
       </p>
 
       <p style="font-size: 16px; color: #374151; margin-top: 20px;">
@@ -580,7 +580,7 @@ const getPasswordResetEmailTemplate = (userName, resetToken) => {
                     <h4 style="color: #1f2937; margin: 0 0 10px 0; font-size: 16px;">💡 Need Help?</h4>
                     <p style="color: #6b7280; margin: 0; font-size: 14px; line-height: 1.6;">
                       If you're having trouble resetting your password, please contact our support team at 
-                      <a href="mailto:g.fikre2@gmail.com" style="color: #00AEEF; text-decoration: none;">g.fikre2@gmail.com</a>
+                      <a href="mailto:CEO@Homehub.et" style="color: #00AEEF; text-decoration: none;">CEO@Homehub.et</a>
                     </p>
                   </div>
                 </td>

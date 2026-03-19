@@ -527,13 +527,18 @@ const ServiceDetails = () => {
                 </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">About This Service</h2>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {service.description || 'No description available for this service.'}
-                </p>
-              </div>
+              {/* Description (hide when a special offer is active) */}
+              {!specialOffer && (
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">
+                    About This Service
+                  </h2>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {service.description ||
+                      'No description available for this service.'}
+                  </p>
+                </div>
+              )}
 
               {/* Service Features */}
               <div>

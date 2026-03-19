@@ -1090,31 +1090,39 @@ const Home = () => {
           className="relative w-full overflow-hidden"
           // Navbar is fixed; `pt-20` on the parent section offsets by ~80px.
           // This keeps the hero within the visible viewport (no extra page scroll).
-          style={{ height: "calc(100vh - 80px)" }}
+          style={{ minHeight: "calc(100vh - 80px)" }}
         >
           <div
             className="absolute inset-0"
-            style={{ background: "linear-gradient(135deg, #eef2ff, #ffffff)" }}
+            style={{ background: "linear-gradient(135deg, #eef2ff, #f8fafc, #e0f2fe)" }}
           />
+          {/* Soft glow shapes */}
+          <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
+          <div className="pointer-events-none absolute top-24 -right-32 h-80 w-80 rounded-full bg-sky-300/30 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-[-140px] left-1/3 h-96 w-96 rounded-full bg-purple-300/20 blur-3xl" />
 
-          <div className="relative max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-8 sm:py-10 lg:py-12">
-            <div className="relative rounded-[28px] border border-white/70 bg-white/55 backdrop-blur-md overflow-hidden shadow-sm">
+          <div className="relative w-full">
+            <div className="relative rounded-[28px] border border-white/70 bg-white/55 backdrop-blur-md overflow-hidden shadow-[0_20px_60px_-35px_rgba(15,23,42,0.35)]">
               <div className="absolute inset-0 pointer-events-none opacity-60" style={{
                 backgroundImage: "radial-gradient(circle at 10% 10%, rgba(99,102,241,0.18), transparent 40%), radial-gradient(circle at 90% 20%, rgba(59,130,246,0.18), transparent 35%)"
               }} />
 
-              <div className="relative grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-10 h-full p-5 sm:p-6 lg:p-8">
+              <div className="relative grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-12 h-full p-6 sm:p-8 lg:p-10">
               {/* Left: text + search + CTAs */}
               <div>
                 <div className="inline-flex items-center rounded-full border border-blue-100 bg-gradient-to-r from-white/80 to-white/50 px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700 transition-colors duration-300">
                   Home Services, Redefined & Delivered
                 </div>
 
-                <h1 className="mt-5 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
-                  Find Trusted Home Services Near You
+                <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05] text-[#0f172a]">
+                  Find{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+                    trusted
+                  </span>{" "}
+                  home services near you
                 </h1>
 
-                <p className="mt-4 text-base sm:text-lg text-gray-600">
+                <p className="mt-5 text-base sm:text-lg text-slate-500 leading-relaxed max-w-xl">
                   Book verified professionals in minutes.
                 </p>
 
@@ -1126,20 +1134,73 @@ const Home = () => {
                     goToServicesFromHero(heroQuery);
                   }}
                 >
-                  <div className="group flex items-center rounded-2xl border border-gray-200 bg-white/80 px-4 py-4 shadow-sm transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-200 focus-within:border-blue-300">
+                  <div className="group flex items-center rounded-full border border-white/70 bg-white/85 px-2.5 sm:px-3 py-2 sm:py-2.5 shadow-[0_12px_40px_-22px_rgba(2,6,23,0.45)] transition-all duration-300 ease-out hover:shadow-[0_18px_55px_-28px_rgba(2,6,23,0.55)] focus-within:ring-2 focus-within:ring-indigo-200 focus-within:border-indigo-300 w-fit">
+                    {/* Search icon */}
+                    <span className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/5 text-slate-700 transition-colors duration-300 group-focus-within:bg-indigo-600/10">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        />
+                        <path
+                          d="M16.5 16.5 21 21"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
                     <input
                       value={heroQuery}
                       onChange={(e) => setHeroQuery(e.target.value)}
                       type="text"
                       placeholder="Search cleaning, plumbing, electrician..."
-                      className="w-full bg-transparent outline-none text-gray-900 placeholder-gray-500 text-sm sm:text-base"
+                      className="w-64 sm:w-72 bg-transparent outline-none text-slate-900 placeholder-slate-400 text-sm sm:text-base"
                       aria-label="Search services"
                     />
-                    <div className="ml-4 pl-4 border-l border-gray-200 hidden sm:flex items-center">
-                      <span className="text-sm font-semibold text-gray-800">Addis Ababa</span>
+                    <div className="ml-4 pl-4 border-l border-slate-200/80 hidden sm:flex items-center">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-900/5 transition-colors"
+                        aria-label="Location"
+                      >
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-600/10 text-sky-700">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M12 22s7-5.3 7-12a7 7 0 1 0-14 0c0 6.7 7 12 7 12Z"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            />
+                            <path
+                              d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        </span>
+                        <span>Addis Ababa</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
                     </div>
                     <div className="ml-3 sm:hidden">
-                      <span className="text-xs font-semibold text-gray-800">Addis Ababa</span>
+                      <span className="text-xs font-semibold text-slate-800">Addis Ababa</span>
                     </div>
                   </div>
                 </form>
@@ -1149,7 +1210,7 @@ const Home = () => {
                   <button
                     type="button"
                     onClick={() => goToServicesFromHero(heroQuery)}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 shadow-sm hover:from-blue-700 hover:to-blue-400 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-[0_18px_50px_-28px_rgba(37,99,235,0.9)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-[0_22px_60px_-28px_rgba(79,70,229,0.95)] active:scale-100 active:translate-y-0"
                   >
                     Book a Service
                   </button>
@@ -1157,7 +1218,7 @@ const Home = () => {
                   <button
                     type="button"
                     onClick={() => navigate("/signup")}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-blue-700 border border-blue-600/25 bg-white/70 hover:bg-white hover:border-blue-600/35 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-slate-900 border border-slate-900/10 bg-white/70 transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5 hover:bg-white hover:border-slate-900/15 hover:shadow-[0_18px_50px_-34px_rgba(2,6,23,0.45)] active:scale-100 active:translate-y-0"
                   >
                     Become a Provider
                   </button>
@@ -1182,7 +1243,11 @@ const Home = () => {
 
               {/* Right: hero image */}
               <div className="lg:pl-4">
-                <div className="relative rounded-[22px] border border-white/70 bg-white/35 backdrop-blur-sm overflow-hidden transition-all duration-500 hover:translate-y-[-4px] hover:shadow-md">
+                <div className="relative rounded-[26px] border border-white/70 bg-white/35 backdrop-blur-sm overflow-hidden transition-all duration-500 ease-out hover:translate-y-[-6px]">
+                  <div className="pointer-events-none absolute -inset-10">
+                    <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-400/25 blur-3xl" />
+                    <div className="absolute left-1/3 top-1/3 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/20 blur-3xl" />
+                  </div>
                   <div className="absolute inset-0 pointer-events-none" style={{
                     backgroundImage: "linear-gradient(135deg, rgba(99,102,241,0.18), rgba(59,130,246,0.06), rgba(16,185,129,0.08))",
                     opacity: 0.7
@@ -1191,8 +1256,7 @@ const Home = () => {
                   <img
                     src="/hero.png"
                     alt="Trusted home services"
-                    className="relative z-10 w-full max-w-[520px] mx-auto lg:mx-0 object-contain"
-                    style={{ animation: "heroFloat 7s ease-in-out infinite" }}
+                    className="relative z-10 w-full max-w-[640px] mx-auto lg:mx-0 object-contain"
                   />
                 </div>
               </div>
@@ -1333,10 +1397,13 @@ const Home = () => {
 
             {/* Services Grid - Custom styled cards with wider images */}
             {loadingRecent ? (
-              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="grid grid-cols-1 gap-6 sm:flex sm:flex-nowrap sm:gap-6 sm:overflow-x-auto sm:pb-4 scrollbar-hide">
                 {[...Array(8)].map((_, index) => (
-                  <div key={index} className="flex-shrink-0 w-[350px] bg-white rounded-2xl shadow-lg p-4 animate-pulse">
-                    <div className="w-full h-64 bg-gray-200 rounded-xl mb-4"></div>
+                  <div
+                    key={index}
+                    className="w-full bg-white rounded-2xl shadow-lg p-4 animate-pulse sm:flex-shrink-0 sm:w-[300px] md:w-[350px]"
+                  >
+                    <div className="w-full h-52 sm:h-56 md:h-64 bg-gray-200 rounded-xl mb-4"></div>
                     <div className="space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -1345,15 +1412,18 @@ const Home = () => {
                 ))}
               </div>
             ) : recentServices.length > 0 ? (
-              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="grid grid-cols-1 gap-6 sm:flex sm:flex-nowrap sm:gap-6 sm:overflow-x-auto sm:pb-4 scrollbar-hide">
                 {recentServices.map((service) => (
-                  <div key={service.id} className="flex-shrink-0 w-[350px]">
+                  <div
+                    key={service.id}
+                    className="w-full sm:flex-shrink-0 sm:w-[300px] md:w-[350px]"
+                  >
                     <div 
                       className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden group cursor-pointer w-full h-full flex flex-col"
                     >
                       {/* Image Section - Wider with overlays */}
                       {service.photos && service.photos.length > 0 ? (
-                        <div className="relative w-full h-64 overflow-hidden">
+                        <div className="relative w-full h-52 sm:h-56 md:h-64 overflow-hidden">
                           <img
                             src={(() => {
                               const photoUrl = service.photos[0];
@@ -1405,7 +1475,7 @@ const Home = () => {
                           
                           {/* New Badge */}
                           <div className="absolute top-3 left-3 z-20">
-                            <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                            <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-bold shadow-lg">
                               New
                             </span>
                           </div>
@@ -1413,21 +1483,21 @@ const Home = () => {
 
                           {/* Title and Price Overlay at Bottom */}
                           <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                            <h3 className="text-white font-bold text-lg mb-1 drop-shadow-lg line-clamp-2">
+                            <h3 className="text-white font-bold text-base sm:text-lg mb-1 drop-shadow-lg line-clamp-2">
                               {service.title || (service as any).name}
                             </h3>
                             <div className="flex items-center justify-between">
                               <span className="text-white text-sm font-semibold drop-shadow-lg">
                                 {service.category || 'Service'}
                               </span>
-                              <span className="text-white font-bold text-lg drop-shadow-lg">
+                              <span className="text-white font-bold text-base sm:text-lg drop-shadow-lg">
                                 {service.price ? `${service.price} ETB` : 'Contact for price'}
                               </span>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full h-64 bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center relative">
+                        <div className="w-full h-52 sm:h-56 md:h-64 bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center relative">
                           <div className="text-center">
                             <div className="w-12 h-12 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
                               <span className="text-xl">🔧</span>
@@ -1436,7 +1506,7 @@ const Home = () => {
                           </div>
                           {/* New Badge */}
                           <div className="absolute top-3 left-3">
-                            <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                            <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-bold shadow-lg">
                               New
                             </span>
                           </div>
@@ -1497,37 +1567,55 @@ const Home = () => {
         <section className="relative w-full py-12 bg-gradient-to-br from-orange-50/30 via-white to-blue-50/30 overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
             {/* Section Header */}
-            <div className="text-left mb-8">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Most Booked <span className="text-blue-600">Services</span>
-              </h2>
-              <p className="text-sm md:text-base text-gray-600">
-                Popular choices trusted by our community
-              </p>
+            <div className="flex items-end justify-between gap-4 mb-8">
+              <div className="text-left">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                  Most Booked <span className="text-blue-600">Services</span>
+                </h2>
+                <p className="text-sm md:text-base text-gray-600">
+                  Popular choices trusted by our community
+                </p>
+              </div>
+
+              {!loadingMostBooked && mostBookedServices.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/services')}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+                >
+                  View All
+                </button>
+              )}
             </div>
 
-            {/* Services Grid - 3 columns with creative SVG overlay */}
+            {/* Services Grid - responsive (up to 4 columns) */}
             {loadingMostBooked ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[...Array(3)].map((_, index) => (
-                  <div key={index} className="bg-white rounded-2xl border border-white/60 shadow-sm overflow-hidden animate-pulse">
-                    <div className="w-full h-80 bg-gray-200"></div>
-                    <div className="p-4 space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, index) => (
+                  <div key={index} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-pulse flex flex-col">
+                    <div className="aspect-[4/3] w-full bg-gray-200" />
+                    <div className="p-3 space-y-2 flex-1">
+                      <div className="h-3 bg-gray-200 rounded-lg w-3/4" />
+                      <div className="h-2 bg-gray-200 rounded-lg w-1/2" />
+                      <div className="flex gap-2 pt-0.5">
+                        <div className="h-6 bg-gray-200 rounded-full w-20" />
+                        <div className="h-6 bg-gray-200 rounded-full w-14" />
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : mostBookedServices.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {mostBookedServices.slice(0, 3).map((service, index) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {mostBookedServices.slice(0, 4).map((service) => (
                   <div 
                     key={service.id} 
-                    className="relative group cursor-pointer"
+                    className="group cursor-pointer flex h-full"
                     onClick={() => navigate(`/service/${service.id}`)}
                   >
-                    <div className="relative w-full h-96 rounded-2xl overflow-hidden border border-white/40 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+                    {/* Split card: full-width image on top, details below (no overlay on photo) */}
+                    <div className="flex flex-col w-full bg-white rounded-2xl border border-gray-100/80 shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+                      <div className="relative aspect-[4/3] w-full shrink-0 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
                       {/* Service Image */}
                       {service.photos && service.photos.length > 0 ? (
                         <img
@@ -1545,7 +1633,7 @@ const Home = () => {
                             return normalized || photoUrl || '';
                           })()}
                           alt={service.title || (service as any).name || 'Service'}
-                          className="w-full h-full object-cover group-hover:scale-115 transition-transform duration-700 ease-out"
+                          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
                           loading="lazy"
                           onError={(e) => {
                             const target = e.currentTarget;
@@ -1578,86 +1666,69 @@ const Home = () => {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-orange-100 to-blue-100 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-orange-50 to-blue-50 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="w-16 h-16 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-3">
-                              <span className="text-2xl">🔧</span>
+                            <div className="w-14 h-14 bg-orange-200/80 rounded-full flex items-center justify-center mx-auto mb-2">
+                              <span className="text-xl">🔧</span>
                             </div>
-                            <p className="text-gray-600 text-sm">No image</p>
+                            <p className="text-gray-500 text-xs font-medium">No image</p>
                           </div>
                         </div>
                       )}
 
-                      {/* Premium image shading + subtle highlights */}
-                      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/70 via-black/25 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div
-                        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                        style={{
-                          backgroundImage:
-                            'radial-gradient(circle at 15% 0%, rgba(255,255,255,0.16), transparent 55%), radial-gradient(circle at 90% 10%, rgba(56,189,248,0.14), transparent 45%)',
-                        }}
-                      />
-
-                      {/* Content Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 z-10">
-                        <div className="rounded-2xl bg-black/35 backdrop-blur-md border border-white/10 p-4 sm:p-5 transition-all duration-300 group-hover:bg-black/30">
-                          {/* Title */}
-                          <h3 className="text-white font-semibold text-lg sm:text-xl mb-2 tracking-tight line-clamp-2">
-                            {service.title || (service as any).name}
-                          </h3>
-
-                          {/* Category */}
-                          {service.category && (
-                            <div className="mb-3">
-                              <span className="bg-white/15 text-white/95 px-3 py-1 rounded-full text-xs font-semibold border border-white/10">
-                                {service.category}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Price + Rating */}
-                          <div className="flex items-center flex-wrap gap-2 mb-3">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white font-semibold text-sm border border-white/10">
-                              {service.price ? `${service.price} ETB` : 'Contact'}
-                            </span>
-                            {service.serviceRating !== null && service.serviceRating !== undefined ? (
-                              <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-semibold border border-white/10">
-                                {service.serviceRating.toFixed(1)}⭐
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-semibold border border-white/10">
-                                No rating
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Location */}
-                          {service.location && (
-                            <div className="flex items-center gap-2 text-white/85 text-sm mb-3">
-                              <span aria-hidden>📍</span>
-                              <span className="truncate">{service.location}</span>
-                            </div>
-                          )}
-
-                          {/* View Details Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/service/${service.id}`);
-                            }}
-                            className="inline-flex items-center justify-center bg-white text-gray-900 px-4 py-2 rounded-full font-semibold text-xs hover:bg-white/90 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm border border-white/20"
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Booking Badge */}
-                      <div className="absolute top-4 right-4 z-20">
-                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg ring-1 ring-white/25 flex items-center gap-1 transition-transform duration-300 group-hover:scale-105">
-                          <span>🔥</span>
+                      {/* Booking Badge — corner of image only */}
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold shadow-md ring-1 ring-white/40 flex items-center gap-1">
+                          <span aria-hidden>🔥</span>
                           <span>Most Booked</span>
                         </div>
+                      </div>
+                      </div>
+
+                      {/* Content — below image */}
+                      <div className="flex flex-col flex-1 p-3 sm:p-4 gap-2">
+                        <h3 className="text-gray-900 font-bold text-sm sm:text-base leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+                          {service.title || (service as any).name}
+                        </h3>
+
+                        {service.category && (
+                          <span className="self-start bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md text-[11px] font-semibold border border-blue-100/80">
+                            {service.category}
+                          </span>
+                        )}
+
+                        <div className="flex items-center flex-wrap gap-2">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-gray-900 text-white font-semibold text-xs">
+                            {service.price ? `${service.price} ETB` : 'Contact'}
+                          </span>
+                          {service.serviceRating !== null && service.serviceRating !== undefined ? (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-100">
+                              {service.serviceRating.toFixed(1)} <span className="text-amber-600">★</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-gray-100 text-gray-500 text-[11px] font-semibold">
+                              No rating
+                            </span>
+                          )}
+                        </div>
+
+                        {service.location && (
+                          <div className="flex items-start gap-1.5 text-gray-600 text-[11px] sm:text-xs">
+                            <span className="shrink-0" aria-hidden>📍</span>
+                            <span className="line-clamp-2">{service.location}</span>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/service/${service.id}`);
+                          }}
+                          className="mt-auto inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg font-semibold text-xs hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm hover:shadow-md"
+                        >
+                          View details
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1767,10 +1838,7 @@ const Home = () => {
                           </div>
                         )}
 
-                        {/* Description */}
-                        <p className="text-sm text-gray-700 line-clamp-2">
-                          {offer.description}
-                        </p>
+                      {/* Description removed for a cleaner special-offer card */}
 
                         {/* Pricing */}
                         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
@@ -2106,7 +2174,7 @@ const Home = () => {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="bg-white/15 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold">
-                    healthcare and wellness
+                    Taskers
                   </span>
                   <span className="bg-white/15 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold">
                     Fresh Graduate
@@ -2290,8 +2358,8 @@ const Home = () => {
                         required
                       >
                         <option value="">-- Select Specialization --</option>
-                        <option value="healthcare and wellness">
-                          healthcare and wellness
+                        <option value="taskers">
+                          Taskers
                         </option>
                         <option value="education and training">
                           education and training
@@ -2505,17 +2573,17 @@ const Home = () => {
           </div>
         </section>
 
-      {/* Call to Action Section - Redesigned with Rounded Creative Design */}
-      <section className="py-16 md:py-24 px-4 relative overflow-hidden">
+      {/* Call to Action Section - Compact */}
+      <section className="py-8 md:py-12 px-4 relative overflow-hidden">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-80 md:h-80 bg-orange-600 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-600 rounded-full blur-3xl"></div>
         </div>
         
-        <div className="max-w-6xl mx-auto relative z-10">
-          {/* Main CTA Card - Rounded and Creative */}
-          <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-3xl md:rounded-[3rem] p-8 md:p-12 lg:p-16 shadow-2xl overflow-hidden group">
+        <div className="max-w-7xl mx-auto relative z-10 w-full">
+          {/* Main CTA Card */}
+          <div className="relative bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 rounded-2xl md:rounded-3xl p-5 md:p-8 lg:p-10 shadow-xl overflow-hidden group">
             {/* Animated Background Pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute inset-0" style={{
@@ -2524,36 +2592,36 @@ const Home = () => {
             </div>
             
             {/* Floating Decorative Elements */}
-            <div className="absolute top-8 right-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
-            <div className="absolute bottom-8 left-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000" style={{ transitionDelay: '0.2s' }}></div>
-            <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-white/5 rounded-full blur-xl group-hover:scale-110 transition-transform duration-1000" style={{ transitionDelay: '0.4s' }}></div>
+            <div className="absolute top-4 right-4 w-24 h-24 md:w-28 md:h-28 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-1000"></div>
+            <div className="absolute bottom-4 left-4 w-28 h-28 md:w-32 md:h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-1000" style={{ transitionDelay: '0.2s' }}></div>
+            <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-white/5 rounded-full blur-xl group-hover:scale-110 transition-transform duration-1000" style={{ transitionDelay: '0.4s' }}></div>
             
             {/* Content */}
             <div className="relative z-10 text-center">
               {/* Badge/Icon */}
-              <div className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-white/20 backdrop-blur-sm rounded-2xl md:rounded-3xl mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                <svg className="w-10 h-10 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-white/20 backdrop-blur-sm rounded-xl md:rounded-2xl mb-3 md:mb-4 shadow-md group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+                <svg className="w-6 h-6 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
               </div>
               
-              <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-4 md:mb-6 leading-tight">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-3 leading-snug">
                 Ready to Experience the <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-orange-100 to-white">Difference?</span>
               </h2>
               
-              <p className="text-lg md:text-xl lg:text-2xl text-orange-50 mb-8 md:mb-12 leading-relaxed max-w-3xl mx-auto">
+              <p className="text-sm md:text-base text-orange-50 mb-5 md:mb-6 leading-relaxed max-w-4xl mx-auto">
                 Join thousands of satisfied customers and service providers who trust HomeHub for their daily service needs.
               </p>
               
-              {/* Action Buttons - Redesigned */}
-              <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
                 <button 
                   onClick={() => navigate('/services')}
-                  className="group/btn relative bg-white hover:bg-orange-50 text-orange-600 px-8 md:px-12 py-4 md:py-5 rounded-2xl md:rounded-3xl font-bold text-base md:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden min-w-[200px]"
+                  className="group/btn relative bg-white hover:bg-orange-50 text-orange-600 px-5 md:px-7 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] overflow-hidden min-w-[180px]"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-orange-600/0 via-orange-600/10 to-orange-600/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></span>
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     Book a Service Now
@@ -2562,11 +2630,11 @@ const Home = () => {
                 
                 <button 
                   onClick={() => navigate('/signup?role=provider')}
-                  className="group/btn relative border-2 border-white text-white hover:bg-white hover:text-orange-600 px-8 md:px-12 py-4 md:py-5 rounded-2xl md:rounded-3xl font-bold text-base md:text-lg transition-all duration-300 transform hover:scale-105 overflow-hidden backdrop-blur-sm bg-white/10 min-w-[200px]"
+                  className="group/btn relative border-2 border-white text-white hover:bg-white hover:text-orange-600 px-5 md:px-7 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base transition-all duration-300 transform hover:scale-[1.02] overflow-hidden backdrop-blur-sm bg-white/10 min-w-[180px]"
                 >
                   <span className="absolute inset-0 bg-white translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></span>
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
                     Sign Up Now
@@ -2575,21 +2643,21 @@ const Home = () => {
               </div>
               
               {/* Trust Indicators */}
-              <div className="mt-8 md:mt-12 flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white/80 text-sm md:text-base">
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="mt-5 md:mt-6 flex flex-wrap items-center justify-center gap-4 md:gap-5 text-white/80 text-xs md:text-sm">
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>Verified Providers</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                   <span>5-Star Rated</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>Secure & Trusted</span>
@@ -3133,7 +3201,7 @@ const Home = () => {
           <div className="mb-4 space-y-3 flex flex-col-reverse">
             {/* Phone */}
             <a
-              href="tel:+251911508734"
+              href="tel:+251994578759"
               className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group animate-[slideUp_0.3s_ease-out]`}
               onClick={() => setShowCommunicationWidget(false)}
               style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
@@ -3146,7 +3214,7 @@ const Home = () => {
 
             {/* WhatsApp */}
             <a
-              href="https://wa.me/251911508734"
+              href="https://wa.me/251994578759"
               target="_blank"
               rel="noopener noreferrer"
               className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group animate-[slideUp_0.3s_ease-out]`}
@@ -3161,7 +3229,7 @@ const Home = () => {
 
             {/* Email */}
             <a
-              href="mailto:g.fikre2@gmail.com"
+              href="mailto:CEO@Homehub.et"
               className={`flex items-center space-x-3 bg-white shadow-lg rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group animate-[slideUp_0.3s_ease-out]`}
               onClick={() => setShowCommunicationWidget(false)}
               style={{ animationDelay: '0.3s', animationFillMode: 'both' }}

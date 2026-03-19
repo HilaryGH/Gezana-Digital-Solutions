@@ -82,7 +82,7 @@ const ContactPage: React.FC = () => {
     {
       icon: FaHeadset,
       title: t('common.support'),
-      details: "+251 911 234 567",
+      details: "+25199 457 8759",
       description: t('contact.support.phoneDesc'),
       action: "Call Now",
       color: "bg-green-100 text-green-600"
@@ -98,7 +98,7 @@ const ContactPage: React.FC = () => {
     {
       icon: FaEnvelope,
       title: t('contact.support.email'),
-      details: "support@gezana.com",
+      details: "CEO@Homehub.et",
       description: t('contact.support.emailDesc'),
       action: "Send Email",
       color: "bg-purple-100 text-purple-600"
@@ -138,18 +138,18 @@ const ContactPage: React.FC = () => {
     {
       icon: FaPhone,
       title: "Phone",
-      details: "+251 911 508 734",
+      details: "+25199 457 8759",
       description: "Call us anytime",
-      link: "tel:+251911508734",
+      link: "tel:+251994578759",
       gradient: "from-blue-600 via-blue-500 to-cyan-500",
       bgGradient: "from-blue-50 to-cyan-50"
     },
     {
       icon: FaEnvelope,
       title: "Email",
-      details: "g.fikre2@gmail.com",
+      details: "CEO@Homehub.et",
       description: "Send us an email",
-      link: "mailto:g.fikre2@gmail.com",
+      link: "mailto:CEO@Homehub.et",
       gradient: "from-orange-500 via-orange-600 to-blue-600",
       bgGradient: "from-orange-50 to-blue-50"
     },

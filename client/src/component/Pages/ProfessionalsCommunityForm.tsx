@@ -34,7 +34,7 @@ const ProfessionalsCommunityForm: React.FC = () => {
   const [success, setSuccess] = useState(false);
 
   const specializationOptions = [
-    "healthcare and wellness",
+    "taskers",
     "education and training",
     "technology and design",
     "business and operations",
@@ -89,7 +89,7 @@ const ProfessionalsCommunityForm: React.FC = () => {
           {/* Tag chips */}
           <div className="flex flex-wrap justify-center gap-2 mb-7">
             <span className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1.5 rounded-full text-sm font-semibold">
-              healthcare and wellness
+              Taskers
             </span>
             <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-4 py-1.5 rounded-full text-sm font-semibold">
               Fresh Graduate
@@ -265,7 +265,12 @@ const ProfessionalsCommunityForm: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {specializationOptions.map((opt) => {
                 const isSelected = form.specialization === opt;
-                const label = opt === "intern" ? "Intern" : opt;
+                const label =
+                  opt === "intern"
+                    ? "Intern"
+                    : opt === "taskers"
+                      ? "Taskers"
+                      : opt;
                 return (
                   <label
                     key={opt}

@@ -1,6 +1,7 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import { AgentPartnershipAgreementBody } from "../content/agentPartnershipAgreement";
 
 // Type definitions
 interface RegistrationResponse {
@@ -25,6 +26,7 @@ const RegisterForm = () => {
 
   // ---------------- STATE ----------------
   const [seekerForm, setSeekerForm] = useState({
+    seekerType: "individual",
     fullName: "",
     address: "",
     email: "",
@@ -91,6 +93,13 @@ const RegisterForm = () => {
   });
 
   const [consent, setConsent] = useState(false);
+  const [showMerchantAgreement, setShowMerchantAgreement] = useState(false);
+  const [showAgentAgreement, setShowAgentAgreement] = useState(false);
+
+  useEffect(() => {
+    setShowMerchantAgreement(false);
+    setShowAgentAgreement(false);
+  }, [role]);
 
   // ---------------- HANDLERS ----------------
 
@@ -482,6 +491,24 @@ const RegisterForm = () => {
             >
               <option value="individual">Standard Agent</option>
               <option value="corporate">Super / Elite Agent</option>
+            </select>
+          </div>
+        )}
+
+        {/* Seeker Type */}
+        {role === "seeker" && (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-3 text-gray-700 font-inter">
+              Seeker Type
+            </label>
+            <select
+              name="seekerType"
+              value={seekerForm.seekerType}
+              onChange={handleSeekerChange}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
+            >
+              <option value="individual">Individual</option>
+              <option value="corporate">Corporate</option>
             </select>
           </div>
         )}
@@ -1484,20 +1511,110 @@ const RegisterForm = () => {
           )}
 
           {/* Consent */}
-              <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
-                <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={() => setConsent(!consent)}
-                    className="mt-1 w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 accent-blue-600"
-            />
-                  <label className="text-sm text-gray-700 leading-relaxed font-inter">
-              I consent to the collection and processing of my personal data in line with data regulations as described in the{" "}
-                    <span className="text-blue-600 underline cursor-pointer hover:text-blue-700 font-semibold">Privacy Policy</span> &{" "}
-                    <span className="text-blue-600 underline cursor-pointer hover:text-blue-700 font-semibold">Merchant Service Agreement</span>.
-            </label>
-                </div>
+          <div className="bg-gradient-to-r from-blue-50 to-blue-25 p-4 rounded-xl border border-blue-100">
+            <div className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={() => setConsent(!consent)}
+                className="mt-1 w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 accent-blue-600"
+              />
+              <label className="text-sm text-gray-700 leading-relaxed font-inter">
+                I consent to the collection and processing of my personal data in line with data regulations as described in the{" "}
+                <Link
+                  to="/privacy"
+                  className="text-blue-600 underline hover:text-blue-700 font-semibold"
+                >
+                  Privacy Policy
+                </Link>
+                {role === "provider" && (
+                  <>
+                    {" "}
+                    &amp;{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMerchantAgreement((prev) => !prev);
+                        setShowAgentAgreement(false);
+                      }}
+                      className="text-blue-600 underline hover:text-blue-700 font-semibold"
+                    >
+                      Merchant Service Agreement
+                    </button>
+                  </>
+                )}
+                {role === "agent" && (
+                  <>
+                    {" "}
+                    &amp;{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAgentAgreement((prev) => !prev);
+                        setShowMerchantAgreement(false);
+                      }}
+                      className="text-blue-600 underline hover:text-blue-700 font-semibold"
+                    >
+                      Agents Service/Partnership Agreement
+                    </button>
+                  </>
+                )}
+                .
+              </label>
+            </div>
+
+            {showMerchantAgreement && role === "provider" && (
+              <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4 sm:p-5 text-sm text-gray-700 leading-relaxed space-y-3">
+                <h4 className="text-base sm:text-lg font-semibold text-gray-900">
+                  HomeHub Merchant Service Agreement (for Service Providers)
+                </h4>
+                <p>
+                  <span className="font-semibold">Title:</span> HomeHub Merchant/Service Provider Agreement
+                </p>
+                <p>
+                  <span className="font-semibold">Parties &amp; Recitals:</span> This agreement is entered into between HomeHub and the Service Provider (freelancer or company).
+                </p>
+                <p>
+                  <span className="font-semibold">Registration &amp; Services:</span> Providers list services (for example, plumbing, cleaning, and housemaid services) and must be certified/verified, including applicable background checks and licenses.
+                </p>
+                <p>
+                  <span className="font-semibold">Platform Usage:</span> Providers accept bookings via web, maintain real-time availability, and participate in location-based matching.
+                </p>
+                <p>
+                  <span className="font-semibold">Service Standards &amp; Compliance:</span> Providers must deliver quality work, follow codes of conduct, complete work on time, and maintain customer satisfaction.
+                </p>
+                <p>
+                  <span className="font-semibold">Ratings &amp; Reviews:</span> Providers are subject to platform ratings and reviews; poor performance may result in suspension.
+                </p>
+                <p>
+                  <span className="font-semibold">Term &amp; Termination:</span> This agreement remains in effect until terminated, including for violations or inactivity.
+                </p>
+                <p>
+                  <span className="font-semibold">Confidentiality, Data, and IP:</span> Providers must protect customer data (GDPR-like compliance) and may not use platform intellectual property without authorization.
+                </p>
+                <p>
+                  <span className="font-semibold">Governing Law:</span> Ethiopian law.
+                </p>
+              </div>
+            )}
+
+            {showAgentAgreement && role === "agent" && (
+              <div className="mt-4 rounded-xl border border-blue-200 bg-white p-4 sm:p-5">
+                <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">
+                  HomeHub Agents Service Agreement (Standard, Super/Elite Agents)
+                </h4>
+                <AgentPartnershipAgreementBody />
+                <p className="mt-4 text-xs text-gray-500">
+                  Full document:{" "}
+                  <Link
+                    to="/agents-partnership-agreement"
+                    className="text-blue-600 underline font-semibold hover:text-blue-800"
+                  >
+                    Open Agents Partnership Agreement page
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
 
               {/* Submit Button */}
