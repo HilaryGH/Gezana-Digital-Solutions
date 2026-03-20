@@ -216,6 +216,7 @@ const userSchema = new mongoose.Schema(
     agentPhoto: { type: String }, // Photo
     corporateBusinessRegistration: { type: String }, // Business Registration
     corporateBusinessLicense: { type: String }, // Business License
+    corporateAchievementsCertificate: { type: String }, // Achievements & Recognitions Certificate (corporate agents)
     corporateTin: { type: String }, // TIN document
   },
   { timestamps: true }

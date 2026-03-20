@@ -211,6 +211,7 @@ const formatAgentResponse = (agentDoc, req) => {
       agentPhoto: toPublicFileUrl(req, agent.agentPhoto),
       corporateBusinessRegistration: toPublicFileUrl(req, agent.corporateBusinessRegistration),
       corporateBusinessLicense: toPublicFileUrl(req, agent.corporateBusinessLicense),
+      corporateAchievementsCertificate: toPublicFileUrl(req, agent.corporateAchievementsCertificate),
       corporateTin: toPublicFileUrl(req, agent.corporateTin),
     },
   };

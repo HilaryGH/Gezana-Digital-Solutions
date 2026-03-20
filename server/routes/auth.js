@@ -53,6 +53,7 @@ router.post("/register", upload.fields([
   { name: 'agentPhoto', maxCount: 1 },
   { name: 'corporateBusinessRegistration', maxCount: 1 },
   { name: 'corporateBusinessLicense', maxCount: 1 },
+  { name: 'corporateAchievementsCertificate', maxCount: 1 },
   { name: 'corporateTin', maxCount: 1 }
 ]), async (req, res) => {
   try {
@@ -283,6 +284,9 @@ router.post("/register", upload.fields([
         }
         if (req.files.corporateBusinessLicense) {
           userData.corporateBusinessLicense = getFileUrl(req.files.corporateBusinessLicense[0]);
+        }
+        if (req.files.corporateAchievementsCertificate) {
+          userData.corporateAchievementsCertificate = getFileUrl(req.files.corporateAchievementsCertificate[0]);
         }
         if (req.files.corporateTin) {
           userData.corporateTin = getFileUrl(req.files.corporateTin[0]);
