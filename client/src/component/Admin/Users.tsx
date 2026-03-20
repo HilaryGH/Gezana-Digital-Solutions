@@ -15,10 +15,21 @@ type User = {
   license?: string;
   tradeRegistration?: string;
   professionalCertificate?: string;
+  governmentId?: string;
+  crCertificate?: string;
+  tinDocument?: string;
   photo?: string;
   servicePhotos?: string[];
   video?: string;
   priceList?: string;
+  // Agent files
+  agentIdDocument?: string;
+  agentWorkExperience?: string;
+  agentPhoto?: string;
+  corporateBusinessRegistration?: string;
+  corporateBusinessLicense?: string;
+  corporateAchievementsCertificate?: string;
+  corporateTin?: string;
 };
 
 const Users = () => {
@@ -64,6 +75,12 @@ const Users = () => {
         return "Service Provider";
       case "admin":
         return "Admin";
+      case "superadmin":
+        return "Superadmin";
+      case "support":
+        return "Support";
+      case "marketing":
+        return "Marketing";
       default:
         return role;
     }
@@ -85,20 +102,62 @@ const Users = () => {
   // Get uploaded files for a user
   const getUploadedFiles = (user: User) => {
     const files: { name: string; url: string }[] = [];
-    const baseUrl = axios.defaults.baseURL?.replace('/api', '') || 'http://localhost:5000';
+    const baseUrl =
+      axios.defaults.baseURL?.replace("/api", "") || "http://localhost:5000";
 
-    if (user.idFile) files.push({ name: 'ID File', url: `${baseUrl}/${user.idFile}` });
-    if (user.license) files.push({ name: 'License', url: `${baseUrl}/${user.license}` });
-    if (user.tradeRegistration) files.push({ name: 'Trade Registration', url: `${baseUrl}/${user.tradeRegistration}` });
-    if (user.professionalCertificate) files.push({ name: 'Professional Certificate', url: `${baseUrl}/${user.professionalCertificate}` });
-    if (user.photo) files.push({ name: 'Photo', url: `${baseUrl}/${user.photo}` });
-    if (user.video) files.push({ name: 'Video', url: `${baseUrl}/${user.video}` });
-    if (user.priceList) files.push({ name: 'Price List', url: `${baseUrl}/${user.priceList}` });
-    if (user.servicePhotos) {
+    const toPublicUrl = (storedPath?: string) => {
+      if (!storedPath) return null;
+      const trimmed = String(storedPath).trim();
+      if (!trimmed) return null;
+
+      // If it's already a full URL (e.g., Cloudinary), just return it.
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+      // Normalize slashes and remove any leading slashes.
+      const cleaned = trimmed.replace(/\\/g, "/").replace(/^\/+/, "");
+
+      // If it already contains "uploads/", keep it.
+      if (cleaned.toLowerCase().startsWith("uploads/")) {
+        return `${baseUrl}/${cleaned}`;
+      }
+
+      // Local uploads are stored as just the filename in DB.
+      return `${baseUrl}/uploads/${cleaned}`;
+    };
+
+    const pushIfExists = (name: string, stored?: string) => {
+      const url = toPublicUrl(stored);
+      if (url) files.push({ name, url });
+    };
+
+    // Seeker files
+    pushIfExists("ID File", user.idFile);
+
+    // Provider files
+    pushIfExists("License", user.license);
+    pushIfExists("Trade Registration", user.tradeRegistration);
+    pushIfExists("TIN Document", user.tinDocument);
+    pushIfExists("Professional Certificate", user.professionalCertificate);
+    pushIfExists("Government ID", user.governmentId);
+    pushIfExists("CR Certificate", user.crCertificate);
+    pushIfExists("Photo", user.photo);
+    pushIfExists("Video", user.video);
+    pushIfExists("Price List", user.priceList);
+
+    if (user.servicePhotos?.length) {
       user.servicePhotos.forEach((photo, idx) => {
-        files.push({ name: `Service Photo ${idx + 1}`, url: `${baseUrl}/${photo}` });
+        pushIfExists(`Service Photo ${idx + 1}`, photo);
       });
     }
+
+    // Agent files
+    pushIfExists("Agent ID Document", user.agentIdDocument);
+    pushIfExists("Agent Work Experience", user.agentWorkExperience);
+    pushIfExists("Agent Photo", user.agentPhoto);
+    pushIfExists("Corporate Business Registration", user.corporateBusinessRegistration);
+    pushIfExists("Corporate Business License", user.corporateBusinessLicense);
+    pushIfExists("Corporate Achievements Certificate", user.corporateAchievementsCertificate);
+    pushIfExists("Corporate TIN", user.corporateTin);
 
     return files;
   };

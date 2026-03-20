@@ -162,7 +162,7 @@ const RegisterForm = () => {
       
       // Test the actual API endpoint that will be used for registration
       const response = await axios.get("/auth/health", {
-        timeout: 10000, // 10 second timeout
+        timeout: 30000, // Allow extra time for backend cold-start
       });
       
       console.log("✅ Network test successful:", response.status);
@@ -174,7 +174,7 @@ const RegisterForm = () => {
       try {
         console.log("🔍 Trying alternative connectivity test...");
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
         const response = await fetch("https://gezana-api-m8u7.onrender.com/", {
           method: "GET",
@@ -227,6 +227,7 @@ const RegisterForm = () => {
         formData.append("role", role);
 
         const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
+          timeout: 120000, // Allow extra time for server cold-start and background email sending
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -269,6 +270,7 @@ const RegisterForm = () => {
           formData.append("agentType", agentType);
 
           const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
+            timeout: 120000, // Allow extra time for server cold-start and background email sending
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -309,6 +311,7 @@ const RegisterForm = () => {
         formData.append("businessStatus", JSON.stringify(businessStatus));
 
         const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
+          timeout: 120000, // Allow extra time for server cold-start and background email sending
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -336,7 +339,9 @@ const RegisterForm = () => {
       let errorMessage = "An error occurred during registration. Please try again.";
       
       // Handle different types of errors
-      if (err.code === 'NETWORK_ERROR' || err.code === 'ECONNABORTED' || err.message?.includes('Network Error')) {
+      if (err.response?.status === 400 && typeof err.response?.data?.message === "string" && err.response.data.message.toLowerCase().includes("already registered")) {
+        errorMessage = "This email is already registered. Please login instead.";
+      } else if (err.code === 'NETWORK_ERROR' || err.code === 'ECONNABORTED' || err.message?.includes('Network Error')) {
         errorMessage = "Network connection failed. Please check your internet connection and try again.";
       } else if (err.code === 'ECONNREFUSED' || err.message?.includes('ERR_CONNECTION_REFUSED')) {
         errorMessage = "Unable to connect to the server. Please try again later.";

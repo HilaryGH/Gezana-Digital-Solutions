@@ -337,31 +337,8 @@ router.post("/register", upload.fields([
       }
     }
 
-    // Send welcome notifications (Email + WhatsApp) - skip for admin/superadmin/support users
-    if (!["admin", "superadmin", "support"].includes(role)) {
-      try {
-        // For individual seekers, send email with referral code
-        if (role === "seeker" && newUser.seekerType === "individual" && newUser.referralCode) {
-          await sendWelcomeEmailWithReferral(newUser.email, newUser.name, newUser.referralCode);
-        } else {
-          // For other users, send regular welcome notifications
-          const notificationResults = await sendWelcomeNotifications({
-            email: newUser.email,
-            name: newUser.name,
-            role: newUser.role,
-            phone: newUser.phone,
-            whatsapp: newUser.whatsapp
-          });
-        }
-        console.log("Welcome notifications sent:", notificationResults);
-      } catch (notifError) {
-        console.error("Error sending welcome notifications:", notifError);
-        // Don't fail registration if notifications fail
-      }
-    } else {
-      console.log("Skipping welcome notifications for admin/superadmin/support user");
-    }
-
+    // Respond immediately so slow external services (email/WhatsApp) don't break registration.
+    // The welcome notifications are intentionally "fire-and-forget".
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -371,6 +348,35 @@ router.post("/register", upload.fields([
         role: newUser.role
       }
     });
+
+    // Send welcome notifications (Email + WhatsApp) - skip for admin/superadmin/support users
+    if (!["admin", "superadmin", "support"].includes(role)) {
+      void (async () => {
+        try {
+          // For individual seekers, send email with referral code
+          if (role === "seeker" && newUser.seekerType === "individual" && newUser.referralCode) {
+            await sendWelcomeEmailWithReferral(newUser.email, newUser.name, newUser.referralCode);
+          } else {
+            // For other users, send regular welcome notifications
+            const notificationResults = await sendWelcomeNotifications({
+              email: newUser.email,
+              name: newUser.name,
+              role: newUser.role,
+              phone: newUser.phone,
+              whatsapp: newUser.whatsapp
+            });
+            console.log("Welcome notifications sent:", notificationResults);
+          }
+        } catch (notifError) {
+          console.error("Error sending welcome notifications:", notifError);
+          // Don't fail registration if notifications fail
+        }
+      })();
+    } else {
+      console.log("Skipping welcome notifications for admin/superadmin/support user");
+    }
+
+    return;
   } catch (err) {
     console.error("Registration error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
