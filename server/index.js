@@ -41,16 +41,26 @@ const PORT = process.env.PORT || 5000;
 // This allows Express to correctly detect protocol and host when behind a proxy
 app.set('trust proxy', true);
 
-// Middleware
+// Middleware — production frontends (comma-separated CLIENT_URL supported)
 const allowedOrigins = [
-  'https://homehub.et',
-  'https://homehubdigital.netlify.app',
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  ...new Set(
+    [
+      "https://homehub.et",
+      "https://www.homehub.et",
+      "https://homehubdigital.netlify.app",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      ...(process.env.CLIENT_URL || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ].filter(Boolean)
+  ),
 ];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin); // echo origin
     res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE,PATCH');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
@@ -173,6 +183,9 @@ app.use("/api/bookings", bookingRoutes);
 
 const serviceRoutes = require("./routes/services");
 app.use("/api/services", serviceRoutes);
+
+const catalogRoutes = require("./routes/catalog");
+app.use("/api/catalog", catalogRoutes);
 
 const categoriesRouter = require("./routes/categories");
 app.use("/api/categories", categoriesRouter);

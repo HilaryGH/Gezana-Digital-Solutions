@@ -16,15 +16,31 @@ const storage = new CloudinaryStorage({
     let folder = 'homehub';
     if (file.fieldname === 'photos' || file.fieldname === 'servicePhotos') {
       folder = 'homehub/services';
-    } else if (file.fieldname === 'photo' || file.fieldname === 'image') {
+    } else if (file.fieldname === 'photo' || file.fieldname === 'image' || file.fieldname === 'agentPhoto') {
       folder = 'homehub/profiles';
-    } else if (file.fieldname === 'idFile' || file.fieldname === 'license' || file.fieldname === 'tradeRegistration') {
+    } else if (
+      file.fieldname === 'idFile' ||
+      file.fieldname === 'license' ||
+      file.fieldname === 'tradeRegistration' ||
+      file.fieldname === 'tinDocument' ||
+      file.fieldname === 'professionalCertificate' ||
+      file.fieldname === 'governmentId' ||
+      file.fieldname === 'crCertificate' ||
+      file.fieldname === 'priceList' ||
+      file.fieldname === 'video' ||
+      file.fieldname === 'agentIdDocument' ||
+      file.fieldname === 'agentWorkExperience' ||
+      file.fieldname === 'corporateBusinessRegistration' ||
+      file.fieldname === 'corporateBusinessLicense' ||
+      file.fieldname === 'corporateAchievementsCertificate' ||
+      file.fieldname === 'corporateTin'
+    ) {
       folder = 'homehub/documents';
     }
     
     return {
       folder: folder, // Organized folders in Cloudinary
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'mp4', 'avi', 'mov', 'wmv'],
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'mp4', 'avi', 'mov', 'wmv', 'webm'],
       transformation: file.mimetype?.startsWith('image/') ? [
         { width: 1200, height: 1200, crop: 'limit', quality: 'auto', format: 'auto' }, // Optimize images
       ] : undefined,

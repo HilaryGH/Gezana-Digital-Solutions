@@ -64,13 +64,15 @@ const fileFilter = (req, file, cb) => {
     "application/pdf",
     "video/mp4",
     "video/avi",
+    "video/quicktime",
     "video/mov",
-    "video/wmv"
+    "video/wmv",
+    "video/webm",
   ];
   
   // Also check file extension as fallback
   const ext = path.extname(file.originalname).toLowerCase();
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.mp4', '.avi', '.mov', '.wmv'];
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.mp4', '.avi', '.mov', '.wmv', '.webm'];
   
   // Check MIME type first
   if (allowedTypes.includes(file.mimetype)) {
@@ -88,6 +90,15 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-upload = multer({ storage, fileFilter });
+// Limits help production hosts (Render, etc.) and avoid huge multipart payloads
+upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 12 * 1024 * 1024, // 12 MB per file
+    files: 24,
+    fieldSize: 2 * 1024 * 1024, // text fields in multipart
+  },
+});
 
 module.exports = upload;

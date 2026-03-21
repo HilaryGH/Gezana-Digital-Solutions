@@ -64,5 +64,15 @@ const promotionalBannerSchema = new mongoose.Schema(
 // Index for active banners ordered by priority
 promotionalBannerSchema.index({ isActive: 1, order: 1 });
 
+promotionalBannerSchema.set("toJSON", {
+  virtuals: true,
+  transform: (_doc, ret) => {
+    ret.id = ret._id?.toString?.() ?? String(ret._id);
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
+
 module.exports = mongoose.model("PromotionalBanner", promotionalBannerSchema);
 

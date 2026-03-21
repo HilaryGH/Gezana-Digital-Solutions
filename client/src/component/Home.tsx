@@ -2,8 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, X, Star, Tag } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel, FaPhone, FaWhatsapp, FaEnvelope, FaComments, FaTimes } from "react-icons/fa";
-import { getRecentServices, getMostBookedServices, getServices, type Service } from "../api/services";
-import { getPromotionalBanners, type PromotionalBanner } from "../api/promotionalBanners";
+import {
+  getRecentServices,
+  getMostBookedServices,
+  getServices,
+  getCatalog,
+  mapCatalogAgentToService,
+  type Service,
+  type CatalogAgentItem,
+} from "../api/services";
 import { getJobs, type Job } from "../api/jobs";
 import { applyForJob, type CreateJobApplicationData } from "../api/jobApplications";
 import { getActiveSpecialOffers, type SpecialOffer } from "../api/specialOffers";
@@ -78,11 +85,11 @@ const Home = () => {
   const [showServicesModal, setShowServicesModal] = useState(false);
   const [recentServices, setRecentServices] = useState<Service[]>([]);
   const [mostBookedServices, setMostBookedServices] = useState<Service[]>([]);
-  const [promotionalBanners, setPromotionalBanners] = useState<PromotionalBanner[]>([]);
   const [categoryServices, setCategoryServices] = useState<Service[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
+  const [featuredProfessionals, setFeaturedProfessionals] = useState<Service[]>([]);
+  const [loadingFeaturedProfessionals, setLoadingFeaturedProfessionals] = useState(false);
   const [loadingMostBooked, setLoadingMostBooked] = useState(false);
-  const [loadingBanners, setLoadingBanners] = useState(false);
   const [loadingCategoryServices, setLoadingCategoryServices] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -239,6 +246,46 @@ const Home = () => {
     fetchRecentServices();
   }, []);
 
+  // Agent-added professionals from public catalog (newest first)
+  useEffect(() => {
+    const fetchFeaturedProfessionals = async () => {
+      setLoadingFeaturedProfessionals(true);
+      try {
+        const catalog = await getCatalog();
+        const agents = catalog
+          .filter((row): row is CatalogAgentItem => row.source === "agent")
+          .filter((row) => row.status !== "rejected")
+          .sort((a, b) => {
+            const ta = new Date(a.createdAt || 0).getTime();
+            const tb = new Date(b.createdAt || 0).getTime();
+            return tb - ta;
+          })
+          .slice(0, 8)
+          .map(mapCatalogAgentToService);
+        setFeaturedProfessionals(agents);
+      } catch (error) {
+        console.error("Error fetching featured professionals:", error);
+        setFeaturedProfessionals([]);
+      } finally {
+        setLoadingFeaturedProfessionals(false);
+      }
+    };
+    fetchFeaturedProfessionals();
+  }, []);
+
+  const navigateToServiceOrAgentContact = (service: Service) => {
+    if (service.catalogSource === "agent") {
+      navigate("/contact", {
+        state: {
+          subject: `Agent-listed professional: ${service.title}`,
+          message: `I'm interested in reaching ${service.providerName} (${service.title}).\nListing ID: ${service.id}`,
+        },
+      });
+      return;
+    }
+    navigate(`/service/${service.id}`);
+  };
+
   // Fetch most booked services
   useEffect(() => {
     const fetchMostBookedServices = async () => {
@@ -273,22 +320,6 @@ const Home = () => {
       }
     };
     fetchJobs();
-  }, []);
-
-  // Fetch promotional banners
-  useEffect(() => {
-    const fetchPromotionalBanners = async () => {
-      setLoadingBanners(true);
-      try {
-        const banners = await getPromotionalBanners();
-        setPromotionalBanners(banners);
-      } catch (error) {
-        console.error('Error fetching promotional banners:', error);
-      } finally {
-        setLoadingBanners(false);
-      }
-    };
-    fetchPromotionalBanners();
   }, []);
 
   // Fetch special offers
@@ -1563,6 +1594,146 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Featured Professionals — agent-submitted catalog entries */}
+        <section className="relative w-full py-12 bg-gradient-to-br from-white via-indigo-50/25 to-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+              <div className="text-left">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                  Featured <span className="text-indigo-600">Professionals</span>
+                </h2>
+                <p className="text-sm md:text-base text-gray-600">
+                  Trusted professionals added through our agent network
+                </p>
+              </div>
+              {!loadingFeaturedProfessionals && featuredProfessionals.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/services")}
+                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap self-start sm:self-auto"
+                >
+                  View all services
+                </button>
+              )}
+            </div>
+
+            {loadingFeaturedProfessionals ? (
+              <div className="grid grid-cols-1 gap-6 sm:flex sm:flex-nowrap sm:gap-6 sm:overflow-x-auto sm:pb-4 scrollbar-hide">
+                {[...Array(6)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-full bg-white rounded-2xl shadow-lg p-4 animate-pulse sm:flex-shrink-0 sm:w-[280px] md:w-[300px]"
+                  >
+                    <div className="w-full h-48 sm:h-52 bg-gray-200 rounded-xl mb-4" />
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4" />
+                      <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : featuredProfessionals.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 sm:flex sm:flex-nowrap sm:gap-6 sm:overflow-x-auto sm:pb-4 scrollbar-hide">
+                {featuredProfessionals.map((pro) => (
+                  <div
+                    key={pro.id}
+                    className="w-full sm:flex-shrink-0 sm:w-[280px] md:w-[300px]"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => navigateToServiceOrAgentContact(pro)}
+                      className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden group cursor-pointer w-full h-full flex flex-col text-left"
+                    >
+                      {pro.photos && pro.photos.length > 0 ? (
+                        <div className="relative w-full h-48 sm:h-52 overflow-hidden">
+                          <img
+                            src={(() => {
+                              const photoUrl = pro.photos[0];
+                              if (!photoUrl) return "";
+                              const normalized = normalizeImageUrl(photoUrl, {
+                                width: 800,
+                                height: 800,
+                                crop: "fill",
+                                quality: "auto",
+                                format: "auto",
+                              });
+                              return normalized || photoUrl || "";
+                            })()}
+                            alt={pro.providerName || pro.title}
+                            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            onError={(e) => handleImageError(e)}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
+                          <div className="absolute top-3 left-3 z-20">
+                            <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                              Professional
+                            </span>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                            <p className="text-white/90 text-xs font-medium drop-shadow">Agent listing</p>
+                            <h3 className="text-white font-bold text-base sm:text-lg drop-shadow-lg line-clamp-2">
+                              {pro.providerName}
+                            </h3>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 sm:h-52 bg-gradient-to-br from-indigo-100 to-violet-200 flex flex-col items-center justify-center relative p-4">
+                          <div className="absolute top-3 left-3">
+                            <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                              Professional
+                            </span>
+                          </div>
+                          <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center mb-2 shadow-inner">
+                            <span className="text-2xl" aria-hidden>
+                              👤
+                            </span>
+                          </div>
+                          <h3 className="text-gray-900 font-bold text-center text-sm sm:text-base line-clamp-2 px-1">
+                            {pro.providerName}
+                          </h3>
+                        </div>
+                      )}
+
+                      <div className="p-4 space-y-2 flex-1 flex flex-col">
+                        <p className="text-gray-900 font-semibold text-sm line-clamp-2">{pro.title}</p>
+                        {pro.category ? (
+                          <span className="inline-flex self-start bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded-md text-xs font-semibold">
+                            {pro.category}
+                          </span>
+                        ) : null}
+                        {pro.location ? (
+                          <p className="text-gray-600 text-xs flex items-center gap-1 line-clamp-1">
+                            <span aria-hidden>📍</span>
+                            <span className="truncate">{pro.location}</span>
+                          </p>
+                        ) : null}
+                        <p className="text-gray-500 text-xs flex-1">Contact for pricing</p>
+                        <span className="mt-1 w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold text-center group-hover:bg-indigo-700 transition-colors block">
+                          Get in touch
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-left py-6">
+                <p className="text-gray-500 text-sm">
+                  No agent-listed professionals yet. Browse all services to find providers.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/services")}
+                  className="mt-3 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                >
+                  View all services
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Most Booked Services Section */}
         <section className="relative w-full py-12 bg-gradient-to-br from-orange-50/30 via-white to-blue-50/30 overflow-hidden">
           <div className="max-w-7xl mx-auto px-6">
@@ -1946,75 +2117,6 @@ const Home = () => {
                     </p>
                   </div>
                 )}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Seasonal / Promotional Banners Section */}
-        <section className="relative w-full py-12 bg-gradient-to-br from-white via-orange-50/50 to-white overflow-hidden">
-          <div className="max-w-7xl mx-auto px-6">
-            {/* Section Header */}
-            <div className="text-left mb-8">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Promotional <span className="text-orange-600">Banners</span>
-              </h2>
-              <p className="text-sm md:text-base text-gray-600">
-                Limited-time promotions and seasonal discounts
-              </p>
-            </div>
-
-            {/* Promotional Banners Grid */}
-            {loadingBanners ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(2)].map((_, index) => (
-                  <div key={index} className="bg-gray-200 rounded-3xl h-64 animate-pulse"></div>
-                ))}
-              </div>
-            ) : promotionalBanners.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {promotionalBanners.map((banner) => {
-                  // Parse gradient classes from backgroundColor
-                  const gradientClasses = banner.backgroundColor || "from-blue-500 via-blue-600 to-blue-700";
-                  const textColorClass = banner.textColor || "text-white";
-                  
-                  return (
-                    <div
-                      key={banner.id}
-                      onClick={() => navigate(banner.buttonLink || "/services")}
-                      className="relative overflow-hidden rounded-3xl shadow-2xl group cursor-pointer transform transition-all duration-300 hover:scale-105"
-                    >
-                      <div className={`absolute inset-0 bg-gradient-to-br ${gradientClasses}`}></div>
-                      <div className={`relative p-8 md:p-12 ${textColorClass}`}>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                            <span className="text-2xl">{banner.icon || "✨"}</span>
-                          </div>
-                          <h3 className="text-3xl md:text-4xl font-bold">{banner.title}</h3>
-                        </div>
-                        {banner.subtitle && (
-                          <p className={`text-xl md:text-2xl mb-6 ${textColorClass} opacity-90`}>
-                            {banner.subtitle}
-                          </p>
-                        )}
-                        {banner.description && (
-                          <p className={`text-base md:text-lg mb-6 ${textColorClass} opacity-80`}>
-                            {banner.description}
-                          </p>
-                        )}
-                        <div className="inline-block bg-white/20 backdrop-blur-sm px-6 py-3 rounded-full font-semibold text-lg group-hover:bg-white/30 transition-all">
-                          {banner.buttonText || "Learn More"} →
-                        </div>
-                      </div>
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-left py-8">
-                <p className="text-gray-500 text-sm">No promotional offers available at the moment</p>
               </div>
             )}
           </div>

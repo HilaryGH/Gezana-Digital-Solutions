@@ -25,10 +25,12 @@ import {
   Search,
   Filter,
   Briefcase,
-  Handshake
+  Handshake,
+  UserPlus,
 } from "lucide-react";
 import { getAllBookings, type BookingWithDetails } from "../../api/bookings";
 import axios from "../../api/axios";
+import { getCardImageUrl } from "../../utils/imageHelper";
 import { useNavigate } from "react-router-dom";
 import AdminTeamMembers from "../Admin/AdminTeamMembers";
 
@@ -54,6 +56,23 @@ interface AdminUser {
   createdAt: string;
 }
 
+interface AgentSubmittedProfessional {
+  _id: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  whatsapp?: string;
+  telegram?: string;
+  city?: string;
+  location?: string;
+  serviceType?: string;
+  notes?: string;
+  status: string;
+  photo?: string;
+  createdAt: string;
+  agent?: { _id: string; name?: string; email?: string; phone?: string } | null;
+}
+
 const SuperadminDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -71,7 +90,9 @@ const SuperadminDashboard = () => {
     systemHealth: "healthy",
   });
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [agentProfessionals, setAgentProfessionals] = useState<AgentSubmittedProfessional[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [agentProSearch, setAgentProSearch] = useState("");
   const [userName, setUserName] = useState("Superadmin");
   const [refreshing, setRefreshing] = useState(false);
 
@@ -201,6 +222,19 @@ const SuperadminDashboard = () => {
         ["admin", "superadmin", "support", "marketing"].includes(u.role)
       );
       setAdminUsers(adminUsersList);
+
+      try {
+        const apRes = await axios.get<{ professionals: AgentSubmittedProfessional[] }>(
+          "/agents/superadmin/agent-professionals",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setAgentProfessionals(apRes.data?.professionals || []);
+      } catch (e: any) {
+        if (e?.response?.status !== 403) {
+          console.error("Error fetching agent-submitted professionals:", e);
+        }
+        setAgentProfessionals([]);
+      }
 
       // Fetch services count
       let activeServices = 0;
@@ -338,6 +372,23 @@ const SuperadminDashboard = () => {
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredAgentProfessionals = agentProfessionals.filter((p) => {
+    const q = agentProSearch.trim().toLowerCase();
+    if (!q) return true;
+    const ag = p.agent && typeof p.agent === "object" ? p.agent : null;
+    const agentName = (ag?.name || "").toLowerCase();
+    const agentEmail = (ag?.email || "").toLowerCase();
+    return (
+      (p.fullName || "").toLowerCase().includes(q) ||
+      (p.phone || "").toLowerCase().includes(q) ||
+      (p.email || "").toLowerCase().includes(q) ||
+      (p.serviceType || "").toLowerCase().includes(q) ||
+      (p.city || "").toLowerCase().includes(q) ||
+      agentName.includes(q) ||
+      agentEmail.includes(q)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-100">
@@ -608,6 +659,134 @@ const SuperadminDashboard = () => {
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">No admin users found</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Agent-submitted professionals */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center shrink-0">
+                  <UserPlus className="w-6 h-6 text-teal-700" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Agent-submitted professionals</h2>
+                  <p className="text-gray-600 mt-1">
+                    Leads and listings added by agents ({agentProfessionals.length} total)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="mb-6">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, phone, agent, service type..."
+                  value={agentProSearch}
+                  onChange={(e) => setAgentProSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-gray-100 rounded-xl h-16 animate-pulse" />
+                ))}
+              </div>
+            ) : filteredAgentProfessionals.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700 w-14">Photo</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Professional</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Contact</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Services</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Submitted by agent</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Status</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAgentProfessionals.map((p) => {
+                      const img = p.photo ? getCardImageUrl(p.photo) : null;
+                      return (
+                        <tr key={p._id} className="border-b border-gray-100 hover:bg-gray-50 align-top">
+                          <td className="py-3 px-3">
+                            {img ? (
+                              <img
+                                src={img}
+                                alt=""
+                                className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold">
+                                {(p.fullName || "?").slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 font-medium text-gray-900">{p.fullName}</td>
+                          <td className="py-3 px-3 text-gray-600">
+                            <div className="space-y-0.5">
+                              <div>{p.phone}</div>
+                              {p.email && <div className="text-xs">{p.email}</div>}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-gray-600 max-w-[200px]">
+                            <span className="line-clamp-3">{p.serviceType || "—"}</span>
+                          </td>
+                          <td className="py-3 px-3 text-gray-600">
+                            {p.agent && typeof p.agent === "object" ? (
+                              <div className="space-y-0.5">
+                                <div className="font-medium text-gray-800">{p.agent.name || "—"}</div>
+                                <div className="text-xs">{p.agent.email || ""}</div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-gray-600">
+                            {[p.city, p.location].filter(Boolean).join(", ") || "—"}
+                          </td>
+                          <td className="py-3 px-3">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                p.status === "approved"
+                                  ? "bg-green-100 text-green-800"
+                                  : p.status === "rejected"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
+                              {p.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-gray-600 whitespace-nowrap">
+                            {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <UserPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">
+                  {agentProfessionals.length === 0
+                    ? "No agent-submitted professionals yet, or you may not have access to this list."
+                    : "No rows match your search."}
+                </p>
               </div>
             )}
           </div>

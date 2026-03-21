@@ -1,6 +1,7 @@
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import { REGISTRATION_SERVICE_CATEGORIES } from "../constants/registrationServiceCategories";
 import { AgentPartnershipAgreementBody } from "../content/agentPartnershipAgreement";
 
 // Type definitions
@@ -228,9 +229,6 @@ const RegisterForm = () => {
 
         const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
           timeout: 120000, // Allow extra time for server cold-start and background email sending
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
         });
 
         if (response.data.message) {
@@ -271,9 +269,6 @@ const RegisterForm = () => {
 
           const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
             timeout: 120000, // Allow extra time for server cold-start and background email sending
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
           });
 
           if (response.data.message) {
@@ -295,15 +290,17 @@ const RegisterForm = () => {
     }
 
         const formData = new FormData();
-    Object.entries(providerForm).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
+        Object.entries(providerForm).forEach(([key, value]) => {
+          if (key === "servicePhotos" && Array.isArray(value)) {
+            (value as File[]).forEach((file) => formData.append("servicePhotos", file));
+            return;
+          }
+          if (Array.isArray(value)) {
             formData.append(key, JSON.stringify(value));
-      } else if (value) {
-        if (key === "servicePhotos" && Array.isArray(value)) {
-              (value as File[]).forEach((file) => formData.append("servicePhotos", file));
-        } else {
-              formData.append(key, value as any);
-            }
+            return;
+          }
+          if (value) {
+            formData.append(key, value as any);
           }
         });
         formData.append("role", role);
@@ -312,9 +309,6 @@ const RegisterForm = () => {
 
         const response = await axios.post<RegistrationResponse>("/auth/register", formData, {
           timeout: 120000, // Allow extra time for server cold-start and background email sending
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
         });
 
         if (response.data.message) {
@@ -627,20 +621,19 @@ const RegisterForm = () => {
 
                   {/* File Upload */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-gray-700 font-inter">
-                      Upload ID Document *
+                      <label className="block text-sm font-semibold text-gray-700 font-inter">
+                      Upload ID Document <span className="text-gray-400 font-normal">(Optional)</span>
                     </label>
                     <div className="relative">
                       <input 
                         type="file" 
                         name="idFile" 
                         accept="application/pdf,image/*" 
-                        required 
                         onChange={handleSeekerChange} 
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                       />
                     </div>
-                    <p className="text-xs text-gray-500">Accepted formats: PDF, JPG, PNG (Max 5MB)</p>
+                    <p className="text-xs text-gray-500">Optional — you can add this later from your profile. Accepted: PDF, JPG, PNG (Max 5MB)</p>
               </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -708,12 +701,11 @@ const RegisterForm = () => {
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter"
                         >
                 <option value="" disabled>Select Service Type</option>
-                <option value="Home Maintenance">Home Maintenance</option>
-                <option value="Cleaning Services">Cleaning Services</option>
-                <option value="Appliance Repair">Appliance Repair</option>
-                <option value="Personal Care">Personal Care</option>
-                <option value="Housemaid Services">Housemaid Services</option>
-                <option value="Hotel & Lounge Services">Hotel & Lounge Services</option>
+                {REGISTRATION_SERVICE_CATEGORIES.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
                       </div>
                       {/* Gender field for Freelancer */}
@@ -1002,20 +994,20 @@ const RegisterForm = () => {
 
                   {/* Document Uploads */}
                   <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
-                    <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">Required Documents</h3>
+                    <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">Documents &amp; media <span className="text-base font-normal text-gray-600">(all optional)</span></h3>
+                    <p className="text-sm text-gray-600 mb-4">Uploads are not required to create your account. You can submit documents later for verification.</p>
                     <div className="space-y-4">
-                      {/* For Freelancers: Required Documents */}
+                      {/* For Freelancers */}
                       {providerSubRole === "freelancer" && (
                         <>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              Government ID / Driving Licence / Passport *
+                              Government ID / Driving Licence / Passport <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="governmentId" 
                               accept="application/pdf,image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
@@ -1055,13 +1047,12 @@ const RegisterForm = () => {
                         <>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              Business License *
+                              Business License <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="license" 
                               accept="application/pdf,image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
@@ -1069,13 +1060,12 @@ const RegisterForm = () => {
                           </div>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              Trade Registration *
+                              Trade Registration <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="tradeRegistration" 
                               accept="application/pdf,image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
@@ -1083,13 +1073,12 @@ const RegisterForm = () => {
                           </div>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              TIN Document *
+                              TIN Document <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="tinDocument" 
                               accept="application/pdf,image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
@@ -1110,13 +1099,12 @@ const RegisterForm = () => {
                           </div>
                           <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700 font-inter">
-                              Main Photo *
+                              Main Photo <span className="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <input 
                               type="file" 
                               name="photo" 
                               accept="image/*" 
-                              required
                               onChange={handleProviderChange} 
                               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
                             />
@@ -1126,7 +1114,8 @@ const RegisterForm = () => {
                       )}
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          {providerSubRole === "freelancer" ? "Work/Portfolio Photos (up to 5)" : "Service Center Photos (up to 5)"}
+                          {providerSubRole === "freelancer" ? "Work/Portfolio Photos (up to 5)" : "Service Center Photos (up to 5)"}{" "}
+                          <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input 
                           type="file" 
@@ -1155,7 +1144,7 @@ const RegisterForm = () => {
               </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Service Price List/Quotation Document
+                          Service Price List/Quotation Document <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input 
                           type="file" 
@@ -1334,47 +1323,45 @@ const RegisterForm = () => {
               </div>
 
               <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
-                <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">
-                  Attachments
+                          <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">
+                  Attachments <span className="text-base font-normal text-gray-600">(optional)</span>
                 </h3>
+                <p className="text-sm text-gray-600 mb-4">File uploads are not required to register. You can provide documents later if requested.</p>
                 <div className="space-y-4">
                   {agentType === "individual" ? (
                     <>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Fayda/Kebele ID/Passport/Driving licence *
+                          Fayda/Kebele ID/Passport/Driving licence <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="agentIdDocument"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Work Experience *
+                          Work Experience <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="agentWorkExperience"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Photo *
+                          Photo <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="agentPhoto"
                           accept="image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
@@ -1384,39 +1371,36 @@ const RegisterForm = () => {
                     <>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Fayda/Kebele ID/Passport/Driving licence *
+                          Fayda/Kebele ID/Passport/Driving licence <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="agentIdDocument"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Work Experience *
+                          Work Experience <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="agentWorkExperience"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Trade Registration *
+                          Trade Registration <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="corporateBusinessRegistration"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
@@ -1424,13 +1408,12 @@ const RegisterForm = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Business License *
+                          Business License <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="corporateBusinessLicense"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
@@ -1438,13 +1421,12 @@ const RegisterForm = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          TIN Document *
+                          TIN Document <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="corporateTin"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
@@ -1452,26 +1434,24 @@ const RegisterForm = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Achievements &amp; Recognitions Certificate *
+                          Achievements &amp; Recognitions Certificate <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="corporateAchievementsCertificate"
                           accept="application/pdf,image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 font-inter">
-                          Photo *
+                          Photo <span className="text-gray-400 font-normal">(Optional)</span>
                         </label>
                         <input
                           type="file"
                           name="agentPhoto"
                           accept="image/*"
-                          required
                           onChange={handleAgentChange}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />

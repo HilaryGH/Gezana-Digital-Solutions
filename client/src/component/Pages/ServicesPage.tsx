@@ -1,10 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, MapPin, DollarSign, X, Grid, List } from 'lucide-react';
-import { getServices, getServiceCategories, type Service, type ServiceSearchParams } from '../../api/services';
+import { jwtDecode } from 'jwt-decode';
+import {
+  getServices,
+  getCatalog,
+  mapCatalogAgentToService,
+  type Service,
+  type ServiceSearchParams,
+  type CatalogAgentItem,
+} from '../../api/services';
+import { REGISTRATION_SERVICE_CATEGORIES } from '../../constants/registrationServiceCategories';
 import axios from '../../api/axios';
 import ServiceCard from '../ServiceCard';
 import BookingModal from '../BookingModal';
+
+type JwtPayload = { id?: string; role?: string; exp?: number };
+
+/** What to show on All Services: merged provider listings vs agent-referred professionals. */
+type ListingTypeFilter = 'all' | 'services' | 'professionals';
+
+function listingTypeFromSearchParam(raw: string | null): ListingTypeFilter {
+  if (raw === 'services' || raw === 'providers') return 'services';
+  if (raw === 'professionals' || raw === 'agent') return 'professionals';
+  return 'all';
+}
+
+function listingTypeToSearchParam(v: ListingTypeFilter): string | null {
+  if (v === 'services') return 'services';
+  if (v === 'professionals') return 'professionals';
+  return null;
+}
+
+function agentListingMatchesFilters(
+  s: Service,
+  q: {
+    searchQuery: string;
+    selectedCategory: string;
+    selectedSubcategory: string;
+    minPrice: string;
+    maxPrice: string;
+    location: string;
+  }
+): boolean {
+  const hay = `${s.title} ${s.providerName} ${s.description} ${s.category}`.toLowerCase();
+  if (q.searchQuery.trim()) {
+    const words = q.searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if (!words.every((w) => hay.includes(w))) return false;
+  }
+  if (q.selectedCategory) {
+    const cat = q.selectedCategory.toLowerCase();
+    if (!s.category.toLowerCase().includes(cat) && !s.title.toLowerCase().includes(cat)) {
+      return false;
+    }
+  }
+  if (q.selectedSubcategory) {
+    const sub = q.selectedSubcategory.toLowerCase();
+    if (
+      !s.category.toLowerCase().includes(sub) &&
+      !s.title.toLowerCase().includes(sub) &&
+      !(s.subcategory || '').toLowerCase().includes(sub)
+    ) {
+      return false;
+    }
+  }
+  if (q.minPrice !== '' || q.maxPrice !== '') {
+    return false;
+  }
+  if (q.location.trim()) {
+    const loc = q.location.toLowerCase();
+    if (!s.location.toLowerCase().includes(loc)) return false;
+  }
+  return true;
+}
 
 const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +80,6 @@ const ServicesPage: React.FC = () => {
   
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -23,6 +90,9 @@ const ServicesPage: React.FC = () => {
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || '');
+  const [listingTypeFilter, setListingTypeFilter] = useState<ListingTypeFilter>(() =>
+    listingTypeFromSearchParam(searchParams.get('listing'))
+  );
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [selectedSubcategory, setSelectedSubcategory] = useState(searchParams.get('subcategory') || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
@@ -36,22 +106,8 @@ const ServicesPage: React.FC = () => {
     totalPages: 1
   });
 
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const cats = await getServiceCategories();
-        setCategories(cats);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Fetch agent-added professionals (verified providers) and extract provider IDs.
-  // This endpoint is auth-protected; if it fails (no token / not an agent), we fall back
-  // to showing the normal services list.
+  // Agents only: fetch verified providers list to optionally narrow the services view.
+  // Non-agents must not call /agents/professionals (403 + noisy axios errors).
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -59,23 +115,36 @@ const ServicesPage: React.FC = () => {
       return;
     }
 
+    let role: string | undefined;
+    try {
+      role = jwtDecode<JwtPayload>(token).role;
+    } catch {
+      setAgentProviderIds(null);
+      return;
+    }
+
+    if (role !== 'agent') {
+      setAgentProviderIds(null);
+      return;
+    }
+
     const run = async () => {
       try {
         const res = await axios.get<{ professionals: Array<{ _id: string }> }>('/agents/professionals');
-        setAgentProviderIds((res.data?.professionals || []).map((p) => p._id));
-      } catch (e) {
-        // Not an agent (403) or token invalid/expired (401) => don't apply agent filtering.
+        setAgentProviderIds((res.data?.professionals || []).map((p) => String(p._id)));
+      } catch {
         setAgentProviderIds(null);
       }
     };
 
-    run();
+    void run();
   }, []);
 
   // Fetch services
   useEffect(() => {
     fetchServices();
   }, [
+    listingTypeFilter,
     selectedCategory,
     selectedSubcategory,
     minPrice,
@@ -100,7 +169,8 @@ const ServicesPage: React.FC = () => {
         limit: 12
       };
 
-      const response = await getServices(params);
+      const [response, catalogRows] = await Promise.all([getServices(params), getCatalog()]);
+
       let fetchedServices = response.services || [];
 
       // Filter by services offered by agent-added professionals.
@@ -112,28 +182,65 @@ const ServicesPage: React.FC = () => {
         fetchedServices = [];
       }
 
-      // Apply sorting
-      if (sortBy === 'price_low') {
-        fetchedServices = fetchedServices.sort((a, b) => (a.price || 0) - (b.price || 0));
-      } else if (sortBy === 'price_high') {
-        fetchedServices = fetchedServices.sort((a, b) => (b.price || 0) - (a.price || 0));
-      } else if (sortBy === 'rating') {
-        fetchedServices = fetchedServices.sort((a, b) => {
-          const ratingA = a.serviceRating || a.providerRating || 0;
-          const ratingB = b.serviceRating || b.providerRating || 0;
-          return ratingB - ratingA;
-        });
-      } else if (sortBy === 'newest') {
-        fetchedServices = fetchedServices.sort((a, b) => {
-          const dateA = new Date(a.createdAt || 0).getTime();
-          const dateB = new Date(b.createdAt || 0).getTime();
-          return dateB - dateA;
-        });
+      const filterQ = {
+        searchQuery,
+        selectedCategory,
+        selectedSubcategory,
+        minPrice,
+        maxPrice,
+        location,
+      };
+
+      const agentFromCatalog = (catalogRows || [])
+        .filter((row): row is CatalogAgentItem => row.source === 'agent')
+        .map(mapCatalogAgentToService)
+        .filter((s) => agentListingMatchesFilters(s, filterQ));
+
+      const isAgent = (s: Service) => s.catalogSource === 'agent';
+      let merged =
+        page === 1 ? [...fetchedServices, ...agentFromCatalog] : [...fetchedServices];
+
+      const sortMerged = (list: Service[]) => {
+        const out = [...list];
+        if (sortBy === 'price_low') {
+          out.sort((a, b) => {
+            const aPri = isAgent(a) ? Number.POSITIVE_INFINITY : (a.price || 0);
+            const bPri = isAgent(b) ? Number.POSITIVE_INFINITY : (b.price || 0);
+            return aPri - bPri;
+          });
+        } else if (sortBy === 'price_high') {
+          out.sort((a, b) => {
+            const aPri = isAgent(a) ? Number.NEGATIVE_INFINITY : (a.price || 0);
+            const bPri = isAgent(b) ? Number.NEGATIVE_INFINITY : (b.price || 0);
+            return bPri - aPri;
+          });
+        } else if (sortBy === 'rating') {
+          out.sort((a, b) => {
+            const ratingA = isAgent(a) ? -1 : (a.serviceRating || a.providerRating || 0);
+            const ratingB = isAgent(b) ? -1 : (b.serviceRating || b.providerRating || 0);
+            return ratingB - ratingA;
+          });
+        } else if (sortBy === 'newest') {
+          out.sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0).getTime();
+            const dateB = new Date(b.createdAt || 0).getTime();
+            return dateB - dateA;
+          });
+        }
+        return out;
+      };
+
+      merged = sortMerged(merged);
+
+      if (listingTypeFilter === 'services') {
+        merged = merged.filter((s) => s.catalogSource !== 'agent');
+      } else if (listingTypeFilter === 'professionals') {
+        merged = merged.filter((s) => s.catalogSource === 'agent');
       }
 
-      setServices(fetchedServices);
+      setServices(merged);
       setPagination({
-        total: response.total || fetchedServices.length,
+        total: merged.length,
         page: response.page || page,
         totalPages: response.totalPages || 1
       });
@@ -159,6 +266,8 @@ const ServicesPage: React.FC = () => {
   const updateURLParams = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('query', searchQuery);
+    const listingParam = listingTypeToSearchParam(listingTypeFilter);
+    if (listingParam) params.set('listing', listingParam);
     if (selectedCategory) params.set('category', selectedCategory);
     if (selectedSubcategory) params.set('subcategory', selectedSubcategory);
     if (minPrice) params.set('minPrice', minPrice);
@@ -169,6 +278,7 @@ const ServicesPage: React.FC = () => {
 
   const clearFilters = () => {
     setSearchQuery('');
+    setListingTypeFilter('all');
     setSelectedCategory('');
     setSelectedSubcategory('');
     setMinPrice('');
@@ -179,30 +289,42 @@ const ServicesPage: React.FC = () => {
   };
 
   const handleViewDetails = (service: Service) => {
+    if (service.catalogSource === 'agent') {
+      navigate('/contact', {
+        state: {
+          subject: `Agent-listed professional: ${service.title}`,
+          message: `I'm interested in reaching ${service.providerName} (${service.title}).\nListing ID: ${service.id}`,
+        },
+      });
+      return;
+    }
     navigate(`/service/${service.id}`);
   };
 
   const handleBookService = (service: Service) => {
+    if (service.catalogSource === 'agent') return;
     setSelectedService(service);
     setShowBookingModal(true);
   };
 
-  const getSubcategories = () => {
+  const getSubcategories = (): string[] => {
     if (!selectedCategory) return [];
-    const category = categories.find(cat => cat.id === selectedCategory || cat.name === selectedCategory);
-    return category?.subcategories || [];
+    const found = REGISTRATION_SERVICE_CATEGORIES.find(
+      (c) => c.name === selectedCategory
+    );
+    return found ? [...found.subcategories] : [];
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/30 pt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[min(100%,100rem)] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             All <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-blue-600">Services</span>
           </h1>
           <p className="text-lg text-gray-600">
-            Discover and book professional services from verified providers
+            Discover and book professional services from verified providers and agent-referred professionals
           </p>
       </div>
       
@@ -222,11 +344,40 @@ const ServicesPage: React.FC = () => {
             </div>
 
             {/* Filters Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {/* Listing kind: provider services vs agent professionals */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Listing type
+                </label>
+                <select
+                  value={listingTypeFilter}
+                  onChange={(e) => {
+                    const next = e.target.value as ListingTypeFilter;
+                    setListingTypeFilter(next);
+                    const params = new URLSearchParams();
+                    if (searchQuery) params.set('query', searchQuery);
+                    const lp = listingTypeToSearchParam(next);
+                    if (lp) params.set('listing', lp);
+                    if (selectedCategory) params.set('category', selectedCategory);
+                    if (selectedSubcategory) params.set('subcategory', selectedSubcategory);
+                    if (minPrice) params.set('minPrice', minPrice);
+                    if (maxPrice) params.set('maxPrice', maxPrice);
+                    if (location) params.set('location', location);
+                    setSearchParams(params);
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                >
+                  <option value="all">All (services and professionals)</option>
+                  <option value="services">Services (verified providers)</option>
+                  <option value="professionals">Professionals (agent-referred)</option>
+                </select>
+              </div>
+
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Service Type
+                  Service type
                 </label>
                 <select
                   value={selectedCategory}
@@ -238,8 +389,8 @@ const ServicesPage: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id || cat.name}>
+                  {REGISTRATION_SERVICE_CATEGORIES.map((cat) => (
+                    <option key={cat.name} value={cat.name}>
                       {cat.name}
                     </option>
                   ))}
@@ -262,7 +413,7 @@ const ServicesPage: React.FC = () => {
                   >
                     <option value="">All Subcategories</option>
                     {getSubcategories().map((sub: string, idx: number) => (
-                      <option key={idx} value={sub}>
+                      <option key={`${selectedCategory}-${sub}-${idx}`} value={sub}>
                         {sub}
                       </option>
                     ))}
@@ -330,9 +481,15 @@ const ServicesPage: React.FC = () => {
                   <X className="w-4 h-4" />
                   Clear Filters
               </button>
-                {(searchQuery || selectedCategory || minPrice || maxPrice || location) && (
+                {(searchQuery ||
+                  listingTypeFilter !== 'all' ||
+                  selectedCategory ||
+                  selectedSubcategory ||
+                  minPrice ||
+                  maxPrice ||
+                  location) && (
                   <span className="text-sm text-gray-500">
-                    {services.length} service{services.length !== 1 ? 's' : ''} found
+                    {services.length} listing{services.length !== 1 ? 's' : ''} found
                         </span>
                         )}
                       </div>
@@ -372,23 +529,27 @@ const ServicesPage: React.FC = () => {
 
         {/* Services Grid/List */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-200 rounded-2xl h-96 animate-pulse"></div>
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-7">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="bg-gray-200 rounded-3xl min-h-[22rem] animate-pulse" />
+            ))}
           </div>
         ) : services.length > 0 ? (
-          <div className={viewMode === 'grid' 
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
-            : 'space-y-4'
-          }>
+          <div
+            className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-7'
+                : 'space-y-4'
+            }
+          >
             {services.map((service) => (
               <ServiceCard
-                key={service.id}
+                key={`${service.catalogSource || 'provider'}-${service.id}`}
                 service={service}
                 onViewDetails={handleViewDetails}
                 onBookService={handleBookService}
                 variant={viewMode === 'list' ? 'detailed' : 'default'}
+                layoutDensity={viewMode === 'grid' ? 'spacious' : 'default'}
               />
             ))}
           </div>
@@ -435,7 +596,7 @@ const ServicesPage: React.FC = () => {
       </div>
 
       {/* Booking Modal */}
-      {showBookingModal && selectedService && (
+      {showBookingModal && selectedService && selectedService.catalogSource !== 'agent' && (
         <BookingModal
           service={selectedService}
           isOpen={showBookingModal}

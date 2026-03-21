@@ -12,6 +12,8 @@ interface ServiceCardProps {
   onToggleFavorite?: (service: Service) => void;
   isFavorite?: boolean;
   variant?: 'default' | 'compact' | 'detailed';
+  /** Slightly larger padding/typography (e.g. All Services grid with 5 columns) */
+  layoutDensity?: 'default' | 'spacious';
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
@@ -20,7 +22,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   onBookService,
   onToggleFavorite,
   isFavorite = false,
-  variant = 'default'
+  variant = 'default',
+  layoutDensity = 'default',
 }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -40,8 +43,17 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
     setIsExpanded(!isExpanded);
   };
 
+  const isAgentListing = service.catalogSource === 'agent';
+  const spacious = layoutDensity === 'spacious';
+
+  const digitsOnly = (raw: string | null | undefined) =>
+    raw ? raw.replace(/\D/g, '') : '';
+
   // Format price in ETB
   const getPriceInETB = () => {
+    if (isAgentListing) {
+      return 'Contact for pricing';
+    }
     const price = service.price || 0;
     const priceType = service.priceType || 'fixed';
     
@@ -58,7 +70,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
   return (
     <div 
-      className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden group cursor-pointer w-full h-full flex flex-col"
+      className={`bg-white shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden group cursor-pointer w-full h-full flex flex-col ${
+        spacious ? 'rounded-3xl' : 'rounded-2xl'
+      }`}
       onClick={handleCardClick}
     >
       {/* Image Section - Takes all space */}
@@ -120,7 +134,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               return normalized || urlToUse || '';
             })()}
             alt={service.title || (service as any).name || 'Service'}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+              isAgentListing ? 'object-top' : ''
+            }`}
             loading="lazy"
             onError={(e) => {
               const target = e.currentTarget;
@@ -336,15 +352,23 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       )}
 
       {/* Content Section - Title, Rating, Price in order */}
-      <div className="p-4 space-y-2 flex-1 flex flex-col">
+      <div className={`${spacious ? 'p-5 space-y-2.5' : 'p-4 space-y-2'} flex-1 flex flex-col`}>
         {/* Title */}
-        <h3 className="text-base font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2">
+        <h3
+          className={`${
+            spacious ? 'text-lg' : 'text-base'
+          } font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2`}
+        >
           {service.title || (service as any).name}
         </h3>
         
         {/* Rating */}
-        <div className="flex items-center space-x-1">
-          {service.serviceRating !== null && service.serviceRating !== undefined ? (
+        <div className="flex items-center space-x-1 flex-wrap gap-1">
+          {isAgentListing ? (
+            <span className="text-xs font-semibold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
+              Agent network
+            </span>
+          ) : service.serviceRating !== null && service.serviceRating !== undefined ? (
             <>
               <Star size={14} className={`${getRatingColor(service.serviceRating)} fill-current`} />
               <span className={`text-sm font-semibold ${getRatingColor(service.serviceRating)}`}>
@@ -368,7 +392,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         
         {/* Price and Distance */}
         <div className="flex items-center justify-between">
-          <span className="text-base font-bold text-orange-600">
+          <span className={`${spacious ? 'text-lg' : 'text-base'} font-bold text-orange-600`}>
             {getPriceInETB()}
           </span>
           <div className="flex items-center space-x-2">
@@ -388,7 +412,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
 
       {/* Expanded Details - shown on click */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-4 animate-fade-in border-t border-gray-200 pt-4">
+        <div
+          className={`${
+            spacious ? 'px-5 pb-5 pt-5' : 'px-4 pb-4 pt-4'
+          } space-y-4 animate-fade-in border-t border-gray-200`}
+        >
           {/* Provider Info */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
@@ -398,12 +426,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">{service.providerName || 'Unknown Provider'}</p>
-              <div className="flex items-center space-x-1 mt-1">
-                <Star size={12} className={`${getRatingColor(service.providerRating || 0)} fill-current`} />
-                <span className={`text-xs ${getRatingColor(service.providerRating || 0)}`}>
-                  {(service.providerRating || 0).toFixed(1)} Rating
-                </span>
-              </div>
+              {isAgentListing ? (
+                <p className="text-xs text-violet-600 mt-1">Referred through a Homehub agent</p>
+              ) : (
+                <div className="flex items-center space-x-1 mt-1">
+                  <Star size={12} className={`${getRatingColor(service.providerRating || 0)} fill-current`} />
+                  <span className={`text-xs ${getRatingColor(service.providerRating || 0)}`}>
+                    {(service.providerRating || 0).toFixed(1)} Rating
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -460,7 +492,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
             {onViewDetails && (
               <button
                 onClick={(e) => {
@@ -470,35 +502,62 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium"
               >
                 <Eye size={16} />
-                <span>View Full Details</span>
+                <span>{isAgentListing ? 'Contact Homehub' : 'View Full Details'}</span>
               </button>
             )}
-            {onBookService && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowBookingModal(true);
-                }}
-                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-medium"
-              >
-                <Calendar size={16} />
-                <span>Book Now</span>
-              </button>
+            {isAgentListing ? (
+              <div className="flex flex-1 flex-wrap gap-2">
+                {service.agentPhone && (
+                  <a
+                    href={`tel:${service.agentPhone.replace(/\s/g, '')}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-medium"
+                  >
+                    <Calendar size={16} />
+                    <span>Call</span>
+                  </a>
+                )}
+                {service.agentWhatsapp && digitsOnly(service.agentWhatsapp) && (
+                  <a
+                    href={`https://wa.me/${digitsOnly(service.agentWhatsapp)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium"
+                  >
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+              </div>
+            ) : (
+              onBookService && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBookingModal(true);
+                  }}
+                  className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-medium"
+                >
+                  <Calendar size={16} />
+                  <span>Book Now</span>
+                </button>
+              )
             )}
           </div>
         </div>
       )}
 
-      {/* Booking Modal */}
-      <BookingModal
-        service={service}
-        isOpen={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
-        onBookingSuccess={(booking) => {
-          console.log('Booking successful:', booking);
-          // You can add additional success handling here
-        }}
-      />
+      {/* Booking Modal (provider listings only) */}
+      {!isAgentListing && (
+        <BookingModal
+          service={service}
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          onBookingSuccess={(booking) => {
+            console.log('Booking successful:', booking);
+          }}
+        />
+      )}
     </div>
   );
 };

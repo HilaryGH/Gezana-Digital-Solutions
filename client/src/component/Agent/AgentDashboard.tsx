@@ -1,6 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import {
+  Copy,
+  CreditCard,
+  LayoutDashboard,
+  LogOut,
+  RefreshCw,
+  ShoppingBag,
+  UserPlus,
+  Users,
+  Wallet,
+} from "lucide-react";
 
 type Me = {
   _id: string;
@@ -61,6 +72,7 @@ type MyProfessional = {
   notes?: string;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+  photo?: string;
 };
 
 type ServicesOfferedItem = {
@@ -76,6 +88,27 @@ type ProviderService = {
   category?: { name?: string } | null;
 };
 
+/** Homehub brand: blue + orange, alternated across actions */
+const brand = {
+  shell: "h-[100dvh] min-h-0 flex flex-col overflow-hidden bg-gradient-to-br from-orange-50/60 via-white to-blue-50/70",
+  scroll: "flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden overscroll-y-contain [scrollbar-gutter:stable]",
+  inner: "w-full max-w-[100vw] px-3 min-[400px]:px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 sm:py-5 md:py-6 lg:py-8",
+  btnBlue:
+    "inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45",
+  btnOrange:
+    "inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-orange-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45",
+  btnGradient:
+    "w-full rounded-xl bg-gradient-to-r from-orange-600 to-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:from-orange-700 hover:to-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 disabled:opacity-60",
+  outlineBlue:
+    "inline-flex items-center justify-center gap-2 rounded-xl border-2 border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+  outlineOrange:
+    "inline-flex items-center justify-center gap-2 rounded-xl border-2 border-orange-500 bg-white px-4 py-2 text-sm font-semibold text-orange-700 shadow-sm transition hover:bg-orange-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2",
+  input:
+    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
+  inputAlt:
+    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100",
+} as const;
+
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
@@ -85,6 +118,20 @@ const AgentDashboard = () => {
   const [directoryQuery, setDirectoryQuery] = useState("");
   const [directoryServiceType, setDirectoryServiceType] = useState("");
   const [adding, setAdding] = useState(false);
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<string | null>(null);
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!profilePhotoFile) {
+      setProfilePhotoPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(profilePhotoFile);
+    setProfilePhotoPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [profilePhotoFile]);
+
   const [addForm, setAddForm] = useState({
     fullName: "",
     phone: "",
@@ -95,7 +142,6 @@ const AgentDashboard = () => {
     location: "",
     serviceType: "",
     notes: "",
-    profileImage: null as string | null,
     experience: "",
     startingPrice: "",
     pricingType: "fixed" as "fixed" | "hourly",
@@ -196,7 +242,30 @@ const AgentDashboard = () => {
   }, [navigate]);
 
   if (loading) {
-    return <div className="p-6 text-center">Loading...</div>;
+    return (
+      <div className={brand.shell}>
+        <div className={brand.scroll}>
+          <div className={`${brand.inner} min-h-full`}>
+            <div className="h-9 w-44 animate-pulse rounded-lg bg-gradient-to-r from-blue-100 to-orange-100" />
+            <div className="mt-5 h-28 animate-pulse rounded-2xl bg-white/90 shadow-sm ring-1 ring-blue-100/80" />
+            <div className="mt-6 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 xl:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className={`h-24 animate-pulse rounded-2xl ring-1 ${
+                    i % 2 === 0 ? "bg-blue-50/80 ring-blue-100/60" : "bg-orange-50/80 ring-orange-100/60"
+                  }`}
+                />
+              ))}
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="h-72 animate-pulse rounded-2xl bg-white/90 ring-1 ring-blue-100/70 sm:h-80" />
+              <div className="h-72 animate-pulse rounded-2xl bg-white/90 ring-1 ring-orange-100/70 sm:h-80" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const copyReferral = async () => {
@@ -275,24 +344,26 @@ const AgentDashboard = () => {
         return;
       }
 
-      // NOTE: The backend `/agents/my-professionals` endpoint only accepts text fields.
-      // Sending `profileImage` here would include a base64 data URL which can exceed
-      // Express' default JSON body limit and trigger 413.
-      const { profileImage: _profileImage, ...textPayload } = addForm;
+      const formData = new FormData();
+      formData.append("fullName", addForm.fullName.trim());
+      formData.append("phone", addForm.phone.trim());
+      if (addForm.email.trim()) formData.append("email", addForm.email.trim());
+      if (addForm.whatsapp.trim()) formData.append("whatsapp", addForm.whatsapp.trim());
+      if (addForm.telegram.trim()) formData.append("telegram", addForm.telegram.trim());
+      if (addForm.city.trim()) formData.append("city", addForm.city.trim());
+      if (addForm.location.trim()) formData.append("location", addForm.location.trim());
+      formData.append("serviceType", computedServiceType);
+      formData.append("notes", computedNotes);
+      if (profilePhotoFile) {
+        formData.append("photo", profilePhotoFile);
+      }
 
-      await axios.post(
-        "/agents/my-professionals",
-        {
-          ...textPayload,
-          serviceType: computedServiceType,
-          notes: computedNotes,
-          fullName: addForm.fullName.trim(),
-          phone: addForm.phone.trim(),
-          experience: addForm.experience ? Number(addForm.experience) : undefined,
-          startingPrice: addForm.startingPrice ? Number(addForm.startingPrice) : undefined,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post("/agents/my-professionals", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setProfilePhotoFile(null);
+      if (profilePhotoInputRef.current) profilePhotoInputRef.current.value = "";
 
       setAddForm({
         fullName: "",
@@ -304,7 +375,6 @@ const AgentDashboard = () => {
         location: "",
         serviceType: "",
         notes: "",
-        profileImage: null,
         experience: "",
         startingPrice: "",
         pricingType: "fixed",
@@ -324,18 +394,7 @@ const AgentDashboard = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
-    if (!file) {
-      setAddForm((prev) => ({ ...prev, profileImage: null }));
-      return;
-    }
-
-    // Convert to data URL so we can keep the existing JSON POST contract.
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : null;
-      setAddForm((prev) => ({ ...prev, profileImage: result }));
-    };
-    reader.readAsDataURL(file);
+    setProfilePhotoFile(file || null);
   };
 
   const updateServiceOffered = (
@@ -362,30 +421,48 @@ const AgentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50/30">
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <div className="bg-white rounded-2xl shadow-md border border-blue-100/80 p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-orange-500" />
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-blue-950">Agent Dashboard</h1>
-              <p className="text-gray-600 mt-1">
-                Welcome{me?.name ? `, ${me.name}` : ""}. Track referrals, commission, and performance.
-              </p>
+    <div className={brand.shell}>
+      <div className={brand.scroll}>
+        <div className={`${brand.inner} min-h-full`}>
+          <div className="rounded-2xl border border-blue-100/60 bg-white/95 shadow-xl shadow-blue-900/[0.06] ring-1 ring-orange-100/40 p-4 sm:p-6 md:p-8 lg:p-10 relative overflow-hidden sm:rounded-3xl">
+            <div
+              className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-orange-500 via-blue-600 to-orange-500"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-blue-400/15 to-orange-300/15 blur-3xl"
+              aria-hidden
+            />
+
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 lg:gap-8">
+              <div className="min-w-0 flex-1">
+                <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-50 to-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-900 ring-1 ring-blue-200/60">
+                  <LayoutDashboard className="h-3.5 w-3.5 shrink-0 text-orange-600" aria-hidden />
+                  Agent workspace
+                </span>
+                <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 min-[400px]:text-3xl sm:text-4xl">
+                  Agent Dashboard
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm text-slate-600 min-[400px]:text-base sm:text-lg leading-relaxed">
+                  Welcome{me?.name ? `, ${me.name}` : ""}. Track referrals, commissions, and the
+                  professionals you connect to Homehub.
+                </p>
+              </div>
+              <button
+                type="button"
+                className={`${brand.btnOrange} w-full shrink-0 sm:w-auto px-5 py-2.5`}
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  navigate("/login");
+                }}
+              >
+                <LogOut className="h-4 w-4" aria-hidden />
+                Log out
+              </button>
             </div>
-            <button
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-colors"
-              onClick={() => {
-                localStorage.removeItem("token");
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
 
           {error && (
-            <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
+            <div className="relative mt-6 rounded-2xl border border-red-200/90 bg-red-50/90 px-4 py-3 text-red-800 text-sm sm:text-base shadow-sm">
               {error}
             </div>
           )}
@@ -393,85 +470,122 @@ const AgentDashboard = () => {
           {/* Stats */}
           {dash && !error && (
             <>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-blue-50 to-white">
-                  <div className="text-sm text-gray-600">Total Referrals</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">{dash.stats.totalReferrals}</div>
+              <div className="relative mt-6 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 xl:grid-cols-4 sm:mt-8 sm:gap-4">
+                <div className="group rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50/95 to-white p-4 shadow-sm ring-1 ring-blue-100/40 transition hover:shadow-md sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-600">Total referrals</div>
+                    <span className="rounded-xl bg-blue-600/10 p-2 text-blue-700 ring-1 ring-blue-200/50">
+                      <Users className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                  <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-slate-900 min-[400px]:text-3xl">
+                    {dash.stats.totalReferrals}
+                  </div>
                 </div>
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-purple-50 to-white">
-                  <div className="text-sm text-gray-600">Registrations</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">{dash.stats.registrationReferrals}</div>
+                <div className="group rounded-2xl border border-orange-200/60 bg-gradient-to-br from-orange-50/95 to-white p-4 shadow-sm ring-1 ring-orange-100/40 transition hover:shadow-md sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-600">Registrations</div>
+                    <span className="rounded-xl bg-orange-600/10 p-2 text-orange-700 ring-1 ring-orange-200/50">
+                      <UserPlus className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                  <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-slate-900 min-[400px]:text-3xl">
+                    {dash.stats.registrationReferrals}
+                  </div>
                 </div>
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-green-50 to-white">
-                  <div className="text-sm text-gray-600">Purchases</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">{dash.stats.purchaseReferrals}</div>
+                <div className="group rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50/95 to-white p-4 shadow-sm ring-1 ring-blue-100/40 transition hover:shadow-md sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-600">Purchases</div>
+                    <span className="rounded-xl bg-blue-600/10 p-2 text-blue-700 ring-1 ring-blue-200/50">
+                      <ShoppingBag className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                  <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-slate-900 min-[400px]:text-3xl">
+                    {dash.stats.purchaseReferrals}
+                  </div>
                 </div>
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-amber-50 to-white">
-                  <div className="text-sm text-gray-600">Commission Earned</div>
-                  <div className="text-2xl font-bold text-gray-900 mt-1">
-                    {new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(dash.stats.totalEarnings)} ETB
+                <div className="group rounded-2xl border border-orange-200/60 bg-gradient-to-br from-orange-50/95 to-white p-4 shadow-sm ring-1 ring-orange-100/40 transition hover:shadow-md min-[480px]:col-span-2 xl:col-span-1 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-600">Commission earned</div>
+                    <span className="rounded-xl bg-orange-600/10 p-2 text-orange-800 ring-1 ring-orange-200/50">
+                      <Wallet className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                  <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-slate-900 sm:text-3xl">
+                    {new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(
+                      dash.stats.totalEarnings
+                    )}{" "}
+                    <span className="text-lg font-semibold text-slate-600">ETB</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-blue-50/20 to-white">
-                  <div className="text-sm font-semibold text-gray-900">Your Referral Code</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="flex-1 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100 font-mono text-sm text-blue-950">
+              <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+                <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-blue-50/50 to-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+                  <div className="text-sm font-semibold text-slate-900">Your referral code</div>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <div className="flex-1 rounded-xl border border-blue-100/90 bg-white px-3 py-2.5 font-mono text-sm text-blue-950 shadow-inner">
                       {dash.me.referralCode || "—"}
                     </div>
                     <button
+                      type="button"
                       onClick={copyReferral}
-                      className="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                      className={`${brand.btnBlue} shrink-0`}
                       disabled={!dash.me.referralCode}
                     >
+                      <Copy className="h-4 w-4" aria-hidden />
                       Copy
                     </button>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    Share this code to earn commission when bookings are paid.
-                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                    Share this code so you earn commission when referred users complete paid bookings.
+                  </p>
                 </div>
-                <div className="rounded-xl border border-blue-100/70 p-4">
-                  <div className="text-sm font-semibold text-gray-900">Performance</div>
-                  <div className="mt-2 text-sm text-gray-700">
+                <div className="rounded-2xl border border-orange-100/70 bg-gradient-to-br from-orange-50/30 to-white p-5 shadow-sm ring-1 ring-orange-100/40">
+                  <div className="text-sm font-semibold text-slate-900">Performance</div>
+                  <div className="mt-3 text-sm text-slate-700">
                     <div>
-                      <span className="font-medium">Conversion rate:</span>{" "}
-                      {Math.round((dash.stats.conversionRate || 0) * 100)}%
+                      <span className="font-medium text-slate-800">Conversion rate:</span>{" "}
+                      <span className="tabular-nums text-lg font-bold text-slate-900">
+                        {Math.round((dash.stats.conversionRate || 0) * 100)}%
+                      </span>
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
-                      Purchases ÷ registrations (based on tracked referrals).
-                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                      Purchases divided by registrations from tracked referrals.
+                    </p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-blue-100/70 p-4">
-                  <div className="text-sm font-semibold text-gray-900">Commission Rate</div>
-                  <div className="mt-2 text-sm text-gray-700">
-                    Default is <span className="font-medium">5%</span> per paid booking
-                    (configurable via <span className="font-mono">AGENT_COMMISSION_RATE</span>).
+                <div className="rounded-2xl border border-blue-100/70 bg-gradient-to-br from-blue-50/30 to-white p-5 shadow-sm ring-1 ring-blue-100/40">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    <CreditCard className="h-4 w-4 text-blue-600" aria-hidden />
+                    Commission rate
                   </div>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                    Default <span className="font-semibold text-slate-900">5%</span> per paid booking
+                    (server setting <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">AGENT_COMMISSION_RATE</span>
+                    ).
+                  </p>
                 </div>
               </div>
 
               {/* Recent Referrals */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Recent Referrals</h2>
+              <div className="mt-8">
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Recent referrals</h2>
                 </div>
-                <div className="mt-3 overflow-x-auto rounded-xl border border-blue-100/70 bg-white">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
+                  <table className="w-full min-w-[36rem] text-sm">
+                    <thead className="bg-gradient-to-r from-blue-600/10 via-orange-500/10 to-blue-600/10">
                       <tr>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Referred User</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Type</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Commission</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Date</th>
+                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Referred user</th>
+                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Type</th>
+                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Commission</th>
+                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Date</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-blue-50">
+                    <tbody className="divide-y divide-slate-100">
                       {dash.recentReferrals.map((r) => (
-                        <tr key={r._id} className="hover:bg-blue-50/50">
+                        <tr key={r._id} className="transition-colors hover:bg-slate-50/80">
                           <td className="px-4 py-3">
                             {r.referredUser ? (
                               <div>
@@ -484,11 +598,11 @@ const AgentDashboard = () => {
                           </td>
                           <td className="px-4 py-3">
                             {r.usedInPurchase ? (
-                              <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                              <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-semibold">
                                 Purchase
                               </span>
                             ) : r.usedInRegistration ? (
-                              <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                              <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
                                 Registration
                               </span>
                             ) : (
@@ -520,16 +634,18 @@ const AgentDashboard = () => {
           )}
 
           {/* Add / My Professionals */}
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-blue-50/20 to-white shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900">Add Professional</h2>
-              <p className="text-sm text-gray-600">Add a professional lead to your list.</p>
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
+            <div className="rounded-2xl border border-slate-200/80 p-5 sm:p-6 bg-gradient-to-br from-blue-50/35 via-white to-white shadow-sm ring-1 ring-slate-900/[0.03]">
+              <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Add professional</h2>
+              <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+                Submit a lead for review. They can appear on the public catalog once approved.
+              </p>
 
               <form onSubmit={submitProfessional} className="mt-4 space-y-4">
                 {/* Basic Info */}
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-white shadow-sm">
-                  <div className="text-sm font-semibold text-gray-900 mb-3">
-                    Basic Info
+                <div className="rounded-2xl border border-slate-200/70 p-4 sm:p-5 bg-white/90 shadow-sm">
+                  <div className="text-sm font-semibold text-slate-900 mb-3">
+                    Basic info
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
@@ -594,16 +710,20 @@ const AgentDashboard = () => {
                 </div>
 
                 {/* Services */}
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-white shadow-sm">
-                  <div className="text-sm font-semibold text-gray-900 mb-3">
-                    Services Offered
+                <div className="rounded-2xl border border-slate-200/70 p-4 sm:p-5 bg-white/90 shadow-sm">
+                  <div className="text-sm font-semibold text-slate-900 mb-3">
+                    Services offered
                   </div>
 
                   <div className="space-y-3">
                     {servicesOffered.map((svc, idx) => (
                       <div
                         key={svc.id}
-                        className="rounded-xl border border-blue-100/70 p-3 bg-blue-50/40"
+                        className={`rounded-xl border p-3 ${
+                          idx % 2 === 0
+                            ? "border-blue-200/80 bg-blue-50/50"
+                            : "border-orange-200/80 bg-orange-50/40"
+                        }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="text-xs font-semibold text-gray-700">
@@ -613,7 +733,11 @@ const AgentDashboard = () => {
                             <button
                               type="button"
                               onClick={() => removeServiceOffered(svc.id)}
-                              className="text-sm px-2 py-1 rounded-lg border border-blue-100 bg-white hover:bg-blue-50 transition"
+                              className={
+                                idx % 2 === 0
+                                  ? "rounded-lg border-2 border-orange-500 bg-white px-2 py-1 text-xs font-semibold text-orange-700 transition hover:bg-orange-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-1"
+                                  : "rounded-lg border-2 border-blue-600 bg-white px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+                              }
                             >
                               Remove
                             </button>
@@ -665,17 +789,17 @@ const AgentDashboard = () => {
                     <button
                       type="button"
                       onClick={addAnotherService}
-                      className="w-full px-4 py-2 rounded-lg border border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
+                      className={`${brand.outlineBlue} w-full py-2.5`}
                     >
-                      Add Another Service
+                      Add another service
                     </button>
                   </div>
                 </div>
 
                 {/* Professional Details */}
-                <div className="rounded-xl border border-blue-100/70 p-4 bg-white shadow-sm">
-                  <div className="text-sm font-semibold text-gray-900 mb-3">
-                    Professional Details
+                <div className="rounded-2xl border border-slate-200/70 p-4 sm:p-5 bg-white/90 shadow-sm">
+                  <div className="text-sm font-semibold text-slate-900 mb-3">
+                    Professional details
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -686,14 +810,15 @@ const AgentDashboard = () => {
                       </label>
                       <div className="flex items-center gap-3 flex-wrap">
                         <input
+                          ref={profilePhotoInputRef}
                           type="file"
                           accept="image/*"
                           onChange={handleProfileImageChange}
                           className="w-full sm:w-auto"
                         />
-                        {addForm.profileImage && (
+                        {profilePhotoPreviewUrl && (
                           <img
-                            src={addForm.profileImage}
+                            src={profilePhotoPreviewUrl}
                             alt="Profile preview"
                             className="w-14 h-14 rounded-full object-cover border border-gray-200"
                           />
@@ -786,27 +911,27 @@ const AgentDashboard = () => {
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={adding}
-                  className="w-full px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60 transition"
-                >
-                  {adding ? "Adding..." : "Add Professional"}
+                <button type="submit" disabled={adding} className={brand.btnGradient}>
+                  {adding ? "Adding…" : "Add professional"}
                 </button>
               </form>
             </div>
 
-            <div className="rounded-xl border border-blue-100/70 p-4 bg-gradient-to-br from-blue-50/20 to-white shadow-sm">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">My Professionals</h2>
+            <div className="rounded-2xl border border-slate-200/80 p-5 sm:p-6 bg-gradient-to-br from-slate-50/80 via-white to-blue-50/25 shadow-sm ring-1 ring-slate-900/[0.03]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">My professionals</h2>
                 <button
+                  type="button"
                   onClick={refreshMyProfessionals}
-                  className="px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm transition-colors"
+                  className={`${brand.btnOrange} w-full sm:w-auto`}
                 >
+                  <RefreshCw className="h-4 w-4" aria-hidden />
                   Refresh
                 </button>
               </div>
-              <p className="text-sm text-gray-600">Professionals you submitted.</p>
+              <p className="mt-1 text-sm text-slate-600 leading-relaxed">
+                Everyone you have submitted and their review status.
+              </p>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -839,19 +964,19 @@ const AgentDashboard = () => {
                 </div>
               </div>
 
-              <div className="mt-3 overflow-x-auto rounded-xl border border-blue-100/70 bg-white">
-                <table className="w-full text-sm">
-                  <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
+                <table className="w-full min-w-[32rem] text-sm">
+                  <thead className="bg-gradient-to-r from-orange-500/10 via-blue-600/10 to-orange-500/10">
                     <tr>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Name</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Phone</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Date</th>
+                      <th className="text-left px-4 py-3 font-semibold text-slate-700">Name</th>
+                      <th className="text-left px-4 py-3 font-semibold text-slate-700">Phone</th>
+                      <th className="text-left px-4 py-3 font-semibold text-slate-700">Status</th>
+                      <th className="text-left px-4 py-3 font-semibold text-slate-700">Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-blue-50">
+                  <tbody className="divide-y divide-slate-100">
                     {filteredMyProfessionals.map((p) => (
-                      <tr key={p._id} className="hover:bg-blue-50/50">
+                      <tr key={p._id} className="transition-colors hover:bg-slate-50/80">
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-900">{p.fullName}</div>
                           <div className="text-xs text-gray-500">
@@ -890,20 +1015,26 @@ const AgentDashboard = () => {
             </div>
           </div>
 
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-900">Professionals</h2>
-            <p className="text-sm text-gray-600">
-              This list shows verified providers available on the platform.
+          <div className="mt-10 border-t border-slate-200/80 pt-10">
+            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Platform professionals</h2>
+            <p className="mt-1 max-w-3xl text-sm text-slate-600 leading-relaxed">
+              Verified providers on Homehub. Open a profile to see the services they offer.
             </p>
 
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProfessionals.map((p) => (
+            <div className="mt-5 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:mt-6 sm:gap-5">
+              {filteredProfessionals.map((p, cardIdx) => (
                 <div
                   key={p._id}
-                  className="bg-white rounded-xl border border-blue-100/70 p-4 hover:shadow-sm transition"
+                  className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.03] transition hover:shadow-md hover:ring-blue-200/50 sm:p-5"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 overflow-hidden flex items-center justify-center">
+                    <div
+                      className={`h-14 w-14 shrink-0 rounded-2xl overflow-hidden flex items-center justify-center ring-1 ${
+                        cardIdx % 2 === 0
+                          ? "bg-gradient-to-br from-blue-100 to-blue-50 ring-blue-200/50"
+                          : "bg-gradient-to-br from-orange-100 to-amber-50 ring-orange-200/50"
+                      }`}
+                    >
                       {p.photo ? (
                         <img
                           src={p.photo}
@@ -956,7 +1087,9 @@ const AgentDashboard = () => {
                     <button
                       type="button"
                       onClick={() => openProviderServices(p)}
-                      className="w-full px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                      className={`w-full px-3 py-2.5 disabled:cursor-not-allowed ${
+                        cardIdx % 2 === 0 ? brand.btnBlue : brand.btnOrange
+                      }`}
                       disabled={loadingProviderServices && servicesModalProvider?._id === p._id}
                     >
                       {loadingProviderServices && servicesModalProvider?._id === p._id
@@ -976,7 +1109,7 @@ const AgentDashboard = () => {
           {/* Provider Services Modal */}
           {servicesModalOpen && servicesModalProvider && (
             <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-sm min-[480px]:p-4"
               onClick={() => {
                 setServicesModalOpen(false);
                 setServicesModalProvider(null);
@@ -986,10 +1119,10 @@ const AgentDashboard = () => {
               }}
             >
               <div
-                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+                className="flex max-h-[min(90vh,calc(100dvh-1.5rem))] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-blue-100/80"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="p-5 bg-gradient-to-r from-indigo-600 to-orange-500 text-white flex items-start justify-between gap-4">
+                <div className="p-5 bg-gradient-to-r from-blue-600 via-blue-700 to-orange-500 text-white flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <h3 className="text-lg font-bold truncate">
                       Services by {servicesModalProvider.name}
@@ -1066,6 +1199,7 @@ const AgentDashboard = () => {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

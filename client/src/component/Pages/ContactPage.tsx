@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaPaperPlane, FaCheckCircle, FaQuestionCircle, FaHeadset, FaComments, FaBook, FaSearch, FaTicketAlt, FaWhatsapp, FaTelegram, FaFacebook, FaLinkedin, FaInstagram } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import axios from "../../api/axios";
@@ -14,6 +15,7 @@ interface ContactFormData {
 
 const ContactPage: React.FC = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -26,6 +28,16 @@ const ContactPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const st = location.state as { subject?: string; message?: string } | null;
+    if (!st?.subject && !st?.message) return;
+    setFormData((prev) => ({
+      ...prev,
+      ...(st.subject != null && st.subject !== "" ? { subject: st.subject } : {}),
+      ...(st.message != null && st.message !== "" ? { message: st.message } : {}),
+    }));
+  }, [location.key]);
 
   const serviceTypes = [
     t('services.categories.cleaning'),

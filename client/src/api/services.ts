@@ -1,4 +1,5 @@
 import axios from './axios';
+import { REGISTRATION_SERVICE_CATEGORIES } from '../constants/registrationServiceCategories';
 
 export interface ServiceCategory {
   id: string;
@@ -26,6 +27,82 @@ export interface Service {
   distance?: number | null; // Distance in kilometers between user and provider
   createdAt: string;
   updatedAt: string;
+  /** Set when row comes from GET /catalog (agent-submitted professional) */
+  catalogSource?: 'provider' | 'agent';
+  agentPhone?: string | null;
+  agentEmail?: string | null;
+  agentWhatsapp?: string | null;
+  agentTelegram?: string | null;
+  agentNotes?: string | null;
+  agentListingStatus?: string;
+}
+
+/** Single row from GET /api/catalog */
+export interface CatalogItemBase {
+  _id: string;
+  title: string;
+  price: number | null;
+  category: string;
+  providerName: string;
+  source: 'provider' | 'agent';
+}
+
+export interface CatalogProviderItem extends CatalogItemBase {
+  source: 'provider';
+  price: number;
+}
+
+export interface CatalogAgentItem extends CatalogItemBase {
+  source: 'agent';
+  price: null;
+  phone?: string | null;
+  email?: string | null;
+  whatsapp?: string | null;
+  telegram?: string | null;
+  city?: string | null;
+  location?: string | null;
+  notes?: string | null;
+  status?: string;
+  photo?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type CatalogItem = CatalogProviderItem | CatalogAgentItem;
+
+export function mapCatalogAgentToService(row: CatalogAgentItem): Service {
+  const locParts = [row.city, row.location].filter(Boolean);
+  const created = row.createdAt ? String(row.createdAt) : '';
+  const updated = row.updatedAt ? String(row.updatedAt) : created;
+  return {
+    id: String(row._id),
+    title: row.title,
+    description: row.notes?.trim() || 'Professional referred by a Homehub agent. Contact directly to discuss scope and pricing.',
+    category: row.category || '',
+    subcategory: '',
+    price: 0,
+    priceType: 'custom',
+    photos:
+      row.photo != null && String(row.photo).trim() !== ''
+        ? [String(row.photo).trim()]
+        : [],
+    providerId: '',
+    providerName: row.providerName,
+    providerRating: 0,
+    serviceRating: null,
+    ratingCount: 0,
+    isAvailable: row.status !== 'rejected',
+    location: locParts.join(', '),
+    createdAt: created,
+    updatedAt: updated,
+    catalogSource: 'agent',
+    agentPhone: row.phone,
+    agentEmail: row.email,
+    agentWhatsapp: row.whatsapp,
+    agentTelegram: row.telegram,
+    agentNotes: row.notes,
+    agentListingStatus: row.status,
+  };
 }
 
 export interface CreateServiceData {
@@ -50,11 +127,24 @@ export interface ServiceSearchParams {
   limit?: number;
 }
 
+function normalizeCategoriesPayload(data: unknown): ServiceCategory[] {
+  if (!Array.isArray(data) || data.length === 0) return [];
+  if (typeof data[0] === 'string') {
+    return (data as string[]).map((name) => ({
+      id: name,
+      name,
+      icon: '',
+      subcategories: [],
+    }));
+  }
+  return data as ServiceCategory[];
+}
+
 // Service Categories
 export const getServiceCategories = async (): Promise<ServiceCategory[]> => {
   try {
     const response = await axios.get('/services/categories');
-    return response.data as ServiceCategory[];
+    return normalizeCategoriesPayload(response.data);
   } catch (error) {
     console.error('Error fetching service categories:', error);
     // Return fallback categories if API fails
@@ -62,124 +152,14 @@ export const getServiceCategories = async (): Promise<ServiceCategory[]> => {
   }
 };
 
-// Fallback categories when API is not available
-export const getFallbackCategories = (): ServiceCategory[] => [
-  {
-    id: '1',
-    name: 'Home Maintenance',
-    icon: '🔧',
-    subcategories: [
-      'Plumbing',
-      'Electrical Work',
-      'Painting',
-      'Carpentry',
-      'General Repairs',
-      'Door & Window Repair',
-      'Furniture Assembly',
-      'TV Mounting',
-      'Roofing',
-      'Flooring',
-      'HVAC Services',
-      'Handyman Services',
-      'Lock Installation',
-      'Shelf Installation',
-      'Cabinet Installation',
-      'Light Fixture Installation'
-    ]
-  },
-  {
-    id: '2',
-    name: 'Cleaning Services',
-    icon: '🧹',
-    subcategories: [
-      'House Cleaning',
-      'Office Cleaning',
-      'Carpet Cleaning',
-      'Window Cleaning',
-      'Deep Cleaning',
-      'Move-in/Move-out Cleaning',
-      'Post-Construction Cleaning',
-      'Pest Control',
-      'Upholstery Cleaning',
-      'Appliance Cleaning',
-      'Gutter Cleaning',
-      'Pressure Washing',
-      'Green Cleaning',
-      'Sanitization Services',
-      'Event Cleanup',
-      'Regular Maintenance'
-    ]
-  },
-  {
-    id: '3',
-    name: 'Appliance Repair',
-    icon: '⚙️',
-    subcategories: [
-      'Refrigerator Repair',
-      'Washing Machine Repair',
-      'AC Repair',
-      'Oven Repair',
-      'Dryer Repair',
-      'Dishwasher Repair',
-      'Microwave Repair',
-      'Water Heater Repair',
-      'Garbage Disposal Repair',
-      'Ice Maker Repair',
-      'Stove Repair',
-      'Freezer Repair',
-      'Appliance Installation',
-      'Appliance Maintenance',
-      'Emergency Repair',
-      'Warranty Service'
-    ]
-  },
-  {
-    id: '4',
-    name: 'Personal Care',
-    icon: '👶',
-    subcategories: [
-      'Babysitting',
-      'Nanny Services',
-      'Elderly Care',
-      'Pet Care',
-      'Personal Assistant',
-      'Companion Care',
-      'Special Needs Care',
-      'Overnight Care',
-      'Tutoring Services',
-      'After School Care',
-      'Weekend Care',
-      'Holiday Care',
-      'Travel Companion',
-      'Medical Appointment Assistance',
-      'Meal Preparation',
-      'Medication Reminders'
-    ]
-  },
-  {
-    id: '6',
-    name: 'Hotel/Lounge Services',
-    icon: '🏨',
-    subcategories: [
-      'Room Service',
-      'Concierge',
-      'Housekeeping',
-      'Event Planning',
-      'Catering',
-      'Spa Services',
-      'Front Desk',
-      'Guest Services',
-      'Bartending',
-      'Waitressing',
-      'VIP Services',
-      'Reception Services',
-      'Security Services',
-      'Valet Services',
-      'Bell Services',
-      'Guest Relations'
-    ]
-  }
-];
+/** Same taxonomy as provider registration (see `registrationServiceCategories.ts`). */
+export const getFallbackCategories = (): ServiceCategory[] =>
+  REGISTRATION_SERVICE_CATEGORIES.map((c) => ({
+    id: c.name,
+    name: c.name,
+    icon: '',
+    subcategories: [...c.subcategories],
+  }));
 
 // Create a new service
 export const createService = async (serviceData: CreateServiceData): Promise<Service> => {
@@ -243,6 +223,17 @@ export const getServices = async (params?: ServiceSearchParams): Promise<{ servi
   }
 };
 
+/** Combined provider services + agent-submitted professionals (public). */
+export const getCatalog = async (): Promise<CatalogItem[]> => {
+  try {
+    const response = await axios.get<CatalogItem[]>('/catalog');
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching catalog:', error);
+    return [];
+  }
+};
+
 // Get service by ID
 export const getServiceById = async (id: string): Promise<Service> => {
   try {
@@ -274,7 +265,8 @@ export const getMyServices = async (): Promise<Service[]> => {
     });
     
     // Transform the response to match the Service interface
-    const services = response.data.map((service: any) => ({
+    const raw = response.data as unknown[];
+    const services = raw.map((service: any) => ({
       id: service._id,
       title: service.name,
       description: service.description,

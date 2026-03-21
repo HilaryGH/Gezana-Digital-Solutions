@@ -13,6 +13,8 @@ const agentProfessionalSchema = new mongoose.Schema(
     location: { type: String },
     serviceType: { type: String },
     notes: { type: String },
+    /** Profile image: Cloudinary URL or local uploads filename */
+    photo: { type: String },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

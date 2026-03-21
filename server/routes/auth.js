@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require("multer");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
@@ -33,29 +34,76 @@ const generateReferralCode = async () => {
 
 const router = express.Router();
 
+const REGISTER_ROLES = [
+  "seeker",
+  "provider",
+  "agent",
+  "admin",
+  "superadmin",
+  "support",
+  "marketing",
+];
 
-// Register with file upload support
-router.post("/register", upload.fields([
-  { name: 'idFile', maxCount: 1 },
-  { name: 'license', maxCount: 1 },
-  { name: 'tradeRegistration', maxCount: 1 },
-  { name: 'tinDocument', maxCount: 1 },
-  { name: 'professionalCertificate', maxCount: 1 },
-  { name: 'governmentId', maxCount: 1 },
-  { name: 'crCertificate', maxCount: 1 },
-  { name: 'photo', maxCount: 1 },
-  { name: 'servicePhotos', maxCount: 5 },
-  { name: 'video', maxCount: 1 },
-  { name: 'priceList', maxCount: 1 },
-  // Agent uploads
-  { name: 'agentIdDocument', maxCount: 1 },
-  { name: 'agentWorkExperience', maxCount: 1 },
-  { name: 'agentPhoto', maxCount: 1 },
-  { name: 'corporateBusinessRegistration', maxCount: 1 },
-  { name: 'corporateBusinessLicense', maxCount: 1 },
-  { name: 'corporateAchievementsCertificate', maxCount: 1 },
-  { name: 'corporateTin', maxCount: 1 }
-]), async (req, res) => {
+const REGISTER_UPLOAD_FIELDS = [
+  { name: "idFile", maxCount: 1 },
+  { name: "license", maxCount: 1 },
+  { name: "tradeRegistration", maxCount: 1 },
+  { name: "tinDocument", maxCount: 1 },
+  { name: "professionalCertificate", maxCount: 1 },
+  { name: "governmentId", maxCount: 1 },
+  { name: "crCertificate", maxCount: 1 },
+  { name: "photo", maxCount: 1 },
+  { name: "servicePhotos", maxCount: 5 },
+  { name: "video", maxCount: 1 },
+  { name: "priceList", maxCount: 1 },
+  { name: "agentIdDocument", maxCount: 1 },
+  { name: "agentWorkExperience", maxCount: 1 },
+  { name: "agentPhoto", maxCount: 1 },
+  { name: "corporateBusinessRegistration", maxCount: 1 },
+  { name: "corporateBusinessLicense", maxCount: 1 },
+  { name: "corporateAchievementsCertificate", maxCount: 1 },
+  { name: "corporateTin", maxCount: 1 },
+];
+
+const registerUpload = upload.fields(REGISTER_UPLOAD_FIELDS);
+
+function normalizePhoneInput(phone) {
+  if (phone == null) return undefined;
+  const t = String(phone).trim();
+  if (!t) return undefined;
+  return t.replace(/[\s\-().\u00A0]/g, "");
+}
+
+function isValidE164ishPhone(s) {
+  if (!s) return true;
+  const core = s.startsWith("+") ? s.slice(1) : s;
+  return /^\d{7,15}$/.test(core);
+}
+
+// Register with file upload support (multipart). Files are optional for all roles.
+router.post(
+  "/register",
+  (req, res, next) => {
+    registerUpload(req, res, (err) => {
+      if (err) {
+        console.error("Register multipart error:", err);
+        if (err instanceof multer.MulterError) {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({
+              message: "One or more files exceed the maximum size (12 MB per file).",
+            });
+          }
+          if (err.code === "LIMIT_FILE_COUNT" || err.code === "LIMIT_UNEXPECTED_FILE") {
+            return res.status(400).json({ message: "Too many or unexpected files in upload." });
+          }
+          return res.status(400).json({ message: err.message || "File upload error" });
+        }
+        return res.status(400).json({ message: err.message || "File upload rejected" });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
   try {
     console.log("Registration request received");
     console.log("Request body:", req.body);
@@ -104,10 +152,100 @@ router.post("/register", upload.fields([
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    // Phone validation
-    const phoneRegex = /^\+?[0-9]{7,15}$/;
-    if (phone && !phoneRegex.test(phone)) {
-      return res.status(400).json({ message: "Invalid phone number format" });
+    if (!role || !REGISTER_ROLES.includes(role)) {
+      return res.status(400).json({ message: "Invalid or missing registration role." });
+    }
+
+    const phoneNorm = normalizePhoneInput(phone);
+    const altPhoneNorm = normalizePhoneInput(alternativePhone);
+    const officePhoneNorm = normalizePhoneInput(officePhone);
+
+    if (!isValidE164ishPhone(phoneNorm)) {
+      return res.status(400).json({
+        message:
+          "Invalid phone number. Use 7–15 digits; you may include a leading + (spaces and dashes are OK).",
+      });
+    }
+    if (alternativePhone && !isValidE164ishPhone(altPhoneNorm)) {
+      return res.status(400).json({ message: "Invalid alternative phone format." });
+    }
+    if (officePhone && !isValidE164ishPhone(officePhoneNorm)) {
+      return res.status(400).json({ message: "Invalid office phone format." });
+    }
+
+    if (role === "seeker") {
+      if (!fullName || !String(fullName).trim()) {
+        return res.status(400).json({ message: "Full name is required." });
+      }
+      if (!phoneNorm) {
+        return res.status(400).json({ message: "Phone is required." });
+      }
+    }
+
+    if (role === "provider") {
+      if (!subRole || !["freelancer", "smallBusiness", "specializedBusiness"].includes(subRole)) {
+        return res.status(400).json({ message: "Please select a valid provider type." });
+      }
+      const displayName = String(companyName || fullName || "").trim();
+      if (!displayName) {
+        return res.status(400).json({ message: "Name or company name is required." });
+      }
+      if (!serviceType || !String(serviceType).trim()) {
+        return res.status(400).json({ message: "Service type is required." });
+      }
+      if (!phoneNorm) {
+        return res.status(400).json({ message: "Phone is required." });
+      }
+      if (subRole === "freelancer" && (!gender || !["male", "female"].includes(gender))) {
+        return res.status(400).json({ message: "Gender is required for freelancers." });
+      }
+      if (
+        (subRole === "smallBusiness" || subRole === "specializedBusiness") &&
+        (!femaleLedOrOwned ||
+          !["female-led", "female-owned", "non-female"].includes(femaleLedOrOwned))
+      ) {
+        return res.status(400).json({ message: "Business type is required." });
+      }
+      const workExpAllowed = [
+        "1 year",
+        "1+ year to 3 years",
+        "3+ year to 5 years",
+        "5+ years",
+      ];
+      if (!workExperience || !workExpAllowed.includes(workExperience)) {
+        return res.status(400).json({ message: "Work experience is required." });
+      }
+    }
+
+    if (role === "agent") {
+      if (!agentType || !["individual", "corporate"].includes(agentType)) {
+        return res.status(400).json({ message: "Agent type must be individual or corporate." });
+      }
+      if (!primaryLocation || !String(primaryLocation).trim()) {
+        return res.status(400).json({ message: "Primary location is required." });
+      }
+      if (!phoneNorm) {
+        return res.status(400).json({ message: "Phone is required." });
+      }
+      if (agentType === "individual") {
+        if (!fullName || !String(fullName).trim()) {
+          return res.status(400).json({ message: "Full name is required." });
+        }
+        if (!cityOfResidence || !String(cityOfResidence).trim()) {
+          return res.status(400).json({ message: "City of residence is required." });
+        }
+      } else {
+        if (!companyName || !String(companyName).trim()) {
+          return res.status(400).json({ message: "Company name is required." });
+        }
+        if (!city || !String(city).trim()) {
+          return res.status(400).json({ message: "City is required." });
+        }
+      }
+    }
+
+    if (["superadmin", "support", "marketing"].includes(role) && !phoneNorm) {
+      return res.status(400).json({ message: "Phone is required for this role." });
     }
 
     const existingUser = await User.findOne({ email });
@@ -116,13 +254,14 @@ router.post("/register", upload.fields([
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const { getFileUrl } = require("../utils/fileHelper");
 
     // Prepare user data
     const userData = {
       email,
       password: hashedPassword,
       role,
-      phone,
+      phone: phoneNorm,
     };
 
     // Handle referral code if provided
@@ -152,9 +291,9 @@ router.post("/register", upload.fields([
         console.log(`✅ Generated referral code for new individual seeker: ${userData.referralCode}`);
       }
 
-      // Handle seeker file upload
+      // Handle seeker file upload (optional)
       if (req.files && req.files.idFile) {
-        userData.idFile = req.files.idFile[0].filename;
+        userData.idFile = getFileUrl(req.files.idFile[0]);
       }
     } else if (role === "provider") {
       userData.name = companyName || fullName;
@@ -166,8 +305,8 @@ router.post("/register", upload.fields([
       if (freelanceSubCategory) {
         userData.freelanceSubCategory = freelanceSubCategory;
       }
-      userData.alternativePhone = alternativePhone;
-      userData.officePhone = officePhone;
+      userData.alternativePhone = altPhoneNorm;
+      userData.officePhone = officePhoneNorm;
       userData.whatsapp = whatsapp;
       userData.telegram = telegram;
       userData.city = city;
@@ -211,9 +350,7 @@ router.post("/register", upload.fields([
         }
       }
 
-      // Handle provider file uploads
-      // Use helper to get file URL (works with both Cloudinary and local storage)
-      const { getFileUrl } = require("../utils/fileHelper");
+      // Handle provider file uploads (all optional)
       if (req.files) {
         if (req.files.license) {
           userData.license = getFileUrl(req.files.license[0]);
@@ -267,8 +404,7 @@ router.post("/register", upload.fields([
         userData.city = cityOfResidence;
       }
 
-      // Handle agent file uploads (Cloudinary/local via fileHelper)
-      const { getFileUrl } = require("../utils/fileHelper");
+      // Handle agent file uploads (all optional)
       if (req.files) {
         if (req.files.agentIdDocument) {
           userData.agentIdDocument = getFileUrl(req.files.agentIdDocument[0]);
@@ -300,12 +436,16 @@ router.post("/register", upload.fields([
       // Super Admin registration
       userData.name = fullName || "Super Admin";
       userData.isVerified = true; // Auto-verify super admin accounts
-      userData.phone = phone;
+      userData.phone = phoneNorm;
     } else if (role === "support") {
       // Customer Support registration
       userData.name = fullName || "Support User";
       userData.isVerified = true; // Auto-verify support accounts
-      userData.phone = phone;
+      userData.phone = phoneNorm;
+    } else if (role === "marketing") {
+      userData.name = fullName || "Marketing User";
+      userData.isVerified = true;
+      userData.phone = phoneNorm;
     }
 
     console.log("Creating user with data:", userData);
@@ -350,7 +490,7 @@ router.post("/register", upload.fields([
     });
 
     // Send welcome notifications (Email + WhatsApp) - skip for admin/superadmin/support users
-    if (!["admin", "superadmin", "support"].includes(role)) {
+    if (!["admin", "superadmin", "support", "marketing"].includes(role)) {
       void (async () => {
         try {
           // For individual seekers, send email with referral code
@@ -373,15 +513,31 @@ router.post("/register", upload.fields([
         }
       })();
     } else {
-      console.log("Skipping welcome notifications for admin/superadmin/support user");
+      console.log("Skipping welcome notifications for admin/superadmin/support/marketing user");
     }
 
     return;
   } catch (err) {
     console.error("Registration error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    if (err.name === "ValidationError") {
+      const first =
+        err.errors && Object.keys(err.errors).length
+          ? err.errors[Object.keys(err.errors)[0]].message
+          : "Validation failed";
+      return res.status(400).json({ message: first });
+    }
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+    const isProd = process.env.NODE_ENV === "production";
+    res.status(500).json({
+      message: isProd
+        ? "Registration could not be completed. Please try again or contact support."
+        : err.message || "Server error",
+    });
   }
-});
+  }
+);
 
 
 

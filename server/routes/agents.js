@@ -3,6 +3,8 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const User = require("../models/User");
 const Referral = require("../models/Referral");
 const AgentProfessional = require("../models/AgentProfessional");
+const upload = require("../middleware/upload");
+const { getFileUrl } = require("../utils/fileHelper");
 
 const router = express.Router();
 
@@ -68,50 +70,78 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/agents/my-professionals
-// Agent adds a professional lead/listing
-router.post("/my-professionals", authMiddleware, async (req, res) => {
+// GET /api/agents/superadmin/agent-professionals
+// All professionals submitted by agents (superadmin only)
+router.get("/superadmin/agent-professionals", authMiddleware, async (req, res) => {
   try {
-    const me = await User.findById(req.user.userId).select("role");
-    if (!me) return res.status(404).json({ message: "User not found" });
-    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
-
-    const {
-      fullName,
-      phone,
-      email,
-      whatsapp,
-      telegram,
-      city,
-      location,
-      serviceType,
-      notes,
-    } = req.body;
-
-    if (!fullName || !phone) {
-      return res.status(400).json({ message: "fullName and phone are required" });
+    if (req.user.role !== "superadmin") {
+      return res.status(403).json({ message: "Superadmin access required" });
     }
 
-    const doc = await AgentProfessional.create({
-      agent: me._id,
-      fullName,
-      phone,
-      email,
-      whatsapp,
-      telegram,
-      city,
-      location,
-      serviceType,
-      notes,
-      status: "pending",
-    });
+    const professionals = await AgentProfessional.find({})
+      .populate("agent", "name email phone")
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.status(201).json({ message: "Professional added", professional: doc });
+    res.json({ professionals });
   } catch (err) {
-    console.error("Error adding agent professional:", err);
-    res.status(500).json({ message: "Failed to add professional" });
+    console.error("Error fetching agent-submitted professionals:", err);
+    res.status(500).json({ message: "Failed to fetch agent professionals" });
   }
 });
+
+// POST /api/agents/my-professionals
+// Agent adds a professional lead/listing (optional multipart field `photo`)
+router.post(
+  "/my-professionals",
+  authMiddleware,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const me = await User.findById(req.user.userId).select("role");
+      if (!me) return res.status(404).json({ message: "User not found" });
+      if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+
+      const {
+        fullName,
+        phone,
+        email,
+        whatsapp,
+        telegram,
+        city,
+        location,
+        serviceType,
+        notes,
+      } = req.body;
+
+      if (!fullName || !phone) {
+        return res.status(400).json({ message: "fullName and phone are required" });
+      }
+
+      const photo = req.file ? getFileUrl(req.file) : undefined;
+
+      const doc = await AgentProfessional.create({
+        agent: me._id,
+        fullName,
+        phone,
+        email,
+        whatsapp,
+        telegram,
+        city,
+        location,
+        serviceType,
+        notes,
+        ...(photo ? { photo } : {}),
+        status: "pending",
+      });
+
+      res.status(201).json({ message: "Professional added", professional: doc });
+    } catch (err) {
+      console.error("Error adding agent professional:", err);
+      res.status(500).json({ message: "Failed to add professional" });
+    }
+  }
+);
 
 // GET /api/agents/my-professionals
 // Agent lists their submitted professionals

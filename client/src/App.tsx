@@ -14,6 +14,7 @@ import Home from "./component/Home";
 import AboutPage from "./component/Pages/AboutPage";
 import ServicesPage from "./component/Pages/ServicesPage";
 import ContactPage from "./component/Pages/ContactPage";
+import PromotionsPage from "./component/Pages/PromotionsPage";
 import LoginPage from "./component/Pages/LoginPage";
 import ForgotPassword from "./component/Pages/ForgotPassword";
 import ResetPassword from "./component/Pages/ResetPassword";
@@ -108,7 +109,6 @@ const noNavbarRoutes = [
   const isAboutPage = location.pathname === "/about";
   const isServicesPage = location.pathname === "/services";
   const isContactPage = location.pathname === "/contact";
-
   return (
     <>
       {/* Show Navbar only if current path is NOT in noNavbarRoutes */}
@@ -122,6 +122,7 @@ const noNavbarRoutes = [
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/provider/:providerId/details" element={<ProviderDetails />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/promotions" element={<PromotionsPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/support" element={<SupportForm />} />
         <Route path="/diaspora" element={<DiasporaCommunityForm />} />
