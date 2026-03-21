@@ -80,8 +80,8 @@ async function fetchProfessionalsPage(cursor) {
         await mongoose.connect(mongoUri);
       }
 
-      // Only approved listings (aligns with typical public “professional” visibility).
-      const filter = { status: "approved" };
+      // Pending + approved (exclude rejected only).
+      const filter = { status: { $ne: "rejected" } };
       if (cursor) {
         filter._id = { $gt: new mongoose.Types.ObjectId(cursor) };
       }
@@ -131,26 +131,62 @@ async function fetchProfessionalsPage(cursor) {
 // ---------------------------------------------------------------------------
 // Formatting messages
 // ---------------------------------------------------------------------------
+// Use HTML for dynamic DB text. MarkdownV2 breaks easily on ".", "-", "(", etc.
+// in names and service strings — Telegram returns 400 Bad Request.
 
-function formatProfessionalsList(items, pageLabel) {
+function escapeHtml(text) {
+  if (text == null || text === "") return "—";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function formatProfessionalsListHtml(items, pageLabel) {
   if (!items.length) {
     return "No professionals found.";
   }
   const lines = items.map((p, i) => {
     return (
-      `${i + 1}. *${escapeMarkdown(p.fullName)}*\n` +
-      `   Service: _${escapeMarkdown(p.serviceType)}_\n` +
-      `   City: ${escapeMarkdown(p.city)}`
+      `${i + 1}. <b>${escapeHtml(p.fullName)}</b>\n` +
+      `   Service: ${escapeHtml(p.serviceType)}\n` +
+      `   City: ${escapeHtml(p.city)}`
     );
   });
-  const header = pageLabel ? `*${escapeMarkdown(pageLabel)}*\n\n` : "";
+  const header = pageLabel ? `<b>${escapeHtml(pageLabel)}</b>\n\n` : "";
   return header + lines.join("\n\n");
 }
 
-/** Minimal escaping for Telegram MarkdownV2 (we use parse_mode below carefully). */
-function escapeMarkdown(text) {
-  if (!text) return "—";
-  return String(text).replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
+/** Send professional list; falls back to plain text if Telegram still rejects. */
+async function sendProfessionalsMessage(chatId, body, replyMarkup) {
+  const opts = { parse_mode: "HTML", reply_markup: replyMarkup };
+  try {
+    await bot.sendMessage(chatId, body, opts);
+  } catch (err) {
+    console.error("[telegram-bot] sendMessage HTML failed:", err.message);
+    const strip = body.replace(/<\/?b>/gi, "").replace(/<\/?i>/gi, "");
+    await bot.sendMessage(chatId, strip, { reply_markup: replyMarkup });
+  }
+}
+
+async function editProfessionalsMessage(chatId, messageId, body, replyMarkup) {
+  const opts = {
+    chat_id: chatId,
+    message_id: messageId,
+    parse_mode: "HTML",
+    reply_markup: replyMarkup,
+  };
+  try {
+    await bot.editMessageText(body, opts);
+  } catch (err) {
+    console.error("[telegram-bot] editMessageText HTML failed:", err.message);
+    const strip = body.replace(/<\/?b>/gi, "");
+    await bot.editMessageText(strip, {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: replyMarkup,
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -167,16 +203,16 @@ console.log("[telegram-bot] Polling started. Waiting for messages…");
 // ---------------------------------------------------------------------------
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  const name = msg.from?.first_name || "there";
+  const name = escapeHtml(msg.from?.first_name || "there");
 
   const text =
     `Hello, ${name}! 👋\n\n` +
-    `Welcome to the *HomeHub* assistant.\n\n` +
+    `Welcome to the <b>HomeHub</b> assistant.\n\n` +
     `Commands:\n` +
-    `• /professionals — browse agent\\-listed professionals \\(3 per page\\)\n` +
+    `• /professionals — browse agent-listed professionals (3 per page)\n` +
     `• /start — show this message`;
 
-  bot.sendMessage(chatId, text, { parse_mode: "MarkdownV2" }).catch((err) => {
+  bot.sendMessage(chatId, text, { parse_mode: "HTML" }).catch((err) => {
     console.error("[telegram-bot] /start send failed:", err.message);
     bot.sendMessage(
       chatId,
@@ -193,20 +229,17 @@ bot.onText(/\/professionals/, async (msg) => {
 
   try {
     const { items, nextCursor } = await fetchProfessionalsPage(null);
-    const body = formatProfessionalsList(items, "Professionals (page 1)");
-
+    const body = formatProfessionalsListHtml(items, "Professionals (page 1)");
     const replyMarkup = buildNextKeyboard(nextCursor);
-
-    await bot.sendMessage(chatId, body, {
-      parse_mode: "MarkdownV2",
-      reply_markup: replyMarkup,
-    });
+    await sendProfessionalsMessage(chatId, body, replyMarkup);
   } catch (err) {
-    console.error("[telegram-bot] /professionals error:", err);
-    bot.sendMessage(
-      chatId,
-      "Sorry, something went wrong loading professionals. Try again later."
-    );
+    console.error("[telegram-bot] /professionals error:", err.message, err.response?.body || "");
+    try {
+      await bot.sendMessage(
+        chatId,
+        "Sorry, something went wrong loading professionals. Try again later."
+      );
+    } catch (_) {}
   }
 });
 
@@ -255,19 +288,13 @@ bot.on("callback_query", async (query) => {
     const body =
       items.length === 0
         ? "No more professionals."
-        : formatProfessionalsList(items, "Next professionals");
+        : formatProfessionalsListHtml(items, "Next professionals");
 
     const replyMarkup = buildNextKeyboard(nextCursor);
 
-    // Edit the same message to avoid chat spam; update text and keyboard.
-    await bot.editMessageText(body, {
-      chat_id: chatId,
-      message_id: messageId,
-      parse_mode: "MarkdownV2",
-      reply_markup: replyMarkup,
-    });
+    await editProfessionalsMessage(chatId, messageId, body, replyMarkup);
   } catch (err) {
-    console.error("[telegram-bot] callback error:", err);
+    console.error("[telegram-bot] callback error:", err.message, err.response?.body || "");
     try {
       await bot.sendMessage(
         chatId,
