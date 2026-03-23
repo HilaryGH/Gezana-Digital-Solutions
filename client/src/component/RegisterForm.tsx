@@ -1580,6 +1580,9 @@ const RegisterForm = () => {
                 <p>
                   <span className="font-semibold">Governing Law:</span> Ethiopian law.
                 </p>
+                <p className="pt-2 border-t border-blue-100">
+                  <span className="font-semibold">Disclaimer &amp; Confirmation:</span> I certify that the information contained in this form is true and accurate. I have read and accepted the information contained in this agreement and confirm that services will be provided as stated in this document.
+                </p>
               </div>
             )}
 

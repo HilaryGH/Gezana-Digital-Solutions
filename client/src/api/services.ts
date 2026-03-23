@@ -27,8 +27,10 @@ export interface Service {
   distance?: number | null; // Distance in kilometers between user and provider
   createdAt: string;
   updatedAt: string;
-  /** Set when row comes from GET /catalog (agent-submitted professional) */
-  catalogSource?: 'provider' | 'agent';
+  /** Set when row comes from GET /catalog or service-requests feed */
+  catalogSource?: 'provider' | 'agent' | 'request';
+  /** Default booking amount (ETB) for agent-listed professionals from catalog */
+  suggestedBookingPrice?: number;
   agentPhone?: string | null;
   agentEmail?: string | null;
   agentWhatsapp?: string | null;
@@ -55,6 +57,7 @@ export interface CatalogProviderItem extends CatalogItemBase {
 export interface CatalogAgentItem extends CatalogItemBase {
   source: 'agent';
   price: null;
+  suggestedBookingPrice?: number;
   phone?: string | null;
   email?: string | null;
   whatsapp?: string | null;
@@ -74,14 +77,16 @@ export function mapCatalogAgentToService(row: CatalogAgentItem): Service {
   const locParts = [row.city, row.location].filter(Boolean);
   const created = row.createdAt ? String(row.createdAt) : '';
   const updated = row.updatedAt ? String(row.updatedAt) : created;
+  const suggested = row.suggestedBookingPrice != null && row.suggestedBookingPrice > 0 ? row.suggestedBookingPrice : 500;
   return {
     id: String(row._id),
     title: row.title,
     description: row.notes?.trim() || 'Professional referred by a Homehub agent. Contact directly to discuss scope and pricing.',
     category: row.category || '',
     subcategory: '',
-    price: 0,
+    price: suggested,
     priceType: 'custom',
+    suggestedBookingPrice: suggested,
     photos:
       row.photo != null && String(row.photo).trim() !== ''
         ? [String(row.photo).trim()]

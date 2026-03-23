@@ -75,6 +75,18 @@ type MyProfessional = {
   photo?: string;
 };
 
+type EditProfessionalForm = {
+  fullName: string;
+  phone: string;
+  email: string;
+  whatsapp: string;
+  telegram: string;
+  city: string;
+  location: string;
+  serviceType: string;
+  notes: string;
+};
+
 type ServicesOfferedItem = {
   id: string;
   serviceName: string;
@@ -159,6 +171,20 @@ const AgentDashboard = () => {
   const [loadingProviderServices, setLoadingProviderServices] = useState(false);
   const [providerServicesQuery, setProviderServicesQuery] = useState("");
   const [providerServicesError, setProviderServicesError] = useState<string>("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingProfessional, setEditingProfessional] = useState<MyProfessional | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editForm, setEditForm] = useState<EditProfessionalForm>({
+    fullName: "",
+    phone: "",
+    email: "",
+    whatsapp: "",
+    telegram: "",
+    city: "",
+    location: "",
+    serviceType: "",
+    notes: "",
+  });
 
   const extractServiceTypeTokens = (value?: string | null) =>
     (value || "")
@@ -286,6 +312,96 @@ const AgentDashboard = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setMyProfessionals(myRes.data.professionals || []);
+  };
+
+  const verifyProfessional = async (professionalId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    if (!window.confirm("Verify this professional now?")) return;
+    try {
+      await axios.patch(`/agents/my-professionals/${professionalId}/verify`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await refreshMyProfessionals();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "Failed to verify professional");
+    }
+  };
+
+  const deleteProfessional = async (professionalId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    if (
+      !window.confirm(
+        "Delete this professional permanently? This action cannot be undone."
+      )
+    )
+      return;
+    try {
+      await axios.delete(`/agents/my-professionals/${professionalId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await refreshMyProfessionals();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "Failed to delete professional");
+    }
+  };
+
+  const openEditModal = (professional: MyProfessional) => {
+    setEditingProfessional(professional);
+    setEditForm({
+      fullName: professional.fullName || "",
+      phone: professional.phone || "",
+      email: professional.email || "",
+      whatsapp: professional.whatsapp || "",
+      telegram: professional.telegram || "",
+      city: professional.city || "",
+      location: professional.location || "",
+      serviceType: professional.serviceType || "",
+      notes: professional.notes || "",
+    });
+    setEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEditingProfessional(null);
+    setEditSaving(false);
+  };
+
+  const submitProfessionalUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token || !editingProfessional) return;
+    if (!editForm.fullName.trim() || !editForm.phone.trim()) {
+      alert("Full name and phone are required.");
+      return;
+    }
+
+    try {
+      setEditSaving(true);
+      await axios.put(
+        `/agents/my-professionals/${editingProfessional._id}`,
+        {
+          fullName: editForm.fullName.trim(),
+          phone: editForm.phone.trim(),
+          email: editForm.email.trim(),
+          whatsapp: editForm.whatsapp.trim(),
+          telegram: editForm.telegram.trim(),
+          serviceType: editForm.serviceType.trim(),
+          city: editForm.city.trim(),
+          location: editForm.location.trim(),
+          notes: editForm.notes.trim(),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await refreshMyProfessionals();
+      closeEditModal();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "Failed to update professional");
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const openProviderServices = async (provider: Professional) => {
@@ -972,6 +1088,7 @@ const AgentDashboard = () => {
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Phone</th>
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Status</th>
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Date</th>
+                      <th className="text-left px-4 py-3 font-semibold text-slate-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -1000,11 +1117,38 @@ const AgentDashboard = () => {
                         <td className="px-4 py-3 text-gray-600">
                           {new Date(p.createdAt).toLocaleDateString()}
                         </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(p)}
+                              className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                            >
+                              Update
+                            </button>
+                            {p.status !== "approved" && (
+                              <button
+                                type="button"
+                                onClick={() => verifyProfessional(p._id)}
+                                className="rounded-lg border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 hover:bg-green-100"
+                              >
+                                Verify
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => deleteProfessional(p._id)}
+                              className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                            >
+                              Delete permanently
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                     {filteredMyProfessionals.length === 0 && (
                       <tr>
-                        <td className="px-4 py-6 text-gray-600" colSpan={4}>
+                        <td className="px-4 py-6 text-gray-600" colSpan={5}>
                           No professionals match your filters.
                         </td>
                       </tr>
@@ -1107,6 +1251,111 @@ const AgentDashboard = () => {
           </div>
 
           {/* Provider Services Modal */}
+          {editModalOpen && editingProfessional && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-sm min-[480px]:p-4"
+              onClick={closeEditModal}
+            >
+              <div
+                className="flex max-h-[min(90vh,calc(100dvh-1.5rem))] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-blue-100/80"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-5 bg-gradient-to-r from-blue-600 via-blue-700 to-orange-500 text-white flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-bold truncate">Update professional</h3>
+                    <p className="text-sm text-white/90 mt-1 truncate">
+                      {editingProfessional.fullName}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeEditModal}
+                    className="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-white flex items-center justify-center"
+                    aria-label="Close update modal"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={submitProfessionalUpdate} className="p-5 overflow-y-auto space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      className={brand.input}
+                      placeholder="Full Name *"
+                      value={editForm.fullName}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                      required
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="Phone *"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+                      required
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="Email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="WhatsApp"
+                      value={editForm.whatsapp}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, whatsapp: e.target.value }))}
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="Telegram"
+                      value={editForm.telegram}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, telegram: e.target.value }))}
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="City"
+                      value={editForm.city}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, city: e.target.value }))}
+                    />
+                    <input
+                      className={`${brand.input} sm:col-span-2`}
+                      placeholder="Location"
+                      value={editForm.location}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, location: e.target.value }))}
+                    />
+                    <input
+                      className={`${brand.input} sm:col-span-2`}
+                      placeholder="Service Type"
+                      value={editForm.serviceType}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, serviceType: e.target.value }))}
+                    />
+                    <textarea
+                      className={`${brand.input} sm:col-span-2`}
+                      placeholder="Notes"
+                      rows={4}
+                      value={editForm.notes}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, notes: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={closeEditModal}
+                      className={brand.outlineOrange}
+                      disabled={editSaving}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className={brand.btnBlue} disabled={editSaving}>
+                      {editSaving ? "Saving..." : "Save changes"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {servicesModalOpen && servicesModalProvider && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-sm min-[480px]:p-4"

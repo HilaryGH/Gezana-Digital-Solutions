@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Star, MapPin, DollarSign, Clock, Calendar, 
-  Phone, Mail, Shield, Award, CheckCircle, 
+  Shield, Award, CheckCircle, 
   ArrowLeft, Heart, Share2, AlertCircle, Tag, FileText, ExternalLink
 } from 'lucide-react';
 import { getServiceById, type Service } from '../api/services';
@@ -36,7 +36,6 @@ const ServiceDetails = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [specialOffer, setSpecialOffer] = useState<SpecialOffer | null>(null);
   const [isProviderOnDuty, setIsProviderOnDuty] = useState<boolean | null>(null);
-  const [providerInfo, setProviderInfo] = useState<{ email: string | null; phone: string | null } | null>(null);
   const [providerRating, setProviderRating] = useState<number | null>(null);
   const [isPremiumIndividualSeeker, setIsPremiumIndividualSeeker] = useState<boolean>(false);
 
@@ -131,18 +130,6 @@ const ServiceDetails = () => {
           } catch (dutyError) {
             console.error('Error fetching provider duty status:', dutyError);
             setIsProviderOnDuty(null);
-          }
-
-          // Fetch provider public info (email, phone)
-          try {
-            const providerInfoResponse = await axios.get(`/provider/public-info/${data.providerId}`);
-            setProviderInfo({
-              email: providerInfoResponse.data.email,
-              phone: providerInfoResponse.data.phone
-            });
-          } catch (infoError) {
-            console.error('Error fetching provider info:', infoError);
-            setProviderInfo(null);
           }
 
           // Fetch provider rating from reviews
@@ -681,32 +668,6 @@ const ServiceDetails = () => {
                 </div>
 
                 <div className="pt-4 border-t border-gray-200 space-y-2">
-                  {providerInfo?.phone ? (
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Phone size={16} />
-                      <a href={`tel:${providerInfo.phone}`} className="text-sm hover:text-orange-600 transition-colors">
-                        {providerInfo.phone}
-                      </a>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2 text-gray-400">
-                      <Phone size={16} />
-                      <span className="text-sm">Contact on booking</span>
-                    </div>
-                  )}
-                  {providerInfo?.email ? (
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Mail size={16} />
-                      <a href={`mailto:${providerInfo.email}`} className="text-sm hover:text-orange-600 transition-colors break-all">
-                        {providerInfo.email}
-                      </a>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2 text-gray-400">
-                      <Mail size={16} />
-                      <span className="text-sm">Email support available</span>
-                    </div>
-                  )}
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Clock size={16} />
                     <span className="text-sm">Joined {service.createdAt ? new Date(service.createdAt).toLocaleDateString() : 'Recently'}</span>

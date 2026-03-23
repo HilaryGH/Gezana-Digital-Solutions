@@ -307,6 +307,13 @@ const Navbar = () => {
                 >
                   <span className="text-sm font-medium">{t('navigation.services')}</span>
                 </Link>
+
+                <Link
+                  to="/service-request"
+                  className="px-3 py-1.5 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50"
+                >
+                  <span className="text-sm font-medium">Request Service</span>
+                </Link>
                 
                 <Link 
                   to="/contact" 
@@ -409,6 +416,14 @@ const Navbar = () => {
                   className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
                   <span className="font-medium">Contact Us</span>
+                </Link>
+
+                <Link
+                  to="/service-request"
+                  onClick={toggleMenu}
+                  className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
+                >
+                  <span className="font-medium">Request Service</span>
                 </Link>
               </div>
 

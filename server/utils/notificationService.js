@@ -1,9 +1,17 @@
-const { sendWelcomeEmail, sendServicePublishedEmail, sendBookingConfirmationEmail } = require('./emailService');
+const {
+  sendWelcomeEmail,
+  sendServicePublishedEmail,
+  sendBookingConfirmationEmail,
+  sendInternalProfessionalBookingAlert,
+  sendServiceRequestConfirmationEmail,
+  sendInternalServiceRequestAlert,
+} = require('./emailService');
 const { 
   sendWelcomeWhatsApp, 
   sendServicePublishedWhatsApp,
   sendBookingConfirmationWhatsApp,
-  sendBookingReminderWhatsApp 
+  sendBookingReminderWhatsApp,
+  sendServiceRequestConfirmationWhatsApp,
 } = require('./whatsappService');
 
 // Send welcome notifications (Email + WhatsApp)
@@ -75,6 +83,29 @@ const sendBookingConfirmationNotifications = async (userData, bookingDetails) =>
   return results;
 };
 
+/**
+ * Email listing agent + optional superadmin when an agent-listed professional is booked.
+ */
+const sendProfessionalBookingStakeholderEmails = async (stakeholders, payload) => {
+  const results = { agent: null, superadmin: null };
+  if (stakeholders.agentEmail) {
+    results.agent = await sendInternalProfessionalBookingAlert(
+      stakeholders.agentEmail,
+      stakeholders.agentName || "Agent",
+      payload
+    );
+  }
+  const adminEmail = process.env.SUPERADMIN_BOOKING_ALERT_EMAIL || process.env.SUPERADMIN_NOTIFICATION_EMAIL;
+  if (adminEmail) {
+    results.superadmin = await sendInternalProfessionalBookingAlert(
+      adminEmail,
+      "Superadmin",
+      payload
+    );
+  }
+  return results;
+};
+
 // Send booking reminder notifications
 const sendBookingReminderNotifications = async (userData, bookingDetails) => {
   const { phone, whatsapp, name } = userData;
@@ -87,10 +118,53 @@ const sendBookingReminderNotifications = async (userData, bookingDetails) => {
   return { success: false, error: 'No phone number available' };
 };
 
+const sendServiceRequestNotifications = async ({ requester, requestDetails }) => {
+  const { email, name, phone, whatsapp } = requester;
+  const results = {
+    requesterEmail: null,
+    requesterWhatsApp: null,
+    internalEmail: null,
+  };
+
+  if (email) {
+    results.requesterEmail = await sendServiceRequestConfirmationEmail(email, name, requestDetails);
+  }
+
+  const whatsappNumber = whatsapp || phone;
+  if (whatsappNumber) {
+    results.requesterWhatsApp = await sendServiceRequestConfirmationWhatsApp(
+      whatsappNumber,
+      name,
+      requestDetails
+    );
+  }
+
+  const internalEmail =
+    process.env.SERVICE_REQUEST_ALERT_EMAIL ||
+    process.env.SUPERADMIN_NOTIFICATION_EMAIL ||
+    process.env.EMAIL_USER;
+  if (internalEmail) {
+    results.internalEmail = await sendInternalServiceRequestAlert(internalEmail, {
+      requestId: requestDetails.requestId,
+      requesterName: name,
+      requesterEmail: email,
+      requesterPhone: phone,
+      serviceNeeded: requestDetails.serviceNeeded,
+      location: requestDetails.location,
+      preferredDate: requestDetails.preferredDate,
+      budgetEtb: requestDetails.budgetEtb,
+    });
+  }
+
+  return results;
+};
+
 module.exports = {
   sendWelcomeNotifications,
   sendServicePublishedNotifications,
   sendBookingConfirmationNotifications,
-  sendBookingReminderNotifications
+  sendProfessionalBookingStakeholderEmails,
+  sendBookingReminderNotifications,
+  sendServiceRequestNotifications,
 };
 

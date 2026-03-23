@@ -7,7 +7,8 @@ const Category = require("../models/Category");
 const ServiceType = require("../models/ServiceType");
 const User = require("../models/User");
 const Referral = require("../models/Referral");
-const { sendBookingConfirmationNotifications } = require("../utils/notificationService");
+const AgentProfessional = require("../models/AgentProfessional");
+const { sendBookingConfirmationNotifications, sendProfessionalBookingStakeholderEmails } = require("../utils/notificationService");
 const { getDistanceBetween } = require("../utils/geolocation");
 const JWT_SECRET = require("../config/jwt");
 
@@ -49,7 +50,7 @@ router.get("/all", authMiddleware, async (req, res) => {
   try {
    
    const bookings = await Booking.find()
-  .populate("user", "name email")
+  .populate("user", "name email phone")
   .populate({
     path: "service",
     select: "name price photos description location", // Include price and other important fields
@@ -58,6 +59,12 @@ router.get("/all", authMiddleware, async (req, res) => {
       { path: "category", select: "name" }, // ✅ this is required for category to show
     ],
   })
+  .populate({
+    path: "agentProfessional",
+    select: "fullName phone email serviceType city location notes status",
+    populate: { path: "agent", select: "name email phone" },
+  })
+  .populate("agent", "name email phone")
   .populate("serviceType", "name")
   .sort("-createdAt");
 
@@ -76,8 +83,10 @@ router.get("/", authMiddleware, async (req, res) => {
      console.log("Fetching bookings for user:", req.user.userId); // add this
     const bookings = await Booking.find({ user: req.user.userId })
       .populate("category", "name")
-      .populate("type", "name")
+      .populate("serviceType", "name")
       .populate("service", "name price")
+      .populate("agentProfessional", "fullName phone email serviceType city location")
+      .populate("agent", "name email")
       .sort("-createdAt");
 
     res.json(bookings);
@@ -89,42 +98,33 @@ router.get("/", authMiddleware, async (req, res) => {
 // Create a booking (supports both logged-in users and guests)
 router.post("/", async (req, res) => {
   try {
-    const { service, date, note, guestInfo, paymentMethod, referralCode } = req.body;
-    const token = req.headers.authorization?.split(' ')[1];
+    const {
+      service,
+      agentProfessional,
+      professionalPrice: rawProfessionalPrice,
+      date,
+      note,
+      guestInfo,
+      paymentMethod,
+      referralCode,
+    } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
 
     console.log("📋 Booking request received:");
     console.log("   Service ID:", service);
+    console.log("   Agent professional ID:", agentProfessional);
     console.log("   Date:", date);
     console.log("   Note:", note);
     console.log("   Payment Method:", paymentMethod);
     console.log("   Has guest info:", !!guestInfo);
     console.log("   Has token:", !!token);
 
-    if (!service) {
-      console.log("❌ Service ID missing");
-      return res.status(400).json({ message: "Service ID is required" });
-    }
-
     if (!date) {
       console.log("❌ Date missing");
       return res.status(400).json({ message: "Booking date is required" });
     }
 
-    // Fetch the service to get category and serviceType
-    console.log("🔍 Fetching service:", service);
-    const serviceDoc = await Service.findById(service).populate('provider');
-    if (!serviceDoc) {
-      console.log("❌ Service not found with ID:", service);
-      return res.status(404).json({ message: "Service not found" });
-    }
-    console.log("✅ Service found:", serviceDoc.name);
-    console.log("   Category:", serviceDoc.category);
-    console.log("   Type:", serviceDoc.type);
-    console.log("   Provider:", serviceDoc.provider?.name);
-
     let userId = null;
-    
-    // If token is provided, verify it and get user ID
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -134,12 +134,205 @@ router.post("/", async (req, res) => {
       }
     }
 
-    // Validate guest information if no user ID
     if (!userId && (!guestInfo || !guestInfo.fullName || !guestInfo.email || !guestInfo.phone || !guestInfo.address)) {
-      return res.status(400).json({ 
-        message: "Guest information is required: fullName, email, phone, and address" 
+      return res.status(400).json({
+        message: "Guest information is required: fullName, email, phone, and address",
       });
     }
+
+    const defaultProPrice = (() => {
+      const n = Number(process.env.AGENT_PROFESSIONAL_DEFAULT_BOOKING_PRICE);
+      return Number.isFinite(n) && n > 0 ? n : 500;
+    })();
+
+    // ----- Agent-listed professional booking -----
+    if (agentProfessional) {
+      const proDoc = await AgentProfessional.findById(agentProfessional).populate({
+        path: "agent",
+        select: "name email phone",
+      });
+      if (!proDoc || proDoc.status !== "approved") {
+        return res.status(404).json({ message: "Professional not found or not available for booking" });
+      }
+      if (!proDoc.agent) {
+        return res.status(400).json({ message: "Listing agent is missing for this professional" });
+      }
+
+      const priceNum = Math.max(
+        1,
+        Number(rawProfessionalPrice) > 0 ? Number(rawProfessionalPrice) : defaultProPrice
+      );
+
+      const categoryName = "Agent-listed professionals";
+      const serviceTypeName = (proDoc.serviceType && String(proDoc.serviceType).trim()) || "Professional services";
+
+      let categoryDoc = await Category.findOne({ name: categoryName });
+      if (!categoryDoc) {
+        categoryDoc = await Category.create({ name: categoryName });
+      }
+
+      let serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName, category: categoryDoc._id });
+      if (!serviceTypeDoc) {
+        serviceTypeDoc = await ServiceType.create({
+          name: serviceTypeName,
+          category: categoryDoc._id,
+        });
+      }
+
+      const bookingData = {
+        bookingKind: "professional",
+        user: userId,
+        category: categoryDoc._id,
+        serviceType: serviceTypeDoc._id,
+        agentProfessional: proDoc._id,
+        agent: proDoc.agent._id,
+        professionalPrice: priceNum,
+        date,
+        note,
+        paymentMethod: paymentMethod || "cash",
+        paymentStatus: "pending",
+        distance: null,
+      };
+
+      if (!userId && guestInfo) {
+        bookingData.guestInfo = guestInfo;
+      }
+
+      if (referralCode) {
+        const referrerUser = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+        if (referrerUser) {
+          bookingData.referralCode = referralCode.trim().toUpperCase();
+        }
+      }
+
+      const booking = await Booking.create(bookingData);
+      const populatedBooking = await Booking.findById(booking._id)
+        .populate("agentProfessional")
+        .populate("agent", "name email phone")
+        .populate("user", "name email phone address");
+
+      if (userId) {
+        const bookingCount = await Booking.countDocuments({ user: userId });
+        const points = bookingCount === 1 ? 50 : 20;
+        await User.findByIdAndUpdate(userId, { $inc: { loyaltyPoints: points } });
+      }
+
+      if (referralCode && bookingData.referralCode) {
+        try {
+          const referrerUser = await User.findOne({ referralCode: bookingData.referralCode });
+          if (referrerUser) {
+            let referral = await Referral.findOne({
+              referrer: referrerUser._id,
+              bookingId: booking._id,
+            });
+            if (!referral) {
+              referral = new Referral({
+                referrer: referrerUser._id,
+                referredUser: userId || referrerUser._id,
+                referralCode: bookingData.referralCode,
+                usedInPurchase: true,
+                bookingId: booking._id,
+                status: "completed",
+              });
+              await referral.save();
+              await User.findByIdAndUpdate(referrerUser._id, { $inc: { referralCount: 1 } });
+            }
+          }
+        } catch (error) {
+          console.error("Error tracking referral for professional booking:", error);
+        }
+      }
+
+      const responseData = populatedBooking.toObject();
+      res.status(201).json({
+        ...responseData,
+        distance: null,
+        distanceUnit: "km",
+      });
+
+      setImmediate(async () => {
+        try {
+          const customerInfo = userId
+            ? {
+                name: populatedBooking.user?.name,
+                email: populatedBooking.user?.email,
+                phone: populatedBooking.user?.phone,
+                whatsapp: populatedBooking.user?.whatsapp,
+              }
+            : {
+                name: guestInfo.fullName,
+                email: guestInfo.email,
+                phone: guestInfo.phone,
+                whatsapp: guestInfo.phone,
+              };
+
+          const serviceLabel =
+            (proDoc.serviceType && String(proDoc.serviceType).trim()) || proDoc.fullName;
+          const bookingDetails = {
+            serviceName: serviceLabel,
+            providerName: proDoc.fullName,
+            date: new Date(date).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+            time: new Date(date).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            price: priceNum,
+            location:
+              [proDoc.city, proDoc.location].filter(Boolean).join(", ") || "To be determined",
+          };
+
+          await sendBookingConfirmationNotifications(customerInfo, bookingDetails);
+
+          const stakeholderPayload = {
+            professionalName: proDoc.fullName,
+            serviceLabel,
+            customerName: customerInfo.name || "Customer",
+            customerEmail: customerInfo.email || "",
+            customerPhone: customerInfo.phone || "",
+            date: bookingDetails.date,
+            time: bookingDetails.time,
+            amountEtb: String(priceNum),
+            location: bookingDetails.location,
+            note: note || "",
+          };
+
+          await sendProfessionalBookingStakeholderEmails(
+            {
+              agentEmail: proDoc.agent.email,
+              agentName: proDoc.agent.name,
+            },
+            stakeholderPayload
+          );
+        } catch (notifError) {
+          console.error("❌ Error sending professional booking notifications:", notifError);
+        }
+      });
+
+      return;
+    }
+
+    // ----- Standard provider service booking -----
+    if (!service) {
+      console.log("❌ Service ID missing");
+      return res.status(400).json({ message: "Service ID is required" });
+    }
+
+    // Fetch the service to get category and serviceType
+    console.log("🔍 Fetching service:", service);
+    const serviceDoc = await Service.findById(service).populate("provider");
+    if (!serviceDoc) {
+      console.log("❌ Service not found with ID:", service);
+      return res.status(404).json({ message: "Service not found" });
+    }
+    console.log("✅ Service found:", serviceDoc.name);
+    console.log("   Category:", serviceDoc.category);
+    console.log("   Type:", serviceDoc.type);
+    console.log("   Provider:", serviceDoc.provider?.name);
 
     // Find or create category and serviceType
     // Ensure we have valid category and type names
@@ -230,6 +423,7 @@ router.post("/", async (req, res) => {
     }
 
     const bookingData = {
+      bookingKind: "service",
       user: userId,
       category: categoryDoc._id,
       serviceType: serviceTypeDoc._id,
@@ -442,21 +636,33 @@ router.patch("/:id/payment", async (req, res) => {
     console.log("✅ Booking payment status updated:", updated._id, "Status:", updated.paymentStatus);
 
     // Commission / referral earnings: only when transitioning to PAID
-    if (prevPaymentStatus !== "paid" && updated.paymentStatus === "paid" && updated.referralCode) {
+    if (prevPaymentStatus !== "paid" && updated.paymentStatus === "paid") {
       try {
-        const referralCode = updated.referralCode.trim().toUpperCase();
-        const referrer = await User.findOne({ referralCode }).select("_id role");
+        let referrer = null;
+        let referralCodeForRecord = null;
+        let price = 0;
 
-        // Only agents earn commission for now
-        if (referrer && referrer.role === "agent") {
-          // Get service price to calculate commission
-          const service = await Service.findById(updated.service).select("price");
-          const price = Number(service?.price || 0);
+        if (updated.referralCode) {
+          referralCodeForRecord = updated.referralCode.trim().toUpperCase();
+          referrer = await User.findOne({ referralCode: referralCodeForRecord }).select("_id role referralCode");
+          if (updated.bookingKind === "professional") {
+            price = Number(updated.professionalPrice || 0);
+          } else {
+            const serviceDocPay = await Service.findById(updated.service).select("price");
+            price = Number(serviceDocPay?.price || 0);
+          }
+        } else if (updated.bookingKind === "professional" && updated.agent) {
+          referrer = await User.findById(updated.agent).select("_id role referralCode");
+          referralCodeForRecord = referrer?.referralCode
+            ? String(referrer.referralCode).trim().toUpperCase()
+            : `AGENTLIST-${String(updated.agent)}`;
+          price = Number(updated.professionalPrice || 0);
+        }
 
-          const commissionRate = Number(process.env.AGENT_COMMISSION_RATE || 0.05); // default 5%
+        if (referrer && referrer.role === "agent" && price > 0) {
+          const commissionRate = Number(process.env.AGENT_COMMISSION_RATE || 0.05);
           const commissionAmount = Math.max(0, +(price * commissionRate).toFixed(2));
 
-          // Update referral record for this booking if exists; otherwise create it
           const existingReferral = await Referral.findOne({
             referrer: referrer._id,
             bookingId: updated._id,
@@ -465,8 +671,8 @@ router.patch("/:id/payment", async (req, res) => {
           if (!existingReferral) {
             await Referral.create({
               referrer: referrer._id,
-              referredUser: updated.user || null,
-              referralCode,
+              referredUser: updated.user || referrer._id,
+              referralCode: referralCodeForRecord,
               usedInPurchase: true,
               bookingId: updated._id,
               rewardAmount: commissionAmount,
@@ -477,7 +683,12 @@ router.patch("/:id/payment", async (req, res) => {
             });
           } else if (!existingReferral.rewardAmount || existingReferral.rewardAmount === 0) {
             await Referral.findByIdAndUpdate(existingReferral._id, {
-              $set: { rewardAmount: commissionAmount, usedInPurchase: true, status: "completed" },
+              $set: {
+                rewardAmount: commissionAmount,
+                usedInPurchase: true,
+                status: "completed",
+                referralCode: referralCodeForRecord,
+              },
             });
             await User.findByIdAndUpdate(referrer._id, {
               $inc: { referralEarnings: commissionAmount },
@@ -486,7 +697,6 @@ router.patch("/:id/payment", async (req, res) => {
         }
       } catch (refErr) {
         console.error("Referral commission update failed:", refErr);
-        // Don't fail the payment update response
       }
     }
 
@@ -548,12 +758,14 @@ router.get("/provider/bookings", authMiddleware, async (req, res) => {
 router.get("/my", authMiddleware, async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user.userId })
-        .populate({
-    path: "service",
-    select: "name price provider",
-    populate: { path: "provider", select: "name email phone" }
-  })
-  .populate("user", "name email"); // Optional, you may skip if it's the same user
+      .populate({
+        path: "service",
+        select: "name price provider",
+        populate: { path: "provider", select: "name email phone" },
+      })
+      .populate("agentProfessional", "fullName phone email serviceType city location")
+      .populate("agent", "name email phone")
+      .populate("user", "name email");
 
     res.json(bookings);
   } catch (err) {

@@ -162,6 +162,92 @@ router.get("/my-professionals", authMiddleware, async (req, res) => {
   }
 });
 
+// PUT /api/agents/my-professionals/:id
+// Agent updates one of their submitted professionals (optional multipart field `photo`)
+router.put(
+  "/my-professionals/:id",
+  authMiddleware,
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const me = await User.findById(req.user.userId).select("role");
+      if (!me) return res.status(404).json({ message: "User not found" });
+      if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+
+      const doc = await AgentProfessional.findOne({ _id: req.params.id, agent: me._id });
+      if (!doc) return res.status(404).json({ message: "Professional not found" });
+
+      const fields = [
+        "fullName",
+        "phone",
+        "email",
+        "whatsapp",
+        "telegram",
+        "city",
+        "location",
+        "serviceType",
+        "notes",
+      ];
+      for (const field of fields) {
+        if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+          doc[field] = req.body[field];
+        }
+      }
+
+      if (req.file) {
+        doc.photo = getFileUrl(req.file);
+      }
+
+      await doc.save();
+      res.json({ message: "Professional updated", professional: doc });
+    } catch (err) {
+      console.error("Error updating agent professional:", err);
+      res.status(500).json({ message: "Failed to update professional" });
+    }
+  }
+);
+
+// PATCH /api/agents/my-professionals/:id/verify
+// Agent marks one of their submitted professionals as approved
+router.patch("/my-professionals/:id/verify", authMiddleware, async (req, res) => {
+  try {
+    const me = await User.findById(req.user.userId).select("role");
+    if (!me) return res.status(404).json({ message: "User not found" });
+    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+
+    const doc = await AgentProfessional.findOne({ _id: req.params.id, agent: me._id });
+    if (!doc) return res.status(404).json({ message: "Professional not found" });
+
+    doc.status = "approved";
+    await doc.save();
+
+    res.json({ message: "Professional verified", professional: doc });
+  } catch (err) {
+    console.error("Error verifying agent professional:", err);
+    res.status(500).json({ message: "Failed to verify professional" });
+  }
+});
+
+// DELETE /api/agents/my-professionals/:id
+// Agent permanently deletes one of their submitted professionals
+router.delete("/my-professionals/:id", authMiddleware, async (req, res) => {
+  try {
+    const me = await User.findById(req.user.userId).select("role");
+    if (!me) return res.status(404).json({ message: "User not found" });
+    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+
+    const existing = await AgentProfessional.findOne({ _id: req.params.id, agent: me._id });
+    if (!existing) return res.status(404).json({ message: "Professional not found" });
+
+    await AgentProfessional.deleteOne({ _id: existing._id });
+
+    res.json({ message: "Professional deleted permanently" });
+  } catch (err) {
+    console.error("Error deleting agent professional:", err);
+    res.status(500).json({ message: "Failed to delete professional" });
+  }
+});
+
 // GET /api/agents/professionals
 // Returns verified providers for agents
 router.get("/professionals", authMiddleware, async (req, res) => {

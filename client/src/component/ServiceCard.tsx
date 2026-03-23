@@ -44,15 +44,19 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   };
 
   const isAgentListing = service.catalogSource === 'agent';
+  const isRequestListing = service.catalogSource === 'request';
   const spacious = layoutDensity === 'spacious';
+  const homehubPhone = "+251994578759";
+  const homehubWhatsapp = "251994578759";
 
   const digitsOnly = (raw: string | null | undefined) =>
     raw ? raw.replace(/\D/g, '') : '';
 
   // Format price in ETB
   const getPriceInETB = () => {
-    if (isAgentListing) {
-      return 'Contact for pricing';
+    if (isAgentListing || isRequestListing) {
+      const n = service.suggestedBookingPrice ?? service.price ?? 0;
+      return n > 0 ? `Budget ${n} ETB` : 'Budget not specified';
     }
     const price = service.price || 0;
     const priceType = service.priceType || 'fixed';
@@ -368,6 +372,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             <span className="text-xs font-semibold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">
               Agent network
             </span>
+          ) : isRequestListing ? (
+            <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+              Service request
+            </span>
           ) : service.serviceRating !== null && service.serviceRating !== undefined ? (
             <>
               <Star size={14} className={`${getRatingColor(service.serviceRating)} fill-current`} />
@@ -428,6 +436,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               <p className="text-sm font-semibold text-gray-900">{service.providerName || 'Unknown Provider'}</p>
               {isAgentListing ? (
                 <p className="text-xs text-violet-600 mt-1">Referred through a Homehub agent</p>
+              ) : isRequestListing ? (
+                <p className="text-xs text-blue-600 mt-1">Requested by a HomeHub user</p>
               ) : (
                 <div className="flex items-center space-x-1 mt-1">
                   <Star size={12} className={`${getRatingColor(service.providerRating || 0)} fill-current`} />
@@ -502,16 +512,29 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium"
               >
                 <Eye size={16} />
-                <span>{isAgentListing ? 'Contact Homehub' : 'View Full Details'}</span>
+                <span>{isAgentListing || isRequestListing ? 'Contact Homehub' : 'View Full Details'}</span>
               </button>
             )}
             {isAgentListing ? (
               <div className="flex flex-1 flex-wrap gap-2">
+                {onBookService && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onBookService(service);
+                    }}
+                    className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-medium"
+                  >
+                    <Calendar size={16} />
+                    <span>Book now</span>
+                  </button>
+                )}
                 {service.agentPhone && (
                   <a
                     href={`tel:${service.agentPhone.replace(/\s/g, '')}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all font-medium"
+                    className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-lg hover:from-violet-600 hover:to-violet-700 transition-all font-medium"
                   >
                     <Calendar size={16} />
                     <span>Call</span>
@@ -528,6 +551,28 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                     <span>WhatsApp</span>
                   </a>
                 )}
+              </div>
+            ) : isRequestListing ? (
+              <div className="flex flex-1 flex-wrap gap-2">
+                <a
+                  href={`tel:${homehubPhone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium"
+                >
+                  <span>Call HomeHub</span>
+                </a>
+                <a
+                  href={`https://wa.me/${homehubWhatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 min-w-[120px] flex items-center justify-center space-x-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium"
+                >
+                  <span>WhatsApp HomeHub</span>
+                </a>
+                <div className="basis-full text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                  Professionals should contact HomeHub directly to get this order.
+                </div>
               </div>
             ) : (
               onBookService && (
@@ -548,7 +593,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       )}
 
       {/* Booking Modal (provider listings only) */}
-      {!isAgentListing && (
+      {!isAgentListing && !isRequestListing && (
         <BookingModal
           service={service}
           isOpen={showBookingModal}

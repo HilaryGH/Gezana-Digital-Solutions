@@ -16,6 +16,8 @@ export interface Booking {
 }
 
 export interface BookingWithDetails extends Booking {
+  bookingKind?: 'service' | 'professional';
+  professionalPrice?: number | null;
   user?: {
     _id: string;
     name: string;
@@ -32,6 +34,21 @@ export interface BookingWithDetails extends Booking {
       email: string;
       phone?: string;
     };
+  };
+  agentProfessional?: {
+    _id: string;
+    fullName: string;
+    serviceType?: string;
+    phone?: string;
+    email?: string;
+    city?: string;
+    location?: string;
+  };
+  agent?: {
+    _id: string;
+    name: string;
+    email?: string;
+    phone?: string;
   };
   category?: {
     _id: string;

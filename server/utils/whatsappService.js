@@ -210,11 +210,46 @@ Gezana - Your Service Partner 🤝`;
   }
 };
 
+const sendServiceRequestConfirmationWhatsApp = async (phoneNumber, userName, requestDetails) => {
+  try {
+    const client = createTwilioClient();
+    if (!client) {
+      return { success: false, error: "Twilio not configured" };
+    }
+
+    const message = `✅ *Service Request Received*
+
+Hi ${userName},
+
+We've received your request successfully.
+
+*Request ID:* ${requestDetails.requestId}
+*Service:* ${requestDetails.serviceNeeded}
+*Location:* ${requestDetails.location}
+
+Our team will contact you soon with the best provider options.
+
+HomeHub Digital Solutions`;
+
+    const response = await client.messages.create({
+      from: formatPhoneNumber(process.env.TWILIO_WHATSAPP_NUMBER || process.env.TWILIO_PHONE_NUMBER),
+      to: formatPhoneNumber(phoneNumber),
+      body: message
+    });
+
+    return { success: true, messageSid: response.sid };
+  } catch (error) {
+    console.error("❌ Error sending service request WhatsApp:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeWhatsApp,
   sendServicePublishedWhatsApp,
   sendBookingConfirmationWhatsApp,
   sendBookingReminderWhatsApp,
+  sendServiceRequestConfirmationWhatsApp,
   formatPhoneNumber
 };
 

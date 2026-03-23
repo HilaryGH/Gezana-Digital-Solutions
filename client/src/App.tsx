@@ -64,6 +64,7 @@ import AuthError from "./component/AuthError";
 import PremiumMembershipPage from "./component/Pages/PremiumMembershipPage";
 import ProfessionalsCommunityForm from "./component/Pages/ProfessionalsCommunityForm";
 import AgentsPartnershipAgreementPage from "./component/Pages/AgentsPartnershipAgreementPage";
+import ServiceRequestPage from "./component/Pages/ServiceRequestPage";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
 function AppContent() {
@@ -119,6 +120,7 @@ const noNavbarRoutes = [
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/service-request" element={<ServiceRequestPage />} />
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/provider/:providerId/details" element={<ProviderDetails />} />
         <Route path="/contact" element={<ContactPage />} />

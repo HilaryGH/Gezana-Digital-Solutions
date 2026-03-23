@@ -46,9 +46,27 @@ const BookingModal: React.FC<BookingModalProps> = ({
   onClose,
   onBookingSuccess
 }) => {
-  // Use discounted price if special offer is available, otherwise use service price
-  const finalPrice = specialOffer ? specialOffer.discountedPrice : service.price;
+  const isAgentProfessional = service.catalogSource === 'agent';
   const navigate = useNavigate();
+  const [professionalPriceInput, setProfessionalPriceInput] = useState<string>(() =>
+    String(service.suggestedBookingPrice ?? service.price ?? 500)
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      setProfessionalPriceInput(String(service.suggestedBookingPrice ?? service.price ?? 500));
+    }
+  }, [isOpen, service.suggestedBookingPrice, service.price, service.id]);
+
+  const parsedProfessionalPrice = Math.max(
+    1,
+    parseFloat(professionalPriceInput.replace(/,/g, '')) || 0
+  );
+  const finalPrice = isAgentProfessional
+    ? parsedProfessionalPrice
+    : specialOffer
+      ? specialOffer.discountedPrice
+      : service.price;
   const [formData, setFormData] = useState<BookingFormData>({
     date: '',
     time: '',
@@ -187,39 +205,64 @@ const BookingModal: React.FC<BookingModalProps> = ({
         return;
       }
       
-      // Get service ID - handle both id and _id properties
-      const serviceId = (service as any).id || (service as any)._id || service.id;
-      
-      if (!serviceId) {
+      const listingId = (service as any).id || (service as any)._id || service.id;
+
+      if (!listingId) {
         console.error('Service object:', service);
-        setError('Service ID is missing. Please refresh and try again.');
+        setError('Listing ID is missing. Please refresh and try again.');
         setLoading(false);
         return;
       }
-      
-      const bookingData = {
-        service: serviceId,
-        date: bookingDateTime.toISOString(),
-        note: formData.note || '',
-        paymentMethod: formData.paymentMethod,
-        // Referral code (if provided)
-        ...(formData.referralCode ? { referralCode: formData.referralCode.trim().toUpperCase() } : {}),
-        // Guest information (only if not logged in)
-        ...(isLoggedIn ? {} : {
-          guestInfo: {
-            fullName: formData.fullName.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            address: formData.address.trim()
+
+      if (isAgentProfessional && (!Number.isFinite(parsedProfessionalPrice) || parsedProfessionalPrice < 1)) {
+        setError('Enter a valid booking amount (ETB), at least 1.');
+        setLoading(false);
+        return;
+      }
+
+      const bookingData = isAgentProfessional
+        ? {
+            agentProfessional: listingId,
+            professionalPrice: parsedProfessionalPrice,
+            date: bookingDateTime.toISOString(),
+            note: formData.note || '',
+            paymentMethod: formData.paymentMethod,
+            ...(formData.referralCode ? { referralCode: formData.referralCode.trim().toUpperCase() } : {}),
+            ...(isLoggedIn
+              ? {}
+              : {
+                  guestInfo: {
+                    fullName: formData.fullName.trim(),
+                    email: formData.email.trim(),
+                    phone: formData.phone.trim(),
+                    address: formData.address.trim(),
+                  },
+                }),
           }
-        })
-      };
+        : {
+            service: listingId,
+            date: bookingDateTime.toISOString(),
+            note: formData.note || '',
+            paymentMethod: formData.paymentMethod,
+            ...(formData.referralCode ? { referralCode: formData.referralCode.trim().toUpperCase() } : {}),
+            ...(isLoggedIn
+              ? {}
+              : {
+                  guestInfo: {
+                    fullName: formData.fullName.trim(),
+                    email: formData.email.trim(),
+                    phone: formData.phone.trim(),
+                    address: formData.address.trim(),
+                  },
+                }),
+          };
 
       console.log('Submitting booking with data:', {
-        serviceId: bookingData.service,
+        listingId,
+        isAgentProfessional,
         date: bookingData.date,
-        hasGuestInfo: !!bookingData.guestInfo,
-        isLoggedIn
+        hasGuestInfo: !!(bookingData as any).guestInfo,
+        isLoggedIn,
       });
 
       const token = localStorage.getItem('token');
@@ -313,7 +356,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
       } else if (err.response?.status === 401) {
         errorMessage = 'Please log in to book a service';
       } else if (err.response?.status === 404) {
-        errorMessage = 'Service not found. Please refresh and try again.';
+        errorMessage = isAgentProfessional
+          ? 'This professional is no longer available for booking.'
+          : 'Service not found. Please refresh and try again.';
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.message) {
@@ -352,8 +397,14 @@ const BookingModal: React.FC<BookingModalProps> = ({
               <Calendar className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Book Service</h2>
-              <p className="text-sm text-gray-500">Schedule your appointment</p>
+              <h2 className="text-xl font-bold text-gray-900">
+                {isAgentProfessional ? 'Book professional' : 'Book Service'}
+              </h2>
+              <p className="text-sm text-gray-500">
+                {isAgentProfessional
+                  ? 'Schedule through Homehub — your agent will be notified'
+                  : 'Schedule your appointment'}
+              </p>
             </div>
           </div>
           <button
@@ -403,7 +454,22 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 </span>
               </div>
               <div className="mt-2">
-                {specialOffer ? (
+                {isAgentProfessional ? (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Booking amount (ETB)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={professionalPriceInput}
+                      onChange={(e) => setProfessionalPriceInput(e.target.value)}
+                      className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Suggested {service.suggestedBookingPrice ?? service.price ?? 500} ETB — adjust to match what you agree with the professional.
+                    </p>
+                  </div>
+                ) : specialOffer ? (
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <Tag className="w-4 h-4 text-orange-600" />
@@ -672,7 +738,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 ) : (
                   <>
                     <Calendar className="w-4 h-4" />
-                    <span>Book Service</span>
+                    <span>{isAgentProfessional ? 'Confirm booking' : 'Book Service'}</span>
                   </>
                 )}
               </button>

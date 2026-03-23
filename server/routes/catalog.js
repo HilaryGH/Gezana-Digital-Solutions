@@ -32,6 +32,11 @@ function toProviderCatalogItem(service) {
 /**
  * Map an AgentProfessional document (lean) to the unified catalog shape.
  */
+function defaultProfessionalBookingPrice() {
+  const n = Number(process.env.AGENT_PROFESSIONAL_DEFAULT_BOOKING_PRICE);
+  return Number.isFinite(n) && n > 0 ? n : 500;
+}
+
 function toAgentCatalogItem(pro) {
   const serviceType = pro.serviceType?.trim() || "";
   const city = pro.city?.trim() || "";
@@ -40,6 +45,7 @@ function toAgentCatalogItem(pro) {
     _id: pro._id,
     title: serviceType || pro.fullName,
     price: null,
+    suggestedBookingPrice: defaultProfessionalBookingPrice(),
     category: serviceType,
     providerName: pro.fullName,
     source: "agent",
@@ -73,7 +79,7 @@ router.get("/", async (req, res) => {
         })
         .lean()
         .exec(),
-      AgentProfessional.find({})
+      AgentProfessional.find({ status: "approved" })
         .lean()
         .exec(),
     ]);

@@ -12,6 +12,7 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
+const express = require("express");
 const TelegramBot = require("node-telegram-bot-api");
 const mongoose = require("mongoose");
 
@@ -35,6 +36,14 @@ if (!TOKEN) {
   );
   process.exit(1);
 }
+
+const PORT = Number(process.env.PORT || 3000);
+const WEBHOOK_PATH = process.env.TELEGRAM_WEBHOOK_PATH || "/webhook";
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+const WEBHOOK_BASE_URL = process.env.TELEGRAM_WEBHOOK_URL || RENDER_URL;
+const WEBHOOK_URL = WEBHOOK_BASE_URL
+  ? `${WEBHOOK_BASE_URL.replace(/\/+$/, "")}${WEBHOOK_PATH}`
+  : "";
 
 // ---------------------------------------------------------------------------
 // HomeHub model (same as API / catalog agent professionals)
@@ -193,10 +202,9 @@ async function editProfessionalsMessage(chatId, messageId, body, replyMarkup) {
 // Bot setup
 // ---------------------------------------------------------------------------
 
-// Disable deprecation warning for file downloads if not used.
-const bot = new TelegramBot(TOKEN, { polling: true });
-
-console.log("[telegram-bot] Polling started. Waiting for messages…");
+const bot = new TelegramBot(TOKEN);
+const app = express();
+app.use(express.json({ limit: "1mb" }));
 
 // ---------------------------------------------------------------------------
 // Step 1: /start — welcome message
@@ -305,11 +313,63 @@ bot.on("callback_query", async (query) => {
 });
 
 // ---------------------------------------------------------------------------
+// Webhook server
+// ---------------------------------------------------------------------------
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: "homehub-telegram-bot",
+    mode: "webhook",
+    webhookPath: WEBHOOK_PATH,
+  });
+});
+
+app.post(WEBHOOK_PATH, async (req, res) => {
+  try {
+    await bot.processUpdate(req.body);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("[telegram-bot] processUpdate failed:", err?.message || err);
+    res.sendStatus(500);
+  }
+});
+
+app.use((err, _req, res, _next) => {
+  console.error("[telegram-bot] express error:", err?.message || err);
+  res.status(500).json({ ok: false, message: "Internal server error" });
+});
+
+async function initWebhook() {
+  if (!WEBHOOK_URL) {
+    console.error(
+      "[telegram-bot] Missing TELEGRAM_WEBHOOK_URL or RENDER_EXTERNAL_URL. Cannot set webhook."
+    );
+    process.exit(1);
+  }
+
+  try {
+    await bot.deleteWebHook();
+    const ok = await bot.setWebHook(WEBHOOK_URL);
+    console.log("[telegram-bot] setWebHook result:", ok);
+    console.log("[telegram-bot] Webhook URL:", WEBHOOK_URL);
+  } catch (err) {
+    console.error("[telegram-bot] Failed to set webhook:", err?.message || err);
+    process.exit(1);
+  }
+}
+
+app.listen(PORT, async () => {
+  console.log(`[telegram-bot] Web service listening on port ${PORT}`);
+  await initWebhook();
+});
+
+// ---------------------------------------------------------------------------
 // Graceful shutdown
 // ---------------------------------------------------------------------------
 function shutdown(signal) {
   console.log(`[telegram-bot] ${signal} received, stopping…`);
-  bot.stopPolling();
+  bot.deleteWebHook().catch(() => {});
   mongoose.connection
     .close()
     .catch(() => {})

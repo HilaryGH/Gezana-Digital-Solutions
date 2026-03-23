@@ -93,6 +93,7 @@ const SuperadminDashboard = () => {
   const [agentProfessionals, setAgentProfessionals] = useState<AgentSubmittedProfessional[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [agentProSearch, setAgentProSearch] = useState("");
+  const [showAgentProfessionals, setShowAgentProfessionals] = useState(false);
   const [userName, setUserName] = useState("Superadmin");
   const [refreshing, setRefreshing] = useState(false);
 
@@ -184,7 +185,10 @@ const SuperadminDashboard = () => {
           return isPaid && (isCompletedOrConfirmed || b.status === "pending"); // Include pending paid bookings too
         })
         .reduce((sum, b) => {
-          const price = b.service?.price || 0;
+          const price =
+            b.bookingKind === "professional"
+              ? Number(b.professionalPrice || 0)
+              : b.service?.price || 0;
           return sum + price;
         }, 0);
       
@@ -389,6 +393,11 @@ const SuperadminDashboard = () => {
       agentEmail.includes(q)
     );
   });
+
+  const providerBookingsCount = bookings.filter((b) => b.bookingKind === "service").length;
+  const agentBookingsCount = bookings.filter(
+    (b) => b.bookingKind === "professional" || (!!b.agent && typeof b.agent === "object")
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-100">
@@ -679,8 +688,15 @@ const SuperadminDashboard = () => {
                   </p>
                 </div>
               </div>
+              <button
+                onClick={() => setShowAgentProfessionals((prev) => !prev)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-teal-50 text-teal-700 rounded-lg hover:bg-teal-100 transition-colors font-medium"
+              >
+                {showAgentProfessionals ? "Hide listed professionals" : `See listed professionals (${agentProfessionals.length})`}
+              </button>
             </div>
           </div>
+          {showAgentProfessionals && (
           <div className="p-6">
             <div className="mb-6">
               <div className="relative max-w-md">
@@ -790,6 +806,7 @@ const SuperadminDashboard = () => {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Quick Actions */}
@@ -813,7 +830,15 @@ const SuperadminDashboard = () => {
               <Calendar className="w-6 h-6 text-green-600" />
             </div>
             <h3 className="font-bold text-gray-900 mb-2">All Bookings</h3>
-            <p className="text-sm text-gray-600">View and manage all bookings</p>
+            <p className="text-sm text-gray-600 mb-3">View and manage all bookings by category</p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium">
+                Provider: {providerBookingsCount}
+              </span>
+              <span className="px-2 py-1 rounded-full bg-teal-100 text-teal-700 font-medium">
+                Agent: {agentBookingsCount}
+              </span>
+            </div>
           </button>
 
           <button

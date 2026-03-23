@@ -76,6 +76,15 @@ export function AgentPartnershipAgreementBody({
         by arbitration in <span className="font-semibold">Addis Ababa</span>, unless
         the parties agree otherwise in writing.
       </p>
+      <p>
+        <span className="font-semibold text-gray-900">
+          Disclaimer &amp; Confirmation:
+        </span>{" "}
+        I certify that the information contained in this form is true and
+        accurate. I have read and accepted the information contained in this
+        agreement and confirm that services will be provided as stated in this
+        document.
+      </p>
       <p className="text-xs text-gray-500 pt-2 border-t border-gray-200">
         This summary is provided for convenience. The full legal terms may be
         supplemented by additional Platform policies, onboarding documents, or

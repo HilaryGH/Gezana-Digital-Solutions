@@ -629,12 +629,139 @@ const sendPasswordResetEmail = async (userEmail, userName, resetToken) => {
   }
 };
 
+// Alert listing agent / superadmin when an agent-listed professional is booked
+const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, payload) => {
+  if (!toEmail || !String(toEmail).includes("@")) {
+    return { success: false, error: "No valid email" };
+  }
+  try {
+    const transporter = createTransporter();
+    const {
+      professionalName,
+      serviceLabel,
+      customerName,
+      customerEmail,
+      customerPhone,
+      date,
+      time,
+      amountEtb,
+      location,
+      note,
+    } = payload;
+    const html = `
+<!DOCTYPE html><html><body style="font-family: Arial, sans-serif; line-height: 1.5; color: #333;">
+  <h2 style="color: #2E3DD3;">New professional listing booking</h2>
+  <p>Hi ${recipientLabel || "there"},</p>
+  <p>A customer booked an appointment for a professional you listed on HomeHub.</p>
+  <table style="border-collapse: collapse; width: 100%; max-width: 480px;">
+    <tr><td style="padding: 6px 0;"><strong>Professional</strong></td><td>${professionalName}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Service / type</strong></td><td>${serviceLabel}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Customer</strong></td><td>${customerName}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Email</strong></td><td>${customerEmail || "—"}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Phone</strong></td><td>${customerPhone || "—"}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Date</strong></td><td>${date}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Time</strong></td><td>${time}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Amount (ETB)</strong></td><td>${amountEtb}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Location</strong></td><td>${location || "—"}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Notes</strong></td><td>${note || "—"}</td></tr>
+  </table>
+  <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">HomeHub Digital Solutions</p>
+</body></html>`;
+    const mailOptions = {
+      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: `📋 New booking: ${professionalName} — ${customerName}`,
+      html,
+      text: `Professional booking: ${professionalName} for ${customerName} on ${date} at ${time}. Amount: ${amountEtb} ETB.`,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Internal professional booking alert email failed:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendServiceRequestConfirmationEmail = async (userEmail, userName, requestDetails) => {
+  try {
+    const transporter = createTransporter();
+    const preferredDateText = requestDetails.preferredDate
+      ? new Date(requestDetails.preferredDate).toLocaleString()
+      : "Flexible";
+    const mailOptions = {
+      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      subject: "✅ Service request received - HomeHub",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #2E3DD3;">Service request received</h2>
+          <p>Hi ${userName},</p>
+          <p>We have received your service request and our team will match you with the right provider shortly.</p>
+          <ul>
+            <li><strong>Request ID:</strong> ${requestDetails.requestId}</li>
+            <li><strong>Service:</strong> ${requestDetails.serviceNeeded}</li>
+            <li><strong>Location:</strong> ${requestDetails.location}</li>
+            <li><strong>Preferred date:</strong> ${preferredDateText}</li>
+            <li><strong>Budget:</strong> ${requestDetails.budgetEtb != null ? `${requestDetails.budgetEtb} ETB` : "Not provided"}</li>
+          </ul>
+          <p>Thank you for choosing HomeHub.</p>
+        </div>
+      `,
+      text: `Hi ${userName}, we received your service request (${requestDetails.requestId}) for ${requestDetails.serviceNeeded}.`,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error sending service request confirmation email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendInternalServiceRequestAlert = async (toEmail, payload) => {
+  if (!toEmail || !String(toEmail).includes("@")) {
+    return { success: false, error: "No valid email" };
+  }
+  try {
+    const transporter = createTransporter();
+    const mailOptions = {
+      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: `📩 New service request: ${payload.serviceNeeded}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #2E3DD3;">New service request submitted</h2>
+          <ul>
+            <li><strong>Request ID:</strong> ${payload.requestId}</li>
+            <li><strong>Name:</strong> ${payload.requesterName}</li>
+            <li><strong>Email:</strong> ${payload.requesterEmail}</li>
+            <li><strong>Phone:</strong> ${payload.requesterPhone}</li>
+            <li><strong>Service:</strong> ${payload.serviceNeeded}</li>
+            <li><strong>Location:</strong> ${payload.location}</li>
+            <li><strong>Preferred date:</strong> ${payload.preferredDate ? new Date(payload.preferredDate).toLocaleString() : "Flexible"}</li>
+            <li><strong>Budget:</strong> ${payload.budgetEtb != null ? `${payload.budgetEtb} ETB` : "Not provided"}</li>
+          </ul>
+        </div>
+      `,
+      text: `New service request ${payload.requestId} from ${payload.requesterName} (${payload.requesterEmail})`,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error sending internal service request alert:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendWelcomeEmailWithReferral,
   sendServicePublishedEmail,
   sendBookingConfirmationEmail,
   sendPasswordResetEmail,
+  sendInternalProfessionalBookingAlert,
+  sendServiceRequestConfirmationEmail,
+  sendInternalServiceRequestAlert,
   createTransporter
 };
 

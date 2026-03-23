@@ -275,12 +275,8 @@ const Home = () => {
 
   const navigateToServiceOrAgentContact = (service: Service) => {
     if (service.catalogSource === "agent") {
-      navigate("/contact", {
-        state: {
-          subject: `Agent-listed professional: ${service.title}`,
-          message: `I'm interested in reaching ${service.providerName} (${service.title}).\nListing ID: ${service.id}`,
-        },
-      });
+      const q = encodeURIComponent(service.providerName || service.title || "");
+      navigate(`/services?listing=professionals&query=${q}`);
       return;
     }
     navigate(`/service/${service.id}`);
@@ -1708,9 +1704,9 @@ const Home = () => {
                             <span className="truncate">{pro.location}</span>
                           </p>
                         ) : null}
-                        <p className="text-gray-500 text-xs flex-1">Contact for pricing</p>
+                        <p className="text-gray-500 text-xs flex-1">Set amount when booking</p>
                         <span className="mt-1 w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold text-center group-hover:bg-indigo-700 transition-colors block">
-                          Get in touch
+                          Book now
                         </span>
                       </div>
                     </button>

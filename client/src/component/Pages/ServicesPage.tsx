@@ -10,6 +10,7 @@ import {
   type ServiceSearchParams,
   type CatalogAgentItem,
 } from '../../api/services';
+import { getPublicServiceRequests, mapPublicRequestToService } from '../../api/serviceRequests';
 import { REGISTRATION_SERVICE_CATEGORIES } from '../../constants/registrationServiceCategories';
 import axios from '../../api/axios';
 import ServiceCard from '../ServiceCard';
@@ -18,17 +19,19 @@ import BookingModal from '../BookingModal';
 type JwtPayload = { id?: string; role?: string; exp?: number };
 
 /** What to show on All Services: merged provider listings vs agent-referred professionals. */
-type ListingTypeFilter = 'all' | 'services' | 'professionals';
+type ListingTypeFilter = 'all' | 'services' | 'professionals' | 'requests';
 
 function listingTypeFromSearchParam(raw: string | null): ListingTypeFilter {
   if (raw === 'services' || raw === 'providers') return 'services';
   if (raw === 'professionals' || raw === 'agent') return 'professionals';
+  if (raw === 'requests' || raw === 'requested') return 'requests';
   return 'all';
 }
 
 function listingTypeToSearchParam(v: ListingTypeFilter): string | null {
   if (v === 'services') return 'services';
   if (v === 'professionals') return 'professionals';
+  if (v === 'requests') return 'requests';
   return null;
 }
 
@@ -169,7 +172,11 @@ const ServicesPage: React.FC = () => {
         limit: 12
       };
 
-      const [response, catalogRows] = await Promise.all([getServices(params), getCatalog()]);
+      const [response, catalogRows, requestRows] = await Promise.all([
+        getServices(params),
+        getCatalog(),
+        getPublicServiceRequests(),
+      ]);
 
       let fetchedServices = response.services || [];
 
@@ -196,9 +203,13 @@ const ServicesPage: React.FC = () => {
         .map(mapCatalogAgentToService)
         .filter((s) => agentListingMatchesFilters(s, filterQ));
 
+      const requestListings = (requestRows || [])
+        .map(mapPublicRequestToService)
+        .filter((s) => agentListingMatchesFilters(s, filterQ));
+
       const isAgent = (s: Service) => s.catalogSource === 'agent';
       let merged =
-        page === 1 ? [...fetchedServices, ...agentFromCatalog] : [...fetchedServices];
+        page === 1 ? [...fetchedServices, ...agentFromCatalog, ...requestListings] : [...fetchedServices];
 
       const sortMerged = (list: Service[]) => {
         const out = [...list];
@@ -233,9 +244,11 @@ const ServicesPage: React.FC = () => {
       merged = sortMerged(merged);
 
       if (listingTypeFilter === 'services') {
-        merged = merged.filter((s) => s.catalogSource !== 'agent');
+        merged = merged.filter((s) => s.catalogSource !== 'agent' && s.catalogSource !== 'request');
       } else if (listingTypeFilter === 'professionals') {
         merged = merged.filter((s) => s.catalogSource === 'agent');
+      } else if (listingTypeFilter === 'requests') {
+        merged = merged.filter((s) => s.catalogSource === 'request');
       }
 
       setServices(merged);
@@ -302,7 +315,6 @@ const ServicesPage: React.FC = () => {
   };
 
   const handleBookService = (service: Service) => {
-    if (service.catalogSource === 'agent') return;
     setSelectedService(service);
     setShowBookingModal(true);
   };
@@ -371,6 +383,7 @@ const ServicesPage: React.FC = () => {
                   <option value="all">All (services and professionals)</option>
                   <option value="services">Services (verified providers)</option>
                   <option value="professionals">Professionals (agent-referred)</option>
+                  <option value="requests">Requested services</option>
                 </select>
               </div>
 
@@ -596,7 +609,7 @@ const ServicesPage: React.FC = () => {
       </div>
 
       {/* Booking Modal */}
-      {showBookingModal && selectedService && selectedService.catalogSource !== 'agent' && (
+      {showBookingModal && selectedService && (
         <BookingModal
           service={selectedService}
           isOpen={showBookingModal}

@@ -256,6 +256,9 @@ app.use("/api/statistics", statisticsRoutes);
 const referralsRoutes = require("./routes/referrals");
 app.use("/api/referrals", referralsRoutes);
 
+const serviceRequestsRoutes = require("./routes/serviceRequests");
+app.use("/api/service-requests", serviceRequestsRoutes);
+
 // Root route
 app.get("/", (req, res) => {
   res.json({

@@ -22,10 +22,28 @@ interface BookingService {
   provider: Provider;
 }
 
+interface AgentProSummary {
+  fullName?: string;
+  serviceType?: string;
+  phone?: string;
+  email?: string;
+}
+
+interface BookingAgent {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
 interface Booking {
   _id: string;
   user: User;
-  service: BookingService;
+  guestInfo?: { fullName?: string; email?: string; phone?: string };
+  bookingKind?: string;
+  professionalPrice?: number | null;
+  service?: BookingService;
+  agentProfessional?: AgentProSummary;
+  agent?: BookingAgent;
   date: string;
   status: string;
   createdAt: string;
@@ -66,9 +84,15 @@ const AdminBookings = () => {
         b.user?.name,
         b.user?.email,
         b.user?.phone,
+        b.guestInfo?.fullName,
+        b.guestInfo?.email,
         b.service?.name,
         b.service?.category?.name,
         b.service?.provider?.name,
+        b.agentProfessional?.fullName,
+        b.agentProfessional?.serviceType,
+        b.agent?.name,
+        b.agent?.email,
         b.status,
       ].some((val) => val?.toLowerCase().includes(query))
     );
@@ -135,12 +159,12 @@ const AdminBookings = () => {
           <table className="min-w-full border bg-white shadow-md rounded-md overflow-hidden text-sm">
             <thead className="bg-orange-100 text-orange-800">
               <tr>
-                <th className="py-3 px-4 text-left">User</th>
+                <th className="py-3 px-4 text-left">User / Guest</th>
                 <th className="py-3 px-4 text-left">Email</th>
                 <th className="py-3 px-4 text-left">Phone</th>
-                <th className="py-3 px-4 text-left">Service</th>
+                <th className="py-3 px-4 text-left">Service / Professional</th>
                 <th className="py-3 px-4 text-left">Category</th>
-                <th className="py-3 px-4 text-left">Provider</th>
+                <th className="py-3 px-4 text-left">Provider / Agent</th>
                 <th className="py-3 px-4 text-left">Date</th>
                 <th className="py-3 px-4 text-left">Status</th>
                 <th className="py-3 px-4 text-left">Booked At</th>
@@ -150,17 +174,29 @@ const AdminBookings = () => {
             <tbody>
               {filteredBookings.map((booking) => (
                 <tr key={booking._id} className="border-t hover:bg-orange-50">
-                  <td className="py-2 px-4">{booking.user?.name || "N/A"}</td>
-                  <td className="py-2 px-4">{booking.user?.email || "N/A"}</td>
-                  <td className="py-2 px-4">{booking.user?.phone || "-"}</td>
                   <td className="py-2 px-4">
-                    {booking.service?.name || "N/A"}
+                    {booking.user?.name || booking.guestInfo?.fullName || "Guest"}
                   </td>
                   <td className="py-2 px-4">
-                    {booking.service?.category?.name || "N/A"}
+                    {booking.user?.email || booking.guestInfo?.email || "N/A"}
                   </td>
                   <td className="py-2 px-4">
-                    {booking.service?.provider?.name || "N/A"}
+                    {booking.user?.phone || booking.guestInfo?.phone || "-"}
+                  </td>
+                  <td className="py-2 px-4">
+                    {booking.bookingKind === "professional"
+                      ? `${booking.agentProfessional?.fullName || "Professional"} (${booking.agentProfessional?.serviceType || "—"})${booking.professionalPrice != null ? ` · ${booking.professionalPrice} ETB` : ""}`
+                      : booking.service?.name || "N/A"}
+                  </td>
+                  <td className="py-2 px-4">
+                    {booking.bookingKind === "professional"
+                      ? "Agent-listed"
+                      : booking.service?.category?.name || "N/A"}
+                  </td>
+                  <td className="py-2 px-4">
+                    {booking.bookingKind === "professional"
+                      ? `Agent: ${booking.agent?.name || "—"}`
+                      : booking.service?.provider?.name || "N/A"}
                   </td>
                   <td className="py-2 px-4">
                     {booking.date
