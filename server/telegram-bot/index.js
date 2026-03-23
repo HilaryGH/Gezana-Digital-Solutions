@@ -54,6 +54,7 @@ const Service = require(path.join(__dirname, "..", "models", "Service"));
 const Booking = require(path.join(__dirname, "..", "models", "Booking"));
 const Category = require(path.join(__dirname, "..", "models", "Category"));
 const ServiceType = require(path.join(__dirname, "..", "models", "ServiceType"));
+require(path.join(__dirname, "..", "models", "User"));
 
 /** In-memory booking flow state keyed by chat id. */
 const pendingBookings = new Map();
@@ -114,11 +115,21 @@ async function fetchServicesPage(cursor) {
     filter._id = { $gt: new mongoose.Types.ObjectId(cursor) };
   }
 
-  const docs = await Service.find(filter)
-    .sort({ _id: 1 })
-    .populate("provider", "name")
-    .limit(PAGE_SIZE + 1)
-    .lean();
+  let docs = [];
+  try {
+    docs = await Service.find(filter)
+      .sort({ _id: 1 })
+      .populate("provider", "name")
+      .limit(PAGE_SIZE + 1)
+      .lean();
+  } catch (err) {
+    // Keep /services usable even if populate fails on legacy/invalid provider refs.
+    console.warn("[telegram-bot] Service populate failed, using fallback:", err.message);
+    docs = await Service.find(filter)
+      .sort({ _id: 1 })
+      .limit(PAGE_SIZE + 1)
+      .lean();
+  }
 
   const hasMore = docs.length > PAGE_SIZE;
   const slice = hasMore ? docs.slice(0, PAGE_SIZE) : docs;
@@ -440,11 +451,11 @@ bot.onText(/\/services/, async (msg) => {
     const replyMarkup = buildServicesKeyboard(items, nextCursor);
     await sendProfessionalsMessage(chatId, body, replyMarkup);
   } catch (err) {
-    console.error("[telegram-bot] /services error:", err.message, err.response?.body || "");
+    console.error("[telegram-bot] /services error:", err.message, err.stack || "");
     try {
       await bot.sendMessage(
         chatId,
-        "Sorry, something went wrong loading services. Try again later."
+        "Sorry, something went wrong loading services. Please try again in a moment."
       );
     } catch (_) {}
   }
