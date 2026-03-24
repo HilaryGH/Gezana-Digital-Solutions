@@ -14,6 +14,10 @@ interface ServiceCardProps {
   variant?: 'default' | 'compact' | 'detailed';
   /** Slightly larger padding/typography (e.g. All Services grid with 5 columns) */
   layoutDensity?: 'default' | 'spacious';
+  /** Allow booking directly from card instead of details page */
+  enableInlineBooking?: boolean;
+  /** Enable click-to-expand dropdown details inside card */
+  enableExpandableDetails?: boolean;
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
@@ -24,6 +28,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   isFavorite = false,
   variant = 'default',
   layoutDensity = 'default',
+  enableInlineBooking = true,
+  enableExpandableDetails = true,
 }) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -36,6 +42,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
+    if (!enableExpandableDetails) return;
     // Don't expand if clicking on favorite button
     if ((e.target as HTMLElement).closest('button[data-favorite]')) {
       return;
@@ -360,7 +367,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         {/* Title */}
         <h3
           className={`${
-            spacious ? 'text-lg' : 'text-base'
+            !enableExpandableDetails ? 'text-base' : (spacious ? 'text-lg' : 'text-base')
           } font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2`}
         >
           {service.title || (service as any).name}
@@ -379,7 +386,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
           ) : service.serviceRating !== null && service.serviceRating !== undefined ? (
             <>
               <Star size={14} className={`${getRatingColor(service.serviceRating)} fill-current`} />
-              <span className={`text-sm font-semibold ${getRatingColor(service.serviceRating)}`}>
+              <span className={`${enableExpandableDetails ? 'text-sm' : 'text-xs'} font-semibold ${getRatingColor(service.serviceRating)}`}>
                 {service.serviceRating.toFixed(1)}
               </span>
               {service.ratingCount !== undefined && service.ratingCount > 0 && (
@@ -400,7 +407,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
         
         {/* Price and Distance */}
         <div className="flex items-center justify-between">
-          <span className={`${spacious ? 'text-lg' : 'text-base'} font-bold text-orange-600`}>
+          <span className={`${!enableExpandableDetails ? 'text-base' : (spacious ? 'text-lg' : 'text-base')} font-bold text-orange-600`}>
             {getPriceInETB()}
           </span>
           <div className="flex items-center space-x-2">
@@ -409,17 +416,37 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
               distance={service.distance}
               variant="badge"
             />
-            {isExpanded ? (
-              <ChevronUp size={16} className="text-gray-400" />
-            ) : (
-              <ChevronDown size={16} className="text-gray-400" />
-            )}
+            {enableExpandableDetails ? (
+              isExpanded ? (
+                <ChevronUp size={16} className="text-gray-400" />
+              ) : (
+                <ChevronDown size={16} className="text-gray-400" />
+              )
+            ) : null}
           </div>
         </div>
+
+        {!enableExpandableDetails && (
+          <>
+            {onViewDetails && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDetails(service);
+                }}
+                className="mt-1 w-full flex items-center justify-center space-x-1.5 px-2.5 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium text-xs"
+              >
+                <Eye size={14} />
+                <span>Discover More</span>
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       {/* Expanded Details - shown on click */}
-      {isExpanded && (
+      {enableExpandableDetails && isExpanded && (
         <div
           className={`${
             spacious ? 'px-5 pb-5 pt-5' : 'px-4 pb-4 pt-4'
@@ -512,10 +539,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-medium"
               >
                 <Eye size={16} />
-                <span>{isAgentListing || isRequestListing ? 'Contact Homehub' : 'View Full Details'}</span>
+                <span>Discover More</span>
               </button>
             )}
-            {isAgentListing ? (
+            {enableInlineBooking && isAgentListing ? (
               <div className="flex flex-1 flex-wrap gap-2">
                 {onBookService && (
                   <button
@@ -552,7 +579,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                   </a>
                 )}
               </div>
-            ) : isRequestListing ? (
+            ) : enableInlineBooking && isRequestListing ? (
               <div className="flex flex-1 flex-wrap gap-2">
                 <a
                   href={`tel:${homehubPhone}`}
@@ -575,7 +602,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                 </div>
               </div>
             ) : (
-              onBookService && (
+              enableInlineBooking && onBookService && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -593,7 +620,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       )}
 
       {/* Booking Modal (provider listings only) */}
-      {!isAgentListing && !isRequestListing && (
+      {enableInlineBooking && !isAgentListing && !isRequestListing && (
         <BookingModal
           service={service}
           isOpen={showBookingModal}

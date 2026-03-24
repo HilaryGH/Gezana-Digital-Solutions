@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import { 
   Star, MapPin, DollarSign, Clock, Calendar, 
   Shield, Award, CheckCircle, 
@@ -38,6 +39,25 @@ const ServiceDetails = () => {
   const [isProviderOnDuty, setIsProviderOnDuty] = useState<boolean | null>(null);
   const [providerRating, setProviderRating] = useState<number | null>(null);
   const [isPremiumIndividualSeeker, setIsPremiumIndividualSeeker] = useState<boolean>(false);
+  const serviceFromState = location.state?.service as Service | undefined;
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
+
+  const isRequestListing = service?.catalogSource === 'request';
+  const canAcceptRequest = currentUserRole === 'provider';
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setCurrentUserRole('');
+      return;
+    }
+    try {
+      const payload = jwtDecode<{ role?: string }>(token);
+      setCurrentUserRole(payload.role || '');
+    } catch {
+      setCurrentUserRole('');
+    }
+  }, []);
 
   useEffect(() => {
     // Check if special offer data was passed via navigation state
@@ -115,6 +135,19 @@ const ServiceDetails = () => {
   useEffect(() => {
     const fetchServiceDetails = async () => {
       if (!id) return;
+
+      // Agent/request listings are synthesized in All Services and may not exist in /services/:id.
+      // When available from navigation state, render details directly.
+      if (
+        serviceFromState &&
+        String(serviceFromState.id) === String(id) &&
+        (serviceFromState.catalogSource === 'agent' || serviceFromState.catalogSource === 'request')
+      ) {
+        setService(serviceFromState);
+        setError('');
+        setLoading(false);
+        return;
+      }
       
       try {
         setLoading(true);
@@ -199,7 +232,7 @@ const ServiceDetails = () => {
     };
 
     fetchServiceDetails();
-  }, [id]);
+  }, [id, serviceFromState]);
 
   const formatPrice = (price: number, priceType: string) => {
     const formattedPrice = new Intl.NumberFormat('en-US', {
@@ -609,13 +642,34 @@ const ServiceDetails = () => {
                 </div>
 
                 <button
-                  onClick={() => setShowBookingModal(true)}
-                  disabled={service.isAvailable === false}
+                  onClick={() => {
+                    if (isRequestListing) {
+                      if (!canAcceptRequest) return;
+                      navigate('/contact', {
+                        state: {
+                          subject: `Accept request: ${service.title}`,
+                          message: `I want to accept this requested service.\nRequest ID: ${service.id}\nRequester: ${service.providerName}\nLocation: ${service.location}`,
+                        },
+                      });
+                      return;
+                    }
+                    setShowBookingModal(true);
+                  }}
+                  disabled={isRequestListing ? !canAcceptRequest : service.isAvailable === false}
                   className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
                 >
                   <Calendar size={20} />
-                  <span>{service.isAvailable === false ? 'Currently Unavailable' : 'Book This Service'}</span>
+                  <span>
+                    {isRequestListing
+                      ? (canAcceptRequest ? 'Accept Request' : 'Only Service Providers Can Accept')
+                      : (service.isAvailable === false ? 'Currently Unavailable' : 'Book This Service')}
+                  </span>
                 </button>
+                {isRequestListing && (
+                  <p className="text-xs text-gray-500">
+                    Requested services are for service providers to accept; service seekers cannot book them.
+                  </p>
+                )}
 
                 {/* Trust Badges */}
                 <div className="pt-4 border-t border-gray-200 space-y-3">
@@ -697,16 +751,18 @@ const ServiceDetails = () => {
       </div>
 
       {/* Booking Modal */}
-      <BookingModal
-        service={service}
-        specialOffer={specialOffer}
-        isOpen={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
-        onBookingSuccess={(booking) => {
-          console.log('Booking successful:', booking);
-          setShowBookingModal(false);
-        }}
-      />
+      {!isRequestListing && (
+        <BookingModal
+          service={service}
+          specialOffer={specialOffer}
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          onBookingSuccess={(booking) => {
+            console.log('Booking successful:', booking);
+            setShowBookingModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -14,7 +14,6 @@ import { getPublicServiceRequests, mapPublicRequestToService } from '../../api/s
 import { REGISTRATION_SERVICE_CATEGORIES } from '../../constants/registrationServiceCategories';
 import axios from '../../api/axios';
 import ServiceCard from '../ServiceCard';
-import BookingModal from '../BookingModal';
 
 type JwtPayload = { id?: string; role?: string; exp?: number };
 
@@ -84,8 +83,6 @@ const ServicesPage: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
 
   // If the logged-in user is an agent, show only services provided by
   // the professionals created via the Agent Dashboard.
@@ -302,21 +299,13 @@ const ServicesPage: React.FC = () => {
   };
 
   const handleViewDetails = (service: Service) => {
-    if (service.catalogSource === 'agent') {
-      navigate('/contact', {
-        state: {
-          subject: `Agent-listed professional: ${service.title}`,
-          message: `I'm interested in reaching ${service.providerName} (${service.title}).\nListing ID: ${service.id}`,
-        },
-      });
-      return;
-    }
-    navigate(`/service/${service.id}`);
+    navigate(`/service/${service.id}`, {
+      state: { service },
+    });
   };
 
   const handleBookService = (service: Service) => {
-    setSelectedService(service);
-    setShowBookingModal(true);
+    navigate(`/service/${service.id}`);
   };
 
   const getSubcategories = (): string[] => {
@@ -563,6 +552,8 @@ const ServicesPage: React.FC = () => {
                 onBookService={handleBookService}
                 variant={viewMode === 'list' ? 'detailed' : 'default'}
                 layoutDensity={viewMode === 'grid' ? 'spacious' : 'default'}
+                enableInlineBooking={false}
+                enableExpandableDetails={false}
               />
             ))}
           </div>
@@ -608,23 +599,6 @@ const ServicesPage: React.FC = () => {
         )}
       </div>
 
-      {/* Booking Modal */}
-      {showBookingModal && selectedService && (
-        <BookingModal
-          service={selectedService}
-          isOpen={showBookingModal}
-          onClose={() => {
-            setShowBookingModal(false);
-            setSelectedService(null);
-          }}
-          onBookingSuccess={(booking) => {
-            console.log('Booking successful:', booking);
-            setShowBookingModal(false);
-            setSelectedService(null);
-            navigate('/my-bookings');
-          }}
-        />
-      )}
     </div>
   );
 };

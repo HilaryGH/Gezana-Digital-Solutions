@@ -141,11 +141,11 @@ const Footer = () => {
                 </div>
                 <span className="group-hover:translate-x-1 transition-transform">+25199 457 8759</span>
               </a>
-              <a href="mailto:CEO@Homehub.et" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
+              <a href="mailto:Hello@Homehub.et" className="flex items-center space-x-3 text-sm text-gray-300 hover:text-blue-400 transition-colors group">
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
                   <FaEnvelope className="w-3.5 h-3.5 text-blue-400" />
                 </div>
-                <span className="group-hover:translate-x-1 transition-transform">CEO@Homehub.et</span>
+                <span className="group-hover:translate-x-1 transition-transform">Hello@Homehub.et</span>
               </a>
               <div className="flex items-center space-x-3 text-sm text-gray-300">
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">

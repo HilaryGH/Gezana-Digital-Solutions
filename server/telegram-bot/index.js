@@ -15,6 +15,7 @@ require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const express = require("express");
 const TelegramBot = require("node-telegram-bot-api");
 const mongoose = require("mongoose");
+const axios = require("axios");
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -45,6 +46,13 @@ const WEBHOOK_URL = WEBHOOK_BASE_URL
   ? `${WEBHOOK_BASE_URL.replace(/\/+$/, "")}${WEBHOOK_PATH}`
   : "";
 
+const DATA_API_BASE_URL =
+  process.env.TELEGRAM_DATA_API_BASE_URL ||
+  process.env.API_BASE_URL ||
+  process.env.SERVER_BASE_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  "http://localhost:5000";
+
 // ---------------------------------------------------------------------------
 // HomeHub model (same as API / catalog agent professionals)
 // ---------------------------------------------------------------------------
@@ -67,11 +75,35 @@ function isMongoObjectIdString(s) {
 async function ensureDbConnection() {
   const mongoUri = process.env.MONGO_URI;
   if (!mongoUri) {
-    throw new Error("Missing MONGO_URI. Telegram bot requires database access.");
+    throw new Error("Missing MONGO_URI");
   }
   if (mongoose.connection.readyState !== 1) {
     await mongoose.connect(mongoUri);
   }
+}
+
+function parseApiOffsetCursor(cursor) {
+  if (typeof cursor !== "string") return 0;
+  if (!cursor.startsWith("api:")) return 0;
+  const raw = Number(cursor.slice(4));
+  if (!Number.isFinite(raw) || raw < 0) return 0;
+  return Math.floor(raw);
+}
+
+async function fetchCatalogFromApi() {
+  const url = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/catalog`;
+  const response = await axios.get(url, { timeout: 15000 });
+  return Array.isArray(response.data) ? response.data : [];
+}
+
+async function fetchServicesFromApi() {
+  const url = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/services`;
+  const response = await axios.get(url, { timeout: 15000 });
+  const data = response.data;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.services)) return data.services;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
 }
 
 // ---------------------------------------------------------------------------
@@ -84,66 +116,100 @@ async function ensureDbConnection() {
  * @returns {Promise<{ items: Array<{id:string,fullName:string,serviceType:string,city:string}>, nextCursor: string|null }>}
  */
 async function fetchProfessionalsPage(cursor) {
-  await ensureDbConnection();
-  const filter = { status: "approved" };
-  if (cursor && isMongoObjectIdString(cursor)) {
-    filter._id = { $gt: new mongoose.Types.ObjectId(cursor) };
+  try {
+    await ensureDbConnection();
+    const filter = { status: "approved" };
+    if (cursor && isMongoObjectIdString(cursor)) {
+      filter._id = { $gt: new mongoose.Types.ObjectId(cursor) };
+    }
+
+    const docs = await AgentProfessional.find(filter)
+      .sort({ _id: 1 })
+      .limit(PAGE_SIZE + 1)
+      .lean();
+
+    const hasMore = docs.length > PAGE_SIZE;
+    const slice = hasMore ? docs.slice(0, PAGE_SIZE) : docs;
+    const items = slice.map((d) => ({
+      id: String(d._id),
+      fullName: asDisplayText(d.fullName),
+      serviceType: asDisplayText(d.serviceType),
+      city: asDisplayText(d.city || d.location),
+    }));
+    const nextCursor =
+      hasMore && slice.length > 0 ? String(slice[slice.length - 1]._id) : null;
+    return { items, nextCursor };
+  } catch (dbErr) {
+    console.warn("[telegram-bot] DB fetchProfessionalsPage failed, using API fallback:", dbErr?.message || dbErr);
+    const offset = parseApiOffsetCursor(cursor);
+    const rows = await fetchCatalogFromApi();
+    const professionalRows = rows.filter((r) => String(r?.source || "").toLowerCase() === "agent");
+    const slice = professionalRows.slice(offset, offset + PAGE_SIZE);
+    const items = slice.map((d) => ({
+      id: String(d?._id || d?.id || ""),
+      fullName: asDisplayText(d?.providerName || d?.fullName),
+      serviceType: asDisplayText(d?.title || d?.serviceType),
+      city: asDisplayText(d?.city || d?.location),
+    }));
+    const nextCursor = offset + PAGE_SIZE < professionalRows.length ? `api:${offset + PAGE_SIZE}` : null;
+    return { items, nextCursor };
   }
-
-  const docs = await AgentProfessional.find(filter)
-    .sort({ _id: 1 })
-    .limit(PAGE_SIZE + 1)
-    .lean();
-
-  const hasMore = docs.length > PAGE_SIZE;
-  const slice = hasMore ? docs.slice(0, PAGE_SIZE) : docs;
-  const items = slice.map((d) => ({
-    id: String(d._id),
-    fullName: d.fullName || "—",
-    serviceType: (d.serviceType || "").trim() || "—",
-    city: (d.city || d.location || "").trim() || "—",
-  }));
-  const nextCursor =
-    hasMore && slice.length > 0 ? String(slice[slice.length - 1]._id) : null;
-  return { items, nextCursor };
 }
 
 async function fetchServicesPage(cursor) {
-  await ensureDbConnection();
-  const filter = { isActive: true };
-  if (cursor && isMongoObjectIdString(cursor)) {
-    filter._id = { $gt: new mongoose.Types.ObjectId(cursor) };
-  }
-
-  let docs = [];
   try {
-    docs = await Service.find(filter)
-      .sort({ _id: 1 })
-      .populate("provider", "name")
-      .limit(PAGE_SIZE + 1)
-      .lean();
-  } catch (err) {
-    // Keep /services usable even if populate fails on legacy/invalid provider refs.
-    console.warn("[telegram-bot] Service populate failed, using fallback:", err.message);
-    docs = await Service.find(filter)
-      .sort({ _id: 1 })
-      .limit(PAGE_SIZE + 1)
-      .lean();
-  }
+    await ensureDbConnection();
+    const filter = { isActive: true };
+    if (cursor && isMongoObjectIdString(cursor)) {
+      filter._id = { $gt: new mongoose.Types.ObjectId(cursor) };
+    }
 
-  const hasMore = docs.length > PAGE_SIZE;
-  const slice = hasMore ? docs.slice(0, PAGE_SIZE) : docs;
-  const items = slice.map((d) => ({
-    id: String(d._id),
-    name: d.name || "—",
-    category: d.category || "—",
-    type: d.type || "—",
-    price: Number(d.price || 0),
-    providerName: d.provider?.name || "Provider",
-  }));
-  const nextCursor =
-    hasMore && slice.length > 0 ? String(slice[slice.length - 1]._id) : null;
-  return { items, nextCursor };
+    let docs = [];
+    try {
+      docs = await Service.find(filter)
+        .sort({ _id: 1 })
+        .populate("provider", "name")
+        .limit(PAGE_SIZE + 1)
+        .lean();
+    } catch (err) {
+      // Keep /services usable even if populate fails on legacy/invalid provider refs.
+      console.warn("[telegram-bot] Service populate failed, using fallback:", err.message);
+      docs = await Service.find(filter)
+        .sort({ _id: 1 })
+        .limit(PAGE_SIZE + 1)
+        .lean();
+    }
+
+    const hasMore = docs.length > PAGE_SIZE;
+    const slice = hasMore ? docs.slice(0, PAGE_SIZE) : docs;
+    const items = slice.map((d) => ({
+      id: String(d._id),
+      name: asDisplayText(d.name),
+      category: asDisplayText(d.category),
+      type: asDisplayText(d.type),
+      price: Number(d.price || 0),
+      providerName: asDisplayText(d.provider?.name, "Provider"),
+    }));
+    const nextCursor =
+      hasMore && slice.length > 0 ? String(slice[slice.length - 1]._id) : null;
+    return { items, nextCursor };
+  } catch (dbErr) {
+    console.warn("[telegram-bot] DB fetchServicesPage failed, using API fallback:", dbErr?.message || dbErr);
+    const offset = parseApiOffsetCursor(cursor);
+    const rows = await fetchServicesFromApi();
+    const activeRows = rows.filter((r) => r?.isActive !== false);
+    const slice = activeRows.slice(offset, offset + PAGE_SIZE);
+    const items = slice.map((d) => ({
+      id: String(d?._id || d?.id || ""),
+      name: asDisplayText(d?.name || d?.title),
+      category: asDisplayText(d?.category),
+      type: asDisplayText(d?.type || d?.subcategory),
+      price: Number(d?.price || 0),
+      providerName: asDisplayText(d?.providerName || d?.provider?.name, "Provider"),
+    }));
+    const nextCursor = offset + PAGE_SIZE < activeRows.length ? `api:${offset + PAGE_SIZE}` : null;
+    return { items, nextCursor };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -158,6 +224,25 @@ function escapeHtml(text) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+/** Convert potentially malformed DB values into safe display strings. */
+function asDisplayText(value, fallback = "—") {
+  if (value == null) return fallback;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || fallback;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (typeof value === "object") {
+    if (typeof value.name === "string" && value.name.trim()) return value.name.trim();
+    if (typeof value.title === "string" && value.title.trim()) return value.title.trim();
+    if (typeof value.label === "string" && value.label.trim()) return value.label.trim();
+    return fallback;
+  }
+  return fallback;
 }
 
 function formatProfessionalsListHtml(items, pageLabel) {
@@ -402,7 +487,13 @@ bot.onText(/\/start/, (msg) => {
     `• /cancel — cancel current booking flow\n` +
     `• /start — show this message`;
 
-  bot.sendMessage(chatId, text, { parse_mode: "HTML" }).catch((err) => {
+  bot.sendMessage(chatId, text, {
+    parse_mode: "HTML",
+    reply_markup: {
+      keyboard: [[{ text: "/professionals" }, { text: "/services" }]],
+      resize_keyboard: true,
+    },
+  }).catch((err) => {
     console.error("[telegram-bot] /start send failed:", err.message);
     bot.sendMessage(
       chatId,
@@ -433,7 +524,11 @@ bot.onText(/\/professionals/, async (msg) => {
     const replyMarkup = buildProfessionalsKeyboard(items, nextCursor);
     await sendProfessionalsMessage(chatId, body, replyMarkup);
   } catch (err) {
-    console.error("[telegram-bot] /professionals error:", err.message, err.response?.body || "");
+    console.error(
+      "[telegram-bot] /professionals error:",
+      err?.stack || err?.message || err,
+      err?.response?.body || ""
+    );
     try {
       await bot.sendMessage(
         chatId,
@@ -451,7 +546,11 @@ bot.onText(/\/services/, async (msg) => {
     const replyMarkup = buildServicesKeyboard(items, nextCursor);
     await sendProfessionalsMessage(chatId, body, replyMarkup);
   } catch (err) {
-    console.error("[telegram-bot] /services error:", err.message, err.stack || "");
+    console.error(
+      "[telegram-bot] /services error:",
+      err?.stack || err?.message || err,
+      err?.response?.body || ""
+    );
     try {
       await bot.sendMessage(
         chatId,
