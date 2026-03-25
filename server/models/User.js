@@ -133,6 +133,8 @@ const userSchema = new mongoose.Schema(
     servicePhotos: [{ type: String }], // Array of file paths
     video: { type: String }, // File path
     priceList: { type: String }, // File path
+    /** BB documents (optional business / bureau paperwork for service providers) */
+    bbDocuments: { type: String },
     credentials: [{ type: String }], // Additional credential uploads
     
     // Provider duty status

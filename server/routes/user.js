@@ -181,6 +181,7 @@ const formatProviderResponse = (providerDoc, req) => {
       license: toPublicFileUrl(req, provider.license),
       tradeRegistration: toPublicFileUrl(req, provider.tradeRegistration),
       professionalCertificate: toPublicFileUrl(req, provider.professionalCertificate),
+      bbDocuments: toPublicFileUrl(req, provider.bbDocuments),
       priceList: toPublicFileUrl(req, provider.priceList),
       photo: toPublicFileUrl(req, provider.photo),
       video: toPublicFileUrl(req, provider.video),

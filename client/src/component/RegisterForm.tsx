@@ -69,6 +69,7 @@ const RegisterForm = () => {
     servicePhotos: [] as File[],
     video: null as File | null,
     priceList: null as File | null,
+    bbDocuments: null as File | null,
   });
 
   const [agentForm, setAgentForm] = useState({
@@ -1155,6 +1156,21 @@ const RegisterForm = () => {
                         />
                         <p className="text-xs text-gray-500">Upload your service pricing document (PDF preferred)</p>
               </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          BB documents <span className="text-gray-400 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="file"
+                          name="bbDocuments"
+                          accept="application/pdf,image/*"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        <p className="text-xs text-gray-500">
+                          Optional: upload BB (business bureau) or related documents for your service provider profile.
+                        </p>
+                      </div>
               </div>
               </div>
 

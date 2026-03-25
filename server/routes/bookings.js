@@ -660,7 +660,7 @@ router.patch("/:id/payment", async (req, res) => {
         }
 
         if (referrer && referrer.role === "agent" && price > 0) {
-          const commissionRate = Number(process.env.AGENT_COMMISSION_RATE || 0.05);
+          const commissionRate = Number(process.env.AGENT_COMMISSION_RATE || 0.5);
           const commissionAmount = Math.max(0, +(price * commissionRate).toFixed(2));
 
           const existingReferral = await Referral.findOne({

@@ -69,9 +69,18 @@ interface AgentSubmittedProfessional {
   notes?: string;
   status: string;
   photo?: string;
+  idAttachment?: string;
+  idDocumentType?: string;
   createdAt: string;
   agent?: { _id: string; name?: string; email?: string; phone?: string } | null;
 }
+
+const ID_DOC_LABELS: Record<string, string> = {
+  fayda: "Fayda",
+  kebele_id: "Kebele ID",
+  driving_licence: "Driving licence",
+  passport: "Passport",
+};
 
 const SuperadminDashboard = () => {
   const navigate = useNavigate();
@@ -728,6 +737,7 @@ const SuperadminDashboard = () => {
                       <th className="text-left py-3 px-3 font-semibold text-gray-700">Services</th>
                       <th className="text-left py-3 px-3 font-semibold text-gray-700">Submitted by agent</th>
                       <th className="text-left py-3 px-3 font-semibold text-gray-700">Location</th>
+                      <th className="text-left py-3 px-3 font-semibold text-gray-700">ID document</th>
                       <th className="text-left py-3 px-3 font-semibold text-gray-700">Status</th>
                       <th className="text-left py-3 px-3 font-semibold text-gray-700">Created</th>
                     </tr>
@@ -772,6 +782,27 @@ const SuperadminDashboard = () => {
                           </td>
                           <td className="py-3 px-3 text-gray-600">
                             {[p.city, p.location].filter(Boolean).join(", ") || "—"}
+                          </td>
+                          <td className="py-3 px-3 text-gray-600">
+                            {p.idAttachment ? (
+                              <div className="space-y-1 max-w-[10rem]">
+                                <div className="text-xs text-gray-500">
+                                  {p.idDocumentType
+                                    ? ID_DOC_LABELS[p.idDocumentType] || p.idDocumentType
+                                    : "—"}
+                                </div>
+                                <a
+                                  href={getCardImageUrl(p.idAttachment) || "#"}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-semibold text-teal-700 hover:underline"
+                                >
+                                  View
+                                </a>
+                              </div>
+                            ) : (
+                              "—"
+                            )}
                           </td>
                           <td className="py-3 px-3">
                             <span

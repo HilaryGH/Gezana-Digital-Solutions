@@ -25,6 +25,7 @@ type User = {
   servicePhotos?: string[];
   video?: string;
   priceList?: string;
+  bbDocuments?: string;
   // Agent files
   agentIdDocument?: string;
   agentWorkExperience?: string;
@@ -235,6 +236,7 @@ const Users = () => {
     pushIfExists("Photo", user.photo);
     pushIfExists("Video", user.video);
     pushIfExists("Price List", user.priceList);
+    pushIfExists("BB documents", user.bbDocuments);
 
     if (user.servicePhotos?.length) {
       user.servicePhotos.forEach((photo, idx) => {

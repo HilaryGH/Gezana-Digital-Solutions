@@ -27,13 +27,15 @@ const storage = new CloudinaryStorage({
       file.fieldname === 'governmentId' ||
       file.fieldname === 'crCertificate' ||
       file.fieldname === 'priceList' ||
+      file.fieldname === 'bbDocuments' ||
       file.fieldname === 'video' ||
       file.fieldname === 'agentIdDocument' ||
       file.fieldname === 'agentWorkExperience' ||
       file.fieldname === 'corporateBusinessRegistration' ||
       file.fieldname === 'corporateBusinessLicense' ||
       file.fieldname === 'corporateAchievementsCertificate' ||
-      file.fieldname === 'corporateTin'
+      file.fieldname === 'corporateTin' ||
+      file.fieldname === 'bbDocuments'
     ) {
       folder = 'homehub/documents';
     }

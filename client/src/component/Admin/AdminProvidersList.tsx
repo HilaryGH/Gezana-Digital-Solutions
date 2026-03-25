@@ -8,6 +8,7 @@ interface ProviderDocuments {
   license?: string | null;
   tradeRegistration?: string | null;
   professionalCertificate?: string | null;
+  bbDocuments?: string | null;
   priceList?: string | null;
   photo?: string | null;
   video?: string | null;
@@ -115,6 +116,7 @@ const AdminProvidersList = () => {
       { label: "Business License", url: provider.documents.license },
       { label: "Trade Registration", url: provider.documents.tradeRegistration },
       { label: "Professional Certificate", url: provider.documents.professionalCertificate },
+      { label: "BB documents", url: provider.documents.bbDocuments },
       { label: "Price List", url: provider.documents.priceList },
       { label: "Brand Photo", url: provider.documents.photo },
       { label: "Intro Video", url: provider.documents.video },

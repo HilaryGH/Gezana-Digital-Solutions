@@ -15,6 +15,13 @@ const agentProfessionalSchema = new mongoose.Schema(
     notes: { type: String },
     /** Profile image: Cloudinary URL or local uploads filename */
     photo: { type: String },
+    /** Government ID attachment (image or PDF): Cloudinary URL or local uploads filename */
+    idAttachment: { type: String },
+    idDocumentType: {
+      type: String,
+      enum: ["fayda", "kebele_id", "driving_licence", "passport"],
+      required: false,
+    },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

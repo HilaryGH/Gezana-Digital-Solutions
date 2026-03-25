@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import { getCardImageUrl } from "../../utils/imageHelper";
 import {
   Copy,
   CreditCard,
@@ -59,6 +60,8 @@ type Professional = {
   photo?: string;
 };
 
+type IdDocumentType = "fayda" | "kebele_id" | "driving_licence" | "passport";
+
 type MyProfessional = {
   _id: string;
   fullName: string;
@@ -73,6 +76,8 @@ type MyProfessional = {
   status: "pending" | "approved" | "rejected";
   createdAt: string;
   photo?: string;
+  idAttachment?: string;
+  idDocumentType?: IdDocumentType;
 };
 
 type EditProfessionalForm = {
@@ -121,6 +126,17 @@ const brand = {
     "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100",
 } as const;
 
+const ID_DOCUMENT_OPTIONS: { value: "" | IdDocumentType; label: string }[] = [
+  { value: "", label: "Select document type…" },
+  { value: "fayda", label: "Fayda" },
+  { value: "kebele_id", label: "Kebele ID" },
+  { value: "driving_licence", label: "Driving licence" },
+  { value: "passport", label: "Passport" },
+];
+
+const idDocumentTypeLabel = (t?: string | null) =>
+  ID_DOCUMENT_OPTIONS.find((o) => o.value === t)?.label || (t || "—");
+
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
@@ -133,6 +149,9 @@ const AgentDashboard = () => {
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const [profilePhotoPreviewUrl, setProfilePhotoPreviewUrl] = useState<string | null>(null);
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+  const [idAttachmentFile, setIdAttachmentFile] = useState<File | null>(null);
+  const [idDocumentType, setIdDocumentType] = useState<"" | IdDocumentType>("");
+  const idAttachmentInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!profilePhotoFile) {
@@ -185,6 +204,9 @@ const AgentDashboard = () => {
     serviceType: "",
     notes: "",
   });
+  const [editIdDocumentType, setEditIdDocumentType] = useState<"" | IdDocumentType>("");
+  const [editIdAttachmentFile, setEditIdAttachmentFile] = useState<File | null>(null);
+  const editIdAttachmentInputRef = useRef<HTMLInputElement>(null);
 
   const extractServiceTypeTokens = (value?: string | null) =>
     (value || "")
@@ -360,6 +382,9 @@ const AgentDashboard = () => {
       serviceType: professional.serviceType || "",
       notes: professional.notes || "",
     });
+    setEditIdDocumentType((professional.idDocumentType as IdDocumentType) || "");
+    setEditIdAttachmentFile(null);
+    if (editIdAttachmentInputRef.current) editIdAttachmentInputRef.current.value = "";
     setEditModalOpen(true);
   };
 
@@ -367,6 +392,9 @@ const AgentDashboard = () => {
     setEditModalOpen(false);
     setEditingProfessional(null);
     setEditSaving(false);
+    setEditIdAttachmentFile(null);
+    setEditIdDocumentType("");
+    if (editIdAttachmentInputRef.current) editIdAttachmentInputRef.current.value = "";
   };
 
   const submitProfessionalUpdate = async (e: React.FormEvent) => {
@@ -380,21 +408,32 @@ const AgentDashboard = () => {
 
     try {
       setEditSaving(true);
-      await axios.put(
-        `/agents/my-professionals/${editingProfessional._id}`,
-        {
-          fullName: editForm.fullName.trim(),
-          phone: editForm.phone.trim(),
-          email: editForm.email.trim(),
-          whatsapp: editForm.whatsapp.trim(),
-          telegram: editForm.telegram.trim(),
-          serviceType: editForm.serviceType.trim(),
-          city: editForm.city.trim(),
-          location: editForm.location.trim(),
-          notes: editForm.notes.trim(),
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (editIdAttachmentFile && !editIdDocumentType) {
+        alert("Select ID document type when uploading an ID attachment.");
+        setEditSaving(false);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("fullName", editForm.fullName.trim());
+      formData.append("phone", editForm.phone.trim());
+      formData.append("email", editForm.email.trim());
+      formData.append("whatsapp", editForm.whatsapp.trim());
+      formData.append("telegram", editForm.telegram.trim());
+      formData.append("serviceType", editForm.serviceType.trim());
+      formData.append("city", editForm.city.trim());
+      formData.append("location", editForm.location.trim());
+      formData.append("notes", editForm.notes.trim());
+      if (editIdAttachmentFile) {
+        formData.append("idAttachment", editIdAttachmentFile);
+        formData.append("idDocumentType", editIdDocumentType);
+      } else if (editIdDocumentType && editingProfessional.idAttachment) {
+        formData.append("idDocumentType", editIdDocumentType);
+      }
+
+      await axios.put(`/agents/my-professionals/${editingProfessional._id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       await refreshMyProfessionals();
       closeEditModal();
     } catch (e: any) {
@@ -460,6 +499,13 @@ const AgentDashboard = () => {
         return;
       }
 
+      if (idAttachmentFile && !idDocumentType) {
+        setError(
+          "Select ID document type (Fayda, Kebele ID, Driving licence, or Passport) when uploading an ID attachment."
+        );
+        return;
+      }
+
       const formData = new FormData();
       formData.append("fullName", addForm.fullName.trim());
       formData.append("phone", addForm.phone.trim());
@@ -473,6 +519,10 @@ const AgentDashboard = () => {
       if (profilePhotoFile) {
         formData.append("photo", profilePhotoFile);
       }
+      if (idAttachmentFile && idDocumentType) {
+        formData.append("idAttachment", idAttachmentFile);
+        formData.append("idDocumentType", idDocumentType);
+      }
 
       await axios.post("/agents/my-professionals", formData, {
         headers: { Authorization: `Bearer ${token}` },
@@ -480,6 +530,9 @@ const AgentDashboard = () => {
 
       setProfilePhotoFile(null);
       if (profilePhotoInputRef.current) profilePhotoInputRef.current.value = "";
+      setIdAttachmentFile(null);
+      setIdDocumentType("");
+      if (idAttachmentInputRef.current) idAttachmentInputRef.current.value = "";
 
       setAddForm({
         fullName: "",
@@ -511,6 +564,11 @@ const AgentDashboard = () => {
   ) => {
     const file = e.target.files?.[0];
     setProfilePhotoFile(file || null);
+  };
+
+  const handleIdAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setIdAttachmentFile(file || null);
   };
 
   const updateServiceOffered = (
@@ -677,7 +735,7 @@ const AgentDashboard = () => {
                     Commission rate
                   </div>
                   <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                    Default <span className="font-semibold text-slate-900">5%</span> per paid booking
+                    Default <span className="font-semibold text-slate-900">50%</span> per paid booking
                     (server setting <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">AGENT_COMMISSION_RATE</span>
                     ).
                   </p>
@@ -942,6 +1000,40 @@ const AgentDashboard = () => {
                       </div>
                     </div>
 
+                    <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50/80 p-3 space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        ID attachment (optional)
+                      </label>
+                      <p className="text-xs text-gray-600">
+                        Fayda, Kebele ID, driving licence, or passport — image or PDF.
+                      </p>
+                      <select
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition"
+                        value={idDocumentType}
+                        onChange={(e) =>
+                          setIdDocumentType((e.target.value || "") as "" | IdDocumentType)
+                        }
+                      >
+                        {ID_DOCUMENT_OPTIONS.map((o) => (
+                          <option key={o.value || "none"} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        ref={idAttachmentInputRef}
+                        type="file"
+                        accept="image/*,.pdf,application/pdf"
+                        onChange={handleIdAttachmentChange}
+                        className="w-full sm:w-auto text-sm"
+                      />
+                      {idAttachmentFile && (
+                        <div className="text-xs text-gray-600 truncate" title={idAttachmentFile.name}>
+                          Selected: {idAttachmentFile.name}
+                        </div>
+                      )}
+                    </div>
+
                     <input
                       type="number"
                       min={0}
@@ -1087,6 +1179,7 @@ const AgentDashboard = () => {
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Name</th>
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Phone</th>
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Status</th>
+                      <th className="text-left px-4 py-3 font-semibold text-slate-700">ID document</th>
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Date</th>
                       <th className="text-left px-4 py-3 font-semibold text-slate-700">Actions</th>
                     </tr>
@@ -1113,6 +1206,25 @@ const AgentDashboard = () => {
                           >
                             {p.status.toUpperCase()}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {p.idAttachment ? (
+                            <div className="space-y-1">
+                              <div className="text-xs text-gray-500">
+                                {idDocumentTypeLabel(p.idDocumentType)}
+                              </div>
+                              <a
+                                href={getCardImageUrl(p.idAttachment) || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold text-blue-600 hover:underline"
+                              >
+                                View attachment
+                              </a>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-gray-600">
                           {new Date(p.createdAt).toLocaleDateString()}
@@ -1148,7 +1260,7 @@ const AgentDashboard = () => {
                     ))}
                     {filteredMyProfessionals.length === 0 && (
                       <tr>
-                        <td className="px-4 py-6 text-gray-600" colSpan={5}>
+                        <td className="px-4 py-6 text-gray-600" colSpan={6}>
                           No professionals match your filters.
                         </td>
                       </tr>
@@ -1336,6 +1448,50 @@ const AgentDashboard = () => {
                       value={editForm.notes}
                       onChange={(e) => setEditForm((prev) => ({ ...prev, notes: e.target.value }))}
                     />
+
+                    <div className={`${brand.input} sm:col-span-2 space-y-2 py-3`}>
+                      <div className="text-sm font-semibold text-slate-800">ID attachment</div>
+                      {editingProfessional.idAttachment && (
+                        <div className="text-xs text-slate-600">
+                          Current: {idDocumentTypeLabel(editingProfessional.idDocumentType)} —{" "}
+                          <a
+                            href={getCardImageUrl(editingProfessional.idAttachment) || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-blue-600 hover:underline"
+                          >
+                            open file
+                          </a>
+                        </div>
+                      )}
+                      <select
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 outline-none"
+                        value={editIdDocumentType}
+                        onChange={(e) =>
+                          setEditIdDocumentType((e.target.value || "") as "" | IdDocumentType)
+                        }
+                      >
+                        {ID_DOCUMENT_OPTIONS.map((o) => (
+                          <option key={o.value || "none"} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        ref={editIdAttachmentInputRef}
+                        type="file"
+                        accept="image/*,.pdf,application/pdf"
+                        onChange={(e) =>
+                          setEditIdAttachmentFile(e.target.files?.[0] || null)
+                        }
+                        className="w-full text-sm"
+                      />
+                      {editIdAttachmentFile && (
+                        <div className="text-xs text-slate-600 truncate">
+                          New file: {editIdAttachmentFile.name}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end pt-2">

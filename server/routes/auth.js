@@ -56,6 +56,7 @@ const REGISTER_UPLOAD_FIELDS = [
   { name: "servicePhotos", maxCount: 5 },
   { name: "video", maxCount: 1 },
   { name: "priceList", maxCount: 1 },
+  { name: "bbDocuments", maxCount: 1 },
   { name: "agentIdDocument", maxCount: 1 },
   { name: "agentWorkExperience", maxCount: 1 },
   { name: "agentPhoto", maxCount: 1 },
@@ -381,6 +382,9 @@ router.post(
         }
         if (req.files.priceList) {
           userData.priceList = getFileUrl(req.files.priceList[0]);
+        }
+        if (req.files.bbDocuments) {
+          userData.bbDocuments = getFileUrl(req.files.bbDocuments[0]);
         }
       }
     } else if (role === "agent") {

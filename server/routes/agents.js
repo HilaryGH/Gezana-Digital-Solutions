@@ -8,6 +8,13 @@ const { getFileUrl } = require("../utils/fileHelper");
 
 const router = express.Router();
 
+const ID_DOCUMENT_TYPES = ["fayda", "kebele_id", "driving_licence", "passport"];
+
+const professionalUpload = upload.fields([
+  { name: "photo", maxCount: 1 },
+  { name: "idAttachment", maxCount: 1 },
+]);
+
 // GET /api/agents/dashboard
 // Summary stats for agent dashboard (referrals, commission, performance)
 router.get("/dashboard", authMiddleware, async (req, res) => {
@@ -91,11 +98,11 @@ router.get("/superadmin/agent-professionals", authMiddleware, async (req, res) =
 });
 
 // POST /api/agents/my-professionals
-// Agent adds a professional lead/listing (optional multipart field `photo`)
+// Agent adds a professional lead/listing (optional multipart fields `photo`, `idAttachment`)
 router.post(
   "/my-professionals",
   authMiddleware,
-  upload.single("photo"),
+  professionalUpload,
   async (req, res) => {
     try {
       const me = await User.findById(req.user.userId).select("role");
@@ -112,13 +119,27 @@ router.post(
         location,
         serviceType,
         notes,
+        idDocumentType,
       } = req.body;
 
       if (!fullName || !phone) {
         return res.status(400).json({ message: "fullName and phone are required" });
       }
 
-      const photo = req.file ? getFileUrl(req.file) : undefined;
+      const photoFile = req.files?.photo?.[0];
+      const idFile = req.files?.idAttachment?.[0];
+      const photo = photoFile ? getFileUrl(photoFile) : undefined;
+
+      if (idFile) {
+        if (!idDocumentType || !ID_DOCUMENT_TYPES.includes(idDocumentType)) {
+          return res.status(400).json({
+            message:
+              "When uploading an ID attachment, select document type: Fayda, Kebele ID, Driving licence, or Passport.",
+          });
+        }
+      }
+
+      const idAttachment = idFile ? getFileUrl(idFile) : undefined;
 
       const doc = await AgentProfessional.create({
         agent: me._id,
@@ -132,6 +153,7 @@ router.post(
         serviceType,
         notes,
         ...(photo ? { photo } : {}),
+        ...(idAttachment ? { idAttachment, idDocumentType } : {}),
         status: "pending",
       });
 
@@ -163,11 +185,11 @@ router.get("/my-professionals", authMiddleware, async (req, res) => {
 });
 
 // PUT /api/agents/my-professionals/:id
-// Agent updates one of their submitted professionals (optional multipart field `photo`)
+// Agent updates one of their submitted professionals (optional multipart fields `photo`, `idAttachment`)
 router.put(
   "/my-professionals/:id",
   authMiddleware,
-  upload.single("photo"),
+  professionalUpload,
   async (req, res) => {
     try {
       const me = await User.findById(req.user.userId).select("role");
@@ -194,8 +216,28 @@ router.put(
         }
       }
 
-      if (req.file) {
-        doc.photo = getFileUrl(req.file);
+      const photoFile = req.files?.photo?.[0];
+      const idFile = req.files?.idAttachment?.[0];
+      if (photoFile) {
+        doc.photo = getFileUrl(photoFile);
+      }
+
+      if (idFile) {
+        if (!req.body.idDocumentType || !ID_DOCUMENT_TYPES.includes(req.body.idDocumentType)) {
+          return res.status(400).json({
+            message:
+              "When uploading an ID attachment, select document type: Fayda, Kebele ID, Driving licence, or Passport.",
+          });
+        }
+        doc.idAttachment = getFileUrl(idFile);
+        doc.idDocumentType = req.body.idDocumentType;
+      } else if (
+        Object.prototype.hasOwnProperty.call(req.body, "idDocumentType") &&
+        req.body.idDocumentType &&
+        ID_DOCUMENT_TYPES.includes(req.body.idDocumentType) &&
+        doc.idAttachment
+      ) {
+        doc.idDocumentType = req.body.idDocumentType;
       }
 
       await doc.save();

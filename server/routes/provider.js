@@ -181,6 +181,7 @@ router.get("/details/:providerId", authMiddleware, async (req, res) => {
     if (provider.professionalCertificate) documents.push({ name: "Professional Certificate", url: buildFileUrl(provider.professionalCertificate), type: "professionalCertificate" });
     if (provider.photo) documents.push({ name: "Photo", url: buildFileUrl(provider.photo), type: "photo" });
     if (provider.priceList) documents.push({ name: "Price List", url: buildFileUrl(provider.priceList), type: "priceList" });
+    if (provider.bbDocuments) documents.push({ name: "BB Documents", url: buildFileUrl(provider.bbDocuments), type: "bbDocuments" });
     if (provider.video) documents.push({ name: "Video", url: buildFileUrl(provider.video), type: "video" });
     if (provider.servicePhotos && Array.isArray(provider.servicePhotos)) {
       provider.servicePhotos.forEach((photo, idx) => {
