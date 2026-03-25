@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 type User = {
   id: string;
@@ -13,6 +14,7 @@ type User = {
 
 const MyProfile = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -34,7 +36,7 @@ const MyProfile = () => {
         setEmail(res.data.email);
         setPhone(res.data.phone || "");
       } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to fetch profile");
+        setError(err.response?.data?.message || t("errors.failedToFetchProfile"));
       } finally {
         setLoading(false);
       }
@@ -57,10 +59,10 @@ const MyProfile = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setMessage("✅ Profile updated successfully");
+      setMessage(t("messages.profileUpdatedSuccess"));
       setPassword("");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Update failed");
+      setError(err.response?.data?.message || t("errors.updateFailed"));
     }
   };
 
@@ -73,7 +75,7 @@ const MyProfile = () => {
   };
 
   if (loading)
-    return <p className="text-center mt-10 text-gray-500">Loading...</p>;
+    return <p className="text-center mt-10 text-gray-500">{t("common.loading")}</p>;
 
   return (
     <div className="min-h-screen mt-12 bg-gradient-to-r from-orange-100 to-yellow-50 py-16 px-4">
@@ -83,8 +85,8 @@ const MyProfile = () => {
             {getInitials(name)}
           </div>
           <div>
-            <h1 className="text-white text-xl font-bold">My Profile</h1>
-            <p className="text-orange-100 text-sm">Manage your details</p>
+            <h1 className="text-white text-xl font-bold">{t("profile.title")}</h1>
+            <p className="text-orange-100 text-sm">{t("profile.manageDetails")}</p>
           </div>
         </div>
 
@@ -104,7 +106,7 @@ const MyProfile = () => {
           <form onSubmit={handleUpdate} className="space-y-4">
             <div>
               <label className="block mb-1 font-semibold text-gray-700">
-                Full Name
+                {t("common.fullName")}
               </label>
               <input
                 type="text"
@@ -117,7 +119,7 @@ const MyProfile = () => {
 
             <div>
               <label className="block mb-1 font-semibold text-gray-700">
-                Email Address
+                {t("common.emailAddress")}
               </label>
               <input
                 type="email"
@@ -130,7 +132,7 @@ const MyProfile = () => {
 
             <div>
               <label className="block mb-1 font-semibold text-gray-700">
-                Phone Number
+                {t("common.phoneNumber")}
               </label>
               <input
                 type="tel"
@@ -138,19 +140,19 @@ const MyProfile = () => {
                 onChange={(e) => setPhone(e.target.value)}
                 autoComplete="tel"
                 pattern="\+?[0-9]{7,15}"
-                title="Enter a valid phone number"
-                placeholder="e.g. +251912345678"
+                title={t("validation.phone")}
+                placeholder={t("placeholders.phoneExample")}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400 focus:outline-none"
               />
             </div>
 
             <div>
               <label className="block mb-1 font-semibold text-gray-700">
-                New Password
+                {t("common.newPassword")}
               </label>
               <input
                 type="password"
-                placeholder="Leave blank to keep current"
+                placeholder={t("placeholders.leaveBlankKeepCurrent")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -162,7 +164,7 @@ const MyProfile = () => {
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg transition transform hover:scale-105 shadow"
             >
-              Save Changes
+              {t("common.saveChanges")}
             </button>
           </form>
         </div>

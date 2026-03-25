@@ -10,15 +10,6 @@ import { getNavbarStatistics, type NavbarStatistics } from "../api/statistics";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { getThumbnailUrl, handleImageError } from "../utils/imageHelper";
 
-const SERVICE_PROMPTS = [
-  "Home Maintenance pros",
-  "Cleaning services near you",
-  "Appliance repair experts",
-  "Personal care specialists",
-  "Household support teams",
-  "Hotel & lounge staff"
-];
-
 const Navbar = () => {
   const { t } = useTranslation();
   const location = useLocation();
@@ -27,6 +18,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchQueryLabel, setSearchQueryLabel] = useState("");
   const [searchResults, setSearchResults] = useState<Service[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -34,6 +26,22 @@ const Navbar = () => {
   const [typingStage, setTypingStage] = useState<"typing" | "waiting" | "deleting">("typing");
   const [typedText, setTypedText] = useState("");
   const typingTimeoutRef = useRef<number | null>(null);
+
+  const servicePrompts = t("navbar.servicePrompts", { returnObjects: true }) as unknown as string[];
+  const promptsLen = servicePrompts?.length || 1;
+  const activePrompt = servicePrompts[promptIndex] || "";
+
+  const popularSearchLabels = t("navbar.popularSearchesItems", { returnObjects: true }) as unknown as Record<string, string>;
+  const popularSearches = [
+    { value: "Plumbing", label: popularSearchLabels.plumbing || "Plumbing" },
+    { value: "Cleaning", label: popularSearchLabels.cleaning || "Cleaning" },
+    { value: "Electrician", label: popularSearchLabels.electrician || "Electrician" },
+    { value: "Painting", label: popularSearchLabels.painting || "Painting" },
+    { value: "Gardening", label: popularSearchLabels.gardening || "Gardening" },
+    { value: "Babysitting", label: popularSearchLabels.babysitting || "Babysitting" },
+    { value: "Carpentry", label: popularSearchLabels.carpentry || "Carpentry" },
+    { value: "Appliance Repair", label: popularSearchLabels.applianceRepair || "Appliance Repair" }
+  ];
   const [stats, setStats] = useState<NavbarStatistics>({
     newProvidersThisWeek: 0,
     completedBookings: 0,
@@ -54,6 +62,7 @@ const Navbar = () => {
     setSearchOpen(!searchOpen);
     if (!searchOpen) {
       setSearchQuery("");
+      setSearchQueryLabel("");
       setSearchResults([]);
       setSearchError(null);
     }
@@ -123,7 +132,7 @@ const Navbar = () => {
         setSearchResults(response.services || []);
       } catch (error) {
         console.error('Search error:', error);
-        setSearchError('Failed to search services');
+        setSearchError(t("errors.failedToSearchServices"));
         setSearchResults([]);
       } finally {
         setSearchLoading(false);
@@ -132,8 +141,6 @@ const Navbar = () => {
 
     return () => clearTimeout(searchTimeout);
   }, [searchQuery]);
-
-  const activePrompt = SERVICE_PROMPTS[promptIndex];
 
   useEffect(() => {
     const TYPING_SPEED = 80;
@@ -161,7 +168,7 @@ const Navbar = () => {
           setTypedText(typedText.slice(0, -1));
         }, DELETING_SPEED);
       } else {
-        setPromptIndex((prev) => (prev + 1) % SERVICE_PROMPTS.length);
+        setPromptIndex((prev) => (prev + 1) % promptsLen);
         setTypingStage("typing");
       }
     }
@@ -195,9 +202,9 @@ const Navbar = () => {
     }).format(price);
 
     switch (priceType) {
-      case 'hourly': return `${formattedPrice} ETB/hour`;
-      case 'per_sqft': return `${formattedPrice} ETB/sq ft`;
-      case 'custom': return `From ${formattedPrice} ETB`;
+      case 'hourly': return `${formattedPrice} ${t("navbar.etbPerHour")}`;
+      case 'per_sqft': return `${formattedPrice} ${t("navbar.etbPerSqft")}`;
+      case 'custom': return t("navbar.priceFrom", { amount: formattedPrice });
       default: return `${formattedPrice} ETB`;
     }
   };
@@ -230,7 +237,7 @@ const Navbar = () => {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Live</span>
+                  <span className="text-sm font-medium">{t("navbar.live")}</span>
                 </div>
                 <button
                   onClick={() => navigate('/register?role=provider')}
@@ -238,7 +245,7 @@ const Navbar = () => {
                 >
                   <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/10 mr-2">🎉</span>
                   <span className="font-bold text-white">{stats.newProvidersThisWeek >= 500 ? `${stats.newProvidersThisWeek}+` : stats.newProvidersThisWeek}</span>{" "}
-                  <span className="text-white/80">new service providers joined this week</span>
+                  <span className="text-white/80">{t("navbar.newProvidersJoinedThisWeek")}</span>
                 </button>
               </div>
               
@@ -251,7 +258,7 @@ const Navbar = () => {
                     <FaBolt className="w-3.5 h-3.5" />
                   </span>
                   <span className="text-xs font-medium tracking-wide">
-                    {statsLoading ? '...' : `${stats.completedBookings.toLocaleString()}`} Completed Bookings
+                    {statsLoading ? '...' : `${stats.completedBookings.toLocaleString()}`} {t("navbar.completedBookingsLabel")}
                   </span>
                 </button>
                 <button
@@ -262,7 +269,7 @@ const Navbar = () => {
                     <FaStar className="w-3.5 h-3.5" />
                   </span>
                   <span className="text-xs font-medium tracking-wide">
-                    {statsLoading ? '...' : `${stats.averageRating.toFixed(1)}`} Rating
+                    {statsLoading ? '...' : `${stats.averageRating.toFixed(1)}`} {t("navbar.ratingLabel")}
                   </span>
                 </button>
                 <Link 
@@ -270,7 +277,7 @@ const Navbar = () => {
                   className="bg-white/10 text-white hover:bg-white/15 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ease-out transform hover:scale-105 flex items-center space-x-1 border border-white/15 shadow-[0_10px_30px_-20px_rgba(0,0,0,0.8)]"
                 >
                   <MdConnectWithoutContact className="w-3 h-3" />
-                  <span>Join Community</span>
+                  <span>{t("community.joinCommunity")}</span>
                 </Link>
               </div>
             </div>
@@ -312,7 +319,7 @@ const Navbar = () => {
                   to="/service-request"
                   className="px-3 py-1.5 rounded-lg transition-all duration-300 group text-gray-700 hover:text-black hover:bg-gray-50"
                 >
-                  <span className="text-sm font-medium">Request Service</span>
+                  <span className="text-sm font-medium">{t("navigation.requestService")}</span>
                 </Link>
                 
                 <Link 
@@ -333,7 +340,7 @@ const Navbar = () => {
                 to="/login"
                 className={`relative overflow-hidden px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg group bg-orange-600 text-white hover:bg-orange-700`}
               >
-                <span>Login</span>
+                <span>{t("navigation.login")}</span>
               </Link>
             </div>
 
@@ -346,7 +353,7 @@ const Navbar = () => {
                     ? 'text-gray-700 hover:bg-gray-100' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
-                aria-label="Toggle menu"
+                aria-label={t("navbar.toggleMenu")}
               >
                 {menuOpen ? <FaTimes size={22} /> : <HiMenuAlt3 size={22} />}
               </button>
@@ -380,7 +387,7 @@ const Navbar = () => {
                 />
                 <div>
                   <h2 className="text-black font-bold text-lg">HomeHub</h2>
-              <p className="text-gray-600 text-xs">Home Services, Redefined & Delivered</p>
+              <p className="text-gray-600 text-xs">{t("navbar.mobileTagline")}</p>
                 </div>
               </div>
               <button
@@ -399,7 +406,7 @@ const Navbar = () => {
                   onClick={toggleMenu}
                   className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-medium">About Us</span>
+                  <span className="font-medium">{t("navigation.about")}</span>
                 </Link>
                 
                 <Link
@@ -407,7 +414,7 @@ const Navbar = () => {
                   onClick={toggleMenu}
                   className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-medium">Our Services</span>
+                  <span className="font-medium">{t("navigation.services")}</span>
                 </Link>
                 
                 <Link
@@ -415,7 +422,7 @@ const Navbar = () => {
                   onClick={toggleMenu}
                   className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-medium">Contact Us</span>
+                  <span className="font-medium">{t("navigation.contact")}</span>
                 </Link>
 
                 <Link
@@ -423,25 +430,25 @@ const Navbar = () => {
                   onClick={toggleMenu}
                   className="block p-3 text-gray-700 hover:text-black hover:bg-gray-50 rounded-xl transition-all duration-200"
                 >
-                  <span className="font-medium">Request Service</span>
+                  <span className="font-medium">{t("navigation.requestService")}</span>
                 </Link>
               </div>
 
               {/* Mobile Features */}
               <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Why Choose HomeHub?</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t("home.whyChooseUs")}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 text-sm text-gray-700">
                     <FaShieldAlt className="w-4 h-4 text-black" />
-                    <span>Verified Service Providers</span>
+                    <span>{t("navbar.verifiedServiceProviders")}</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-gray-700">
                     <FaStar className="w-4 h-4 text-black" />
-                    <span>Quality Guaranteed</span>
+                    <span>{t("navbar.qualityGuaranteed")}</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-gray-700">
                     <MdConnectWithoutContact className="w-4 h-4 text-black" />
-                    <span>Seamless Connection</span>
+                    <span>{t("navbar.seamlessConnection")}</span>
                   </div>
                 </div>
               </div>
@@ -449,7 +456,9 @@ const Navbar = () => {
 
             {/* Mobile Language Switcher */}
             <div className="px-6 py-4 border-t border-gray-200 bg-white flex-shrink-0">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Language / ቋንቋ</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                {t("common.language")} / ቋንቋ
+              </h3>
               <div className="flex justify-center">
                 <LanguageSwitcher />
               </div>
@@ -462,7 +471,7 @@ const Navbar = () => {
                 onClick={toggleMenu}
                 className="w-full bg-orange-600 text-white py-3 rounded-xl font-semibold hover:bg-orange-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
               >
-                <span>Login</span>
+                <span>{t("navigation.login")}</span>
               </Link>
               <Link
                 to="/community"
@@ -470,7 +479,7 @@ const Navbar = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center space-x-2"
               >
                 <MdConnectWithoutContact className="w-4 h-4" />
-                <span>Join Community</span>
+                <span>{t("community.joinCommunity")}</span>
               </Link>
             </div>
           </div>
@@ -485,10 +494,13 @@ const Navbar = () => {
                   <IoSearchOutline className="w-6 h-6 text-gray-600" />
                   <input
                     type="text"
-                    placeholder="Search for services, providers, or categories..."
+                    placeholder={t("placeholders.searchForServicesProvidersCategories")}
                     className="flex-1 text-lg border-none outline-none bg-transparent text-gray-900 placeholder-gray-400"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchQueryLabel(e.target.value);
+                    }}
                     autoFocus
                   />
                   <button
@@ -514,7 +526,7 @@ const Navbar = () => {
                     {searchLoading ? (
                       <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-                        <span className="ml-3 text-gray-600">Searching...</span>
+                        <span className="ml-3 text-gray-600">{t("navbar.searching")}</span>
                       </div>
                     ) : searchError ? (
                       <div className="text-center py-8">
@@ -524,7 +536,7 @@ const Navbar = () => {
                     ) : searchResults.length > 0 ? (
                       <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          Found {searchResults.length} service{searchResults.length !== 1 ? 's' : ''}
+                          {t("navbar.foundServices", { count: searchResults.length })}
                         </h3>
                         {searchResults.map((service) => (
                           <div
@@ -554,12 +566,12 @@ const Navbar = () => {
                                 {service.title || (service as any).name}
                               </h4>
                               <p className="text-sm text-gray-600 truncate">
-                                {service.description || 'No description available'}
+                                {service.description || t("navbar.noDescriptionAvailable")}
                               </p>
                               <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                                 <span className="flex items-center space-x-1">
                                   <FaMapMarkerAlt className="w-3 h-3" />
-                                  <span>{service.location || 'Location not specified'}</span>
+                                  <span>{service.location || t("navbar.locationNotSpecified")}</span>
                                 </span>
                                 <span className="flex items-center space-x-1">
                                   <FaStar className="w-3 h-3 text-yellow-500" />
@@ -572,7 +584,7 @@ const Navbar = () => {
                                 {formatPrice(service.price || 0, service.priceType || 'fixed')}
                               </div>
                               <div className="text-sm text-gray-500">
-                                {service.category || 'Uncategorized'}
+                                {service.category || t("navbar.uncategorized")}
                               </div>
                             </div>
                           </div>
@@ -581,23 +593,30 @@ const Navbar = () => {
                     ) : (
                       <div className="text-center py-8">
                         <div className="text-gray-400 mb-2">🔍</div>
-                        <p className="text-gray-600">No services found for "{searchQuery}"</p>
-                        <p className="text-sm text-gray-500 mt-1">Try different keywords or check spelling</p>
+                        <p className="text-gray-600">
+                          {t("navbar.noServicesFoundForQuery", {
+                            query: searchQueryLabel || searchQuery
+                          })}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">{t("navbar.tryDifferentKeywords")}</p>
                       </div>
                     )}
                   </div>
                 ) : (
                   // Popular Searches
                   <div className="p-6">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Popular Searches</h3>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t("navbar.popularSearches")}</h3>
                     <div className="grid grid-cols-2 gap-2">
-                      {['Plumbing', 'Cleaning', 'Electrician', 'Painting', 'Gardening', 'Babysitting', 'Carpentry', 'Appliance Repair'].map((item) => (
+                      {popularSearches.map((item) => (
                         <button
-                          key={item}
-                          onClick={() => setSearchQuery(item)}
+                          key={item.value}
+                          onClick={() => {
+                            setSearchQuery(item.value);
+                            setSearchQueryLabel(item.label);
+                          }}
                           className="text-left p-3 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-black transition-colors border border-gray-200"
                         >
-                          {item}
+                          {item.label}
                         </button>
                       ))}
                     </div>

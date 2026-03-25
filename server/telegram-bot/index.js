@@ -38,7 +38,9 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const PORT = Number(process.env.PORT || 3000);
+// Keep bot's webhook server on a separate port by default, so it doesn't
+// conflict with the main API server (which also uses PORT).
+const PORT = Number(process.env.TELEGRAM_BOT_PORT || process.env.PORT || 3000);
 const WEBHOOK_PATH = process.env.TELEGRAM_WEBHOOK_PATH || "/webhook";
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
 const WEBHOOK_BASE_URL = process.env.TELEGRAM_WEBHOOK_URL || RENDER_URL;
@@ -51,7 +53,10 @@ const DATA_API_BASE_URL =
   process.env.API_BASE_URL ||
   process.env.SERVER_BASE_URL ||
   process.env.RENDER_EXTERNAL_URL ||
+  WEBHOOK_BASE_URL ||
   "http://localhost:5000";
+
+console.log("[telegram-bot] DATA_API_BASE_URL:", DATA_API_BASE_URL);
 
 // ---------------------------------------------------------------------------
 // HomeHub model (same as API / catalog agent professionals)
@@ -66,6 +71,158 @@ require(path.join(__dirname, "..", "models", "User"));
 
 /** In-memory booking flow state keyed by chat id. */
 const pendingBookings = new Map();
+/** In-memory chat language preferences keyed by chat id. Defaults to 'en'. */
+const chatLanguage = new Map();
+
+// -----------------------------------------------------------------------------
+// Simple i18n for Telegram bot (English + Amharic)
+// -----------------------------------------------------------------------------
+const LANG = {
+  en: {
+    buttons: {
+      book: (name) => `Book ${name}`,
+      nextProfessionals: "Next professionals ▶️",
+      nextServices: "Next services ▶️",
+      langAm: "አማርኛ",
+      langEn: "English",
+    },
+    common: {
+      service: "Service",
+      city: "City",
+      category: "Category",
+      type: "Type",
+      price: "Price",
+      provider: "Provider",
+      etb: "ETB",
+      noMoreProfessionals: "No more professionals.",
+      noMoreServices: "No more services.",
+      noProfessionalsFound: "No professionals found.",
+      noServicesFound: "No active services found.",
+      actionFailed: "Could not complete that action. Please try /professionals or /services again.",
+      somethingWrongPros: "Sorry, something went wrong loading professionals. Try again later.",
+      somethingWrongSvc: "Sorry, something went wrong loading services. Please try again in a moment.",
+      cancelOk: "Booking flow canceled.",
+      cancelNone: "No active booking flow.",
+    },
+    start: {
+      welcome: (name) =>
+        `Hello, ${name}! 👋\n\n` +
+        `Welcome to the <b>HomeHub</b> assistant.\n\n` +
+        `Commands:\n` +
+        `• /professionals — browse and book agent-listed professionals\n` +
+        `• /services — browse and book listed services\n` +
+        `• /cancel — cancel current booking flow\n` +
+        `• /start — show this message`,
+      fallback: "Welcome to HomeHub! Use /professionals or /services to browse and book.",
+      languagePrompt: "Choose language:",
+    },
+    flow: {
+      begin: "Great choice. I will collect your booking details now.",
+      askDate:
+        "Please send your preferred booking date/time in this format:\nYYYY-MM-DD HH:mm\nExample: 2026-04-10 14:30\n\nYou can cancel anytime with /cancel.",
+      askFullName: "Please send your full name.",
+      askEmail: "Please send your email address.",
+      askPhone: "Please send your phone number.",
+      askAddress: "Please send your address/location.",
+      invalidDate: "Invalid date/time. Please use YYYY-MM-DD HH:mm and a future date.",
+      invalidEmail: "Invalid email. Please enter a valid email.",
+      dateLost: "Date became invalid. Please restart booking.",
+      success: (id, status) =>
+        `✅ Booking created successfully.\nBooking ID: ${id}\nStatus: ${status}\n\nHomeHub team will follow up soon.`,
+      failed: "Sorry, I couldn't complete your booking. Please try again from /professionals or /services.",
+    },
+    pages: {
+      professionals: "Professionals (page 1)",
+      nextProfessionals: "Next professionals",
+      services: "Services (page 1)",
+      nextServices: "Next services",
+    },
+    commands: {
+      languageSet: (langName) => `Language set to ${langName}.`,
+      languagePick: "Select your language:",
+    },
+  },
+  am: {
+    buttons: {
+      book: (name) => `ይሁዱ ${name}`,
+      nextProfessionals: "ቀጣይ አማራጮች ▶️",
+      nextServices: "ቀጣይ አገልግሎቶች ▶️",
+      langAm: "አማርኛ",
+      langEn: "English",
+    },
+    common: {
+      service: "አገልግሎት",
+      city: "ከተማ",
+      category: "ምድብ",
+      type: "ዓይነት",
+      price: "ዋጋ",
+      provider: "አቅራቢ",
+      etb: "ብር",
+      noMoreProfessionals: "የተጨማሪ ሙያ ባለሙያዎች የሉም።",
+      noMoreServices: "የተጨማሪ አገልግሎቶች የሉም።",
+      noProfessionalsFound: "ሙያ ባለሙያ አልተገኘም።",
+      noServicesFound: "ንቁ አገልግሎት አልተገኘም።",
+      actionFailed: "ተግባሩ አልተሳካም። እባክዎን /professionals ወይም /services ይሞክሩ እንደገና።",
+      somethingWrongPros: "ይቅርታ፣ ሙያ ባለሙያዎችን ማስመጣት አልተሳካም። በኋላ ይሞክሩ።",
+      somethingWrongSvc: "ይቅርታ፣ አገልግሎቶችን ማስመጣት አልተሳካም። በኋላ ይሞክሩ።",
+      cancelOk: "የቦኪንግ ሂደት ተሰርዟል።",
+      cancelNone: "ንቁ የቦኪንግ ሂደት የለም።",
+    },
+    start: {
+      welcome: (name) =>
+        `ሰላም, ${name}! 👋\n\n` +
+        `<b>HomeHub</b> እንኳን ደህና መጣችሁ።\n\n` +
+        `ትእዛዛት:\n` +
+        `• /professionals — የኤጀንት ዝርዝር ሙያ ባለሙያዎችን ይመልከቱ እና ይያዙ\n` +
+        `• /services — ዝርዝር አገልግሎቶችን ይመልከቱ እና ይያዙ\n` +
+        `• /cancel — የአሁኑን የቦኪንግ ሂደት ይሰርዙ\n` +
+        `• /start — ይህን መልዕክት አሳይ`,
+      fallback: "ወደ HomeHub እንኳን ደህና መጣችሁ! ለመመልከት እና ለመያዝ /professionals ወይም /services ይጠቀሙ።",
+      languagePrompt: "ቋንቋ ይምረጡ፦",
+    },
+    flow: {
+      begin: "ጥሩ ምርጫ። የቦኪንግ ዝርዝሮትን አሁን እሰብስባለሁ።",
+      askDate:
+        "እባክዎ የሚመሩትን ቀን/ሰዓት እንዲህ በሚል መለኪያ ላኩ:\nYYYY-MM-DD HH:mm\nለምሳሌ፡ 2026-04-10 14:30\n\nበማንኛውም ጊዜ /cancel ብለው መሰረዝ ይችላሉ።",
+      askFullName: "እባክዎ ሙሉ ስምዎን ይላኩ።",
+      askEmail: "እባክዎ ኢሜይል አድራሻዎን ይላኩ።",
+      askPhone: "እባክዎ ስልክ ቁጥርዎን ይላኩ።",
+      askAddress: "እባክዎ አድራሻ/አካባቢዎን ይላኩ።",
+      invalidDate: "የቀን/ሰዓት መረጃ የተሳሳተ ነው። YYYY-MM-DD HH:mm ይጠቀሙ እና ወደፊት ቀን ይምረጡ።",
+      invalidEmail: "የተሳሳተ ኢሜይል ነው። ትክክለኛ ኢሜይል ያስገቡ።",
+      dateLost: "ቀኑ ልክ አይደለም። እባክዎ ቦኪንግን ዳግም ይጀምሩ።",
+      success: (id, status) =>
+        `✅ ቦኪንግ በተሳካ ሁኔታ ተፈጥሯል።\nየቦኪንግ መለያ: ${id}\nሁኔታ: ${status}\n\nየHomeHub ቡድን በቅርቡ ይነግርዎታል።`,
+      failed: "ይቅርታ፣ ቦኪንግዎን ማጠናቀቅ አልቻልኩም። እባክዎ /professionals ወይም /services ብለው ይሞክሩ።",
+    },
+    pages: {
+      professionals: "ሙያ ባለሙያዎች (ገፅ 1)",
+      nextProfessionals: "ቀጣይ ሙያ ባለሙያዎች",
+      services: "አገልግሎቶች (ገፅ 1)",
+      nextServices: "ቀጣይ አገልግሎቶች",
+    },
+    commands: {
+      languageSet: (langName) => `ቋንቋ ወደ ${langName} ተቀይሯል።`,
+      languagePick: "ቋንቋ ይምረጡ:",
+    },
+  },
+};
+
+const CALLBACK_SET_LANGUAGE = "lang:";
+
+function getChatLangCode(chatId) {
+  return chatLanguage.get(chatId) || "en";
+}
+
+function setChatLangCode(chatId, code) {
+  if (code !== "en" && code !== "am") return;
+  chatLanguage.set(chatId, code);
+}
+
+function L(chatId) {
+  const code = getChatLangCode(chatId);
+  return LANG[code] || LANG.en;
+}
 
 /** True when `s` looks like a Mongo ObjectId (avoids confusing short strings with sample offsets). */
 function isMongoObjectIdString(s) {
@@ -92,18 +249,28 @@ function parseApiOffsetCursor(cursor) {
 
 async function fetchCatalogFromApi() {
   const url = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/catalog`;
-  const response = await axios.get(url, { timeout: 15000 });
-  return Array.isArray(response.data) ? response.data : [];
+  try {
+    const response = await axios.get(url, { timeout: 15000 });
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (err) {
+    console.warn("[telegram-bot] fetchCatalogFromApi failed:", err?.message || err);
+    return [];
+  }
 }
 
 async function fetchServicesFromApi() {
   const url = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/services`;
-  const response = await axios.get(url, { timeout: 15000 });
-  const data = response.data;
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.services)) return data.services;
-  if (Array.isArray(data?.data)) return data.data;
-  return [];
+  try {
+    const response = await axios.get(url, { timeout: 15000 });
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.services)) return data.services;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  } catch (err) {
+    console.warn("[telegram-bot] fetchServicesFromApi failed:", err?.message || err);
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -286,6 +453,11 @@ async function sendProfessionalsMessage(chatId, body, replyMarkup) {
   }
 }
 
+// Reuse the same behavior; naming is just clearer for /services flows.
+async function sendServicesMessage(chatId, body, replyMarkup) {
+  return sendProfessionalsMessage(chatId, body, replyMarkup);
+}
+
 async function editProfessionalsMessage(chatId, messageId, body, replyMarkup) {
   const opts = {
     chat_id: chatId,
@@ -306,22 +478,28 @@ async function editProfessionalsMessage(chatId, messageId, body, replyMarkup) {
   }
 }
 
+// Reuse the same behavior; naming is just clearer for /services flows.
+async function editServicesMessage(chatId, messageId, body, replyMarkup) {
+  return editProfessionalsMessage(chatId, messageId, body, replyMarkup);
+}
+
 function buildProfessionalsKeyboard(items, nextCursor) {
+  // Note: label text is filled at send time based on chat language
   const rows = items.map((p) => [
-    { text: `Book ${p.fullName.slice(0, 20)}`, callback_data: `${CALLBACK_BOOK_PROFESSIONAL}${p.id}` },
+    { text: p.fullName.slice(0, 20), callback_data: `${CALLBACK_BOOK_PROFESSIONAL}${p.id}` },
   ]);
   if (nextCursor) {
-    rows.push([{ text: "Next professionals ▶️", callback_data: `${CALLBACK_LIST_PROFESSIONALS}${nextCursor}` }]);
+    rows.push([{ text: nextCursor, callback_data: `${CALLBACK_LIST_PROFESSIONALS}${nextCursor}` }]);
   }
   return { inline_keyboard: rows };
 }
 
 function buildServicesKeyboard(items, nextCursor) {
   const rows = items.map((s) => [
-    { text: `Book ${s.name.slice(0, 20)}`, callback_data: `${CALLBACK_BOOK_SERVICE}${s.id}` },
+    { text: s.name.slice(0, 20), callback_data: `${CALLBACK_BOOK_SERVICE}${s.id}` },
   ]);
   if (nextCursor) {
-    rows.push([{ text: "Next services ▶️", callback_data: `${CALLBACK_LIST_SERVICES}${nextCursor}` }]);
+    rows.push([{ text: nextCursor, callback_data: `${CALLBACK_LIST_SERVICES}${nextCursor}` }]);
   }
   return { inline_keyboard: rows };
 }
@@ -439,27 +617,25 @@ function clearBookingFlow(chatId) {
 }
 
 async function promptForCurrentStep(chatId, step) {
+  const ln = L(chatId);
   if (step === "date") {
-    await bot.sendMessage(
-      chatId,
-      "Please send your preferred booking date/time in this format:\nYYYY-MM-DD HH:mm\nExample: 2026-04-10 14:30\n\nYou can cancel anytime with /cancel."
-    );
+    await bot.sendMessage(chatId, ln.flow.askDate);
     return;
   }
   if (step === "fullName") {
-    await bot.sendMessage(chatId, "Please send your full name.");
+    await bot.sendMessage(chatId, ln.flow.askFullName);
     return;
   }
   if (step === "email") {
-    await bot.sendMessage(chatId, "Please send your email address.");
+    await bot.sendMessage(chatId, ln.flow.askEmail);
     return;
   }
   if (step === "phone") {
-    await bot.sendMessage(chatId, "Please send your phone number.");
+    await bot.sendMessage(chatId, ln.flow.askPhone);
     return;
   }
   if (step === "address") {
-    await bot.sendMessage(chatId, "Please send your address/location.");
+    await bot.sendMessage(chatId, ln.flow.askAddress);
   }
 }
 
@@ -478,26 +654,31 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const name = escapeHtml(msg.from?.first_name || "there");
 
-  const text =
-    `Hello, ${name}! 👋\n\n` +
-    `Welcome to the <b>HomeHub</b> assistant.\n\n` +
-    `Commands:\n` +
-    `• /professionals — browse and book agent-listed professionals\n` +
-    `• /services — browse and book listed services\n` +
-    `• /cancel — cancel current booking flow\n` +
-    `• /start — show this message`;
+  const ln = L(chatId);
+  const text = ln.start.welcome(name);
+
+  // Language switch inline buttons
+  const langKeyboard = {
+    inline_keyboard: [
+      [
+        { text: `🇺🇸 ${ln.buttons.langEn}`, callback_data: `${CALLBACK_SET_LANGUAGE}en` },
+        { text: `🇪🇹 ${ln.buttons.langAm}`, callback_data: `${CALLBACK_SET_LANGUAGE}am` },
+      ],
+    ],
+  };
 
   bot.sendMessage(chatId, text, {
     parse_mode: "HTML",
     reply_markup: {
       keyboard: [[{ text: "/professionals" }, { text: "/services" }]],
       resize_keyboard: true,
+      inline_keyboard: langKeyboard.inline_keyboard,
     },
   }).catch((err) => {
     console.error("[telegram-bot] /start send failed:", err.message);
     bot.sendMessage(
       chatId,
-      "Welcome to HomeHub! Use /professionals or /services to browse and book."
+      L(chatId).start.fallback
     );
   });
 });
@@ -506,10 +687,26 @@ bot.onText(/\/cancel/, async (msg) => {
   const chatId = msg.chat.id;
   if (pendingBookings.has(chatId)) {
     clearBookingFlow(chatId);
-    await bot.sendMessage(chatId, "Booking flow canceled.");
+    await bot.sendMessage(chatId, L(chatId).common.cancelOk);
   } else {
-    await bot.sendMessage(chatId, "No active booking flow.");
+    await bot.sendMessage(chatId, L(chatId).common.cancelNone);
   }
+});
+
+// Language command to explicitly open language selector
+bot.onText(/\/language/, async (msg) => {
+  const chatId = msg.chat.id;
+  const ln = L(chatId);
+  await bot.sendMessage(chatId, ln.commands.languagePick, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: `🇺🇸 ${ln.buttons.langEn}`, callback_data: `${CALLBACK_SET_LANGUAGE}en` },
+          { text: `🇪🇹 ${ln.buttons.langAm}`, callback_data: `${CALLBACK_SET_LANGUAGE}am` },
+        ],
+      ],
+    },
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -520,8 +717,43 @@ bot.onText(/\/professionals/, async (msg) => {
 
   try {
     const { items, nextCursor } = await fetchProfessionalsPage(null);
-    const body = formatProfessionalsListHtml(items, "Professionals (page 1)");
-    const replyMarkup = buildProfessionalsKeyboard(items, nextCursor);
+    const ln = L(chatId);
+    const localized = {
+      items: items.map((d) => ({
+        ...d,
+        fullName: d.fullName,
+        serviceType: d.serviceType,
+        city: d.city,
+      })),
+    };
+    // Localize labels inside the list body
+    const body = (function () {
+      if (!localized.items.length) return ln.common.noProfessionalsFound;
+      const lines = localized.items.map((p, i) => {
+        return (
+          `${i + 1}. <b>${escapeHtml(p.fullName)}</b>\n` +
+          `   ${ln.common.service}: ${escapeHtml(p.serviceType)}\n` +
+          `   ${ln.common.city}: ${escapeHtml(p.city)}`
+        );
+      });
+      const header = ln.pages.professionals ? `<b>${escapeHtml(ln.pages.professionals)}</b>\n\n` : "";
+      return header + lines.join("\n\n");
+    })();
+    // Build keyboard and then localize button labels
+    const kb = buildProfessionalsKeyboard(items, nextCursor);
+    kb.inline_keyboard = kb.inline_keyboard.map((row) => {
+      const [btn] = row;
+      if (btn?.callback_data?.startsWith(CALLBACK_BOOK_PROFESSIONAL)) {
+        const id = btn.callback_data.slice(CALLBACK_BOOK_PROFESSIONAL.length);
+        const item = items.find((x) => x.id === id);
+        return [{ text: ln.buttons.book((item?.fullName || "").slice(0, 20)), callback_data: btn.callback_data }];
+      }
+      if (btn?.callback_data?.startsWith(CALLBACK_LIST_PROFESSIONALS)) {
+        return [{ text: ln.buttons.nextProfessionals, callback_data: btn.callback_data }];
+      }
+      return row;
+    });
+    const replyMarkup = kb;
     await sendProfessionalsMessage(chatId, body, replyMarkup);
   } catch (err) {
     console.error(
@@ -532,7 +764,7 @@ bot.onText(/\/professionals/, async (msg) => {
     try {
       await bot.sendMessage(
         chatId,
-        "Sorry, something went wrong loading professionals. Try again later."
+        L(chatId).common.somethingWrongPros
       );
     } catch (_) {}
   }
@@ -542,9 +774,35 @@ bot.onText(/\/services/, async (msg) => {
   const chatId = msg.chat.id;
   try {
     const { items, nextCursor } = await fetchServicesPage(null);
-    const body = formatServicesListHtml(items, "Services (page 1)");
-    const replyMarkup = buildServicesKeyboard(items, nextCursor);
-    await sendProfessionalsMessage(chatId, body, replyMarkup);
+    const ln = L(chatId);
+    const body = (function () {
+      if (!items.length) return ln.common.noServicesFound;
+      const lines = items.map((s, i) => {
+        return (
+          `${i + 1}. <b>${escapeHtml(s.name)}</b>\n` +
+          `   ${ln.common.category}: ${escapeHtml(s.category)} / ${escapeHtml(s.type)}\n` +
+          `   ${ln.common.price}: ${escapeHtml(s.price)} ${ln.common.etb}\n` +
+          `   ${ln.common.provider}: ${escapeHtml(s.providerName)}`
+        );
+      });
+      const header = ln.pages.services ? `<b>${escapeHtml(ln.pages.services)}</b>\n\n` : "";
+      return header + lines.join("\n\n");
+    })();
+    const kb = buildServicesKeyboard(items, nextCursor);
+    kb.inline_keyboard = kb.inline_keyboard.map((row) => {
+      const [btn] = row;
+      if (btn?.callback_data?.startsWith(CALLBACK_BOOK_SERVICE)) {
+        const id = btn.callback_data.slice(CALLBACK_BOOK_SERVICE.length);
+        const item = items.find((x) => x.id === id);
+        return [{ text: ln.buttons.book((item?.name || "").slice(0, 20)), callback_data: btn.callback_data }];
+      }
+      if (btn?.callback_data?.startsWith(CALLBACK_LIST_SERVICES)) {
+        return [{ text: ln.buttons.nextServices, callback_data: btn.callback_data }];
+      }
+      return row;
+    });
+    const replyMarkup = kb;
+    await sendServicesMessage(chatId, body, replyMarkup);
   } catch (err) {
     console.error(
       "[telegram-bot] /services error:",
@@ -554,7 +812,7 @@ bot.onText(/\/services/, async (msg) => {
     try {
       await bot.sendMessage(
         chatId,
-        "Sorry, something went wrong loading services. Please try again in a moment."
+        L(chatId).common.somethingWrongSvc
       );
     } catch (_) {}
   }
@@ -580,14 +838,47 @@ bot.on("callback_query", async (query) => {
   }
 
   try {
+    if (data.startsWith(CALLBACK_SET_LANGUAGE)) {
+      const code = data.slice(CALLBACK_SET_LANGUAGE.length);
+      setChatLangCode(chatId, code);
+      const ln = L(chatId);
+      const name = code === "am" ? ln.buttons.langAm : ln.buttons.langEn;
+      await bot.sendMessage(chatId, ln.commands.languageSet(name));
+      return;
+    }
+
     if (data.startsWith(CALLBACK_LIST_PROFESSIONALS)) {
       const cursor = data.slice(CALLBACK_LIST_PROFESSIONALS.length);
       const { items, nextCursor } = await fetchProfessionalsPage(cursor);
+      const ln = L(chatId);
       const body =
         items.length === 0
-          ? "No more professionals."
-          : formatProfessionalsListHtml(items, "Next professionals");
-      const replyMarkup = buildProfessionalsKeyboard(items, nextCursor);
+          ? ln.common.noMoreProfessionals
+          : (function () {
+              const lines = items.map((p, i) => {
+                return (
+                  `${i + 1}. <b>${escapeHtml(p.fullName)}</b>\n` +
+                  `   ${ln.common.service}: ${escapeHtml(p.serviceType)}\n` +
+                  `   ${ln.common.city}: ${escapeHtml(p.city)}`
+                );
+              });
+              const header = ln.pages.nextProfessionals ? `<b>${escapeHtml(ln.pages.nextProfessionals)}</b>\n\n` : "";
+              return header + lines.join("\n\n");
+            })();
+      const kb = buildProfessionalsKeyboard(items, nextCursor);
+      kb.inline_keyboard = kb.inline_keyboard.map((row) => {
+        const [btn] = row;
+        if (btn?.callback_data?.startsWith(CALLBACK_BOOK_PROFESSIONAL)) {
+          const id = btn.callback_data.slice(CALLBACK_BOOK_PROFESSIONAL.length);
+          const item = items.find((x) => x.id === id);
+          return [{ text: ln.buttons.book((item?.fullName || "").slice(0, 20)), callback_data: btn.callback_data }];
+        }
+        if (btn?.callback_data?.startsWith(CALLBACK_LIST_PROFESSIONALS)) {
+          return [{ text: ln.buttons.nextProfessionals, callback_data: btn.callback_data }];
+        }
+        return row;
+      });
+      const replyMarkup = kb;
       await editProfessionalsMessage(chatId, messageId, body, replyMarkup);
       return;
     }
@@ -595,12 +886,37 @@ bot.on("callback_query", async (query) => {
     if (data.startsWith(CALLBACK_LIST_SERVICES)) {
       const cursor = data.slice(CALLBACK_LIST_SERVICES.length);
       const { items, nextCursor } = await fetchServicesPage(cursor);
+      const ln = L(chatId);
       const body =
         items.length === 0
-          ? "No more services."
-          : formatServicesListHtml(items, "Next services");
-      const replyMarkup = buildServicesKeyboard(items, nextCursor);
-      await editProfessionalsMessage(chatId, messageId, body, replyMarkup);
+          ? ln.common.noMoreServices
+          : (function () {
+              const lines = items.map((s, i) => {
+                return (
+                  `${i + 1}. <b>${escapeHtml(s.name)}</b>\n` +
+                  `   ${ln.common.category}: ${escapeHtml(s.category)} / ${escapeHtml(s.type)}\n` +
+                  `   ${ln.common.price}: ${escapeHtml(s.price)} ${ln.common.etb}\n` +
+                  `   ${ln.common.provider}: ${escapeHtml(s.providerName)}`
+                );
+              });
+              const header = ln.pages.nextServices ? `<b>${escapeHtml(ln.pages.nextServices)}</b>\n\n` : "";
+              return header + lines.join("\n\n");
+            })();
+      const kb = buildServicesKeyboard(items, nextCursor);
+      kb.inline_keyboard = kb.inline_keyboard.map((row) => {
+        const [btn] = row;
+        if (btn?.callback_data?.startsWith(CALLBACK_BOOK_SERVICE)) {
+          const id = btn.callback_data.slice(CALLBACK_BOOK_SERVICE.length);
+          const item = items.find((x) => x.id === id);
+          return [{ text: ln.buttons.book((item?.name || "").slice(0, 20)), callback_data: btn.callback_data }];
+        }
+        if (btn?.callback_data?.startsWith(CALLBACK_LIST_SERVICES)) {
+          return [{ text: ln.buttons.nextServices, callback_data: btn.callback_data }];
+        }
+        return row;
+      });
+      const replyMarkup = kb;
+      await editServicesMessage(chatId, messageId, body, replyMarkup);
       return;
     }
 
@@ -608,7 +924,7 @@ bot.on("callback_query", async (query) => {
       const professionalId = data.slice(CALLBACK_BOOK_PROFESSIONAL.length);
       await bot.sendMessage(
         chatId,
-        "Great choice. I will collect your booking details now."
+        L(chatId).flow.begin
       );
       startBookingFlow(chatId, {
         type: "professional",
@@ -623,7 +939,7 @@ bot.on("callback_query", async (query) => {
       const serviceId = data.slice(CALLBACK_BOOK_SERVICE.length);
       await bot.sendMessage(
         chatId,
-        "Great choice. I will collect your booking details now."
+        L(chatId).flow.begin
       );
       startBookingFlow(chatId, {
         type: "service",
@@ -638,7 +954,7 @@ bot.on("callback_query", async (query) => {
     try {
       await bot.sendMessage(
         chatId,
-        "Could not complete that action. Please try /professionals or /services again."
+        L(chatId).common.actionFailed
       );
     } catch (_) {}
   }
@@ -659,7 +975,7 @@ bot.on("message", async (msg) => {
       if (!date) {
         await bot.sendMessage(
           chatId,
-          "Invalid date/time. Please use YYYY-MM-DD HH:mm and a future date."
+          L(chatId).flow.invalidDate
         );
         return;
       }
@@ -680,7 +996,7 @@ bot.on("message", async (msg) => {
 
     if (flow.step === "email") {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
-        await bot.sendMessage(chatId, "Invalid email. Please enter a valid email.");
+        await bot.sendMessage(chatId, L(chatId).flow.invalidEmail);
         return;
       }
       flow.collected.email = text;
@@ -702,7 +1018,7 @@ bot.on("message", async (msg) => {
       flow.collected.address = text;
       const bookingInput = normalizeBookingInput(flow, chatId);
       if (!bookingInput.date) {
-        await bot.sendMessage(chatId, "Date became invalid. Please restart booking.");
+        await bot.sendMessage(chatId, L(chatId).flow.dateLost);
         clearBookingFlow(chatId);
         return;
       }
@@ -715,7 +1031,7 @@ bot.on("message", async (msg) => {
       clearBookingFlow(chatId);
       await bot.sendMessage(
         chatId,
-        `✅ Booking created successfully.\nBooking ID: ${booking._id}\nStatus: ${booking.status}\n\nHomeHub team will follow up soon.`
+        L(chatId).flow.success(booking._id, booking.status)
       );
     }
   } catch (err) {
@@ -723,7 +1039,7 @@ bot.on("message", async (msg) => {
     clearBookingFlow(chatId);
     await bot.sendMessage(
       chatId,
-      "Sorry, I couldn't complete your booking. Please try again from /professionals or /services."
+      L(chatId).flow.failed
     );
   }
 });
@@ -761,7 +1077,18 @@ async function initWebhook() {
     console.error(
       "[telegram-bot] Missing TELEGRAM_WEBHOOK_URL or RENDER_EXTERNAL_URL. Cannot set webhook."
     );
-    process.exit(1);
+    // If webhook URL isn't configured (common in local dev), continue running.
+    // node-telegram-bot-api typically uses polling by default, but we explicitly start it
+    // to keep the bot functional.
+    try {
+      if (typeof bot.startPolling === "function") {
+        await bot.startPolling();
+        console.log("[telegram-bot] Started polling (webhook URL missing).");
+      }
+    } catch (err) {
+      console.warn("[telegram-bot] Polling start failed:", err?.message || err);
+    }
+    return;
   }
 
   try {

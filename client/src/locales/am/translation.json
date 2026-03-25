@@ -37,7 +37,24 @@
     "bookings": "ቦኪንጎች",
     "settings": "ቅንብሮች",
     "help": "እርዳታ",
-    "support": "ድጋፍ"
+    "support": "ድጋፍ",
+    "noImage": "ምንም ምስል የለም",
+    "fullName": "ሙሉ ስም",
+    "emailAddress": "የኢሜይል አድራሻ",
+    "phoneNumber": "ስልክ ቁጥር",
+    "newPassword": "አዲስ የይለፍ ቃል",
+    "saveChanges": "ለውጦችን አስቀምጥ",
+    "language": "ቋንቋ",
+    "optional": "(አማራጭ)",
+    "whatsapp": "ዋትስአፕ",
+    "appChat": "አፕ ቻት",
+    "country": "አገር",
+    "done": "ተጠናቀቀ",
+    "new": "አዲስ",
+    "service": "አገልግሎት",
+    "ratingSingular": "ደረጃ",
+    "ratingPlural": "ደረጃዎች",
+    "noRating": "ደረጃ የለም"
   },
   "auth": {
     "welcomeBack": "እንኳን ደህና መጡ 👋",
@@ -69,6 +86,7 @@
     "login": "ግባ",
     "register": "ተመዝግብ",
     "dashboard": "ዳሽቦርድ",
+    "requestService": "አገልግሎት ይጠይቁ",
     "logout": "ውጣ"
   },
   "home": {
@@ -85,6 +103,184 @@
       "customers": "ደስተኛ ደንበኞች",
       "services": "የሚገኙ አገልግሎቶች",
       "bookings": "የተጠናቀቁ ቦኪንጎች"
+    },
+    "hero": {
+      "topPill": "ቤት አገልግሎቶች፣ ተሻሽለው እና በፍጥነት ይደርሳሉ",
+      "findTrustedHomeServices": "በአቅራቢዎ ያሉ <0>የታመነ</0> ቤት አገልግሎቶችን በአሁኑ ይፈልጉ",
+      "bookVerifiedProfessionals": "በደቂቃዎች ውስጥ የተረጋገጡ ባለሙያዎችን ይያዙ።",
+      "searchPlaceholder": "ጽዳት፣ ፕላምቢንግ፣ ኤሌክትሪሻን...",
+      "searchAriaLabel": "አገልግሎቶችን ፍለጋ",
+      "bookService": "አገልግሎት ይያዙ",
+      "becomeProvider": "አገልግሎት ሰጪ ይሁኑ",
+      "trustRating": "4.8 ደረጃ",
+      "verifiedProviders": "ተረጋግጠ አገልግሎት ሰጪዎች",
+      "fastBooking": "በፍጥነት መያዝ",
+      "imageAlt": "የታመኑ የቤት አገልግሎቶች"
+    },
+    "servicesMenu": {
+      "title": "አገልግሎቶቻችን",
+      "subtitle": "ለማሰስ ምድብ ይምረጡ",
+      "categoryServicesCount": "{{count}} አገልግሎቶች"
+    },
+    "servicesModal": {
+      "loading": "በመጫን ላይ...",
+      "servicesAvailable": "{{count}} አገልግሎቶች ይገኛሉ",
+      "serviceTypesAvailable": "{{count}} የአገልግሎት ዓይነቶች ይገኛሉ",
+      "viewAllServices": "{{category}} አገልግሎቶችን ሁሉንም ይመልከቱ"
+    },
+    "recentlyAdded": {
+      "titlePrefix": "በቅርቡ የተጨመሩ",
+      "titleHighlight": "አገልግሎቶች",
+      "subtitle": "በመድረካችን ላይ በቅርቡ የተጨመሩ አዳዲስ አገልግሎቶችን ይያዙ",
+      "empty": "በቅርቡ የሚገኙ አገልግሎቶች የሉም",
+      "discoverMore": "ተጨማሪ ይመልከቱ"
+    },
+    "mostBooked": {
+      "titlePrefix": "በጣም የተያዙ",
+      "titleHighlight": "አገልግሎቶች",
+      "badge": "በጣም የተያዙ",
+      "subtitle": "በማህበረሰባችን የሚታመኑ ተወዳጅ ምርጫዎች",
+      "empty": "በቅርቡ የሚገኙ የቦኪንግ አገልግሎቶች የሉም። ቦኪንጎች ከተደረጉ በኋላ እዚህ ይታያሉ።"
+    },
+    "specialOffers": {
+      "titlePrefix": "ልዩ",
+      "titleHighlight": "ቅናሾች",
+      "subtitle": "ከአገልግሎት ሰጪዎቻችን ልዩ ቅናሾች እና ቅናሽ ዋጋዎች",
+      "originalPrice": "ዋና ዋጋ",
+      "now": "አሁን",
+      "serviceLabel": "አገልግሎት፡",
+      "providerLabel": "አቅራቢ፡",
+      "empty": "በአሁኑ ጊዜ ልዩ ቅናሾች አይገኙም። ለሚያስደስቱ ጥሩ እድሎች በቅርቡ ይመለሱ።",
+      "debugInfo": "የማስታወሻ መረጃ፡"
+    },
+    "specialPrograms": {
+      "titlePrefix": "ልዩ",
+      "titleHighlight": "ፕሮግራሞች",
+      "description": "ማህበረሰቦችን ለማስታገት እና ለማገናኘት የተዘጋጀ ልዩ ፕሮግራሞችን ይቀላቀሉ።"
+    },
+    "programs": {
+      "joinNow": "አሁን ይቀላቀሉ"
+    },
+    "professionalsCommunity": {
+      "title": "የባለሙያዎች ማህበረሰብ",
+      "exploreNow": "አሁን ይመርምሱ የባለሙያዎች ማህበረሰብ",
+      "formTitle": "የባለሙያዎች ማህበረሰብ",
+      "formDescription": "በታች ያለውን ቅጽ በመሙላት ይቀላቀሉ",
+      "description": "በችሎት የተሞሉ ባለሙያዎችን ይገናኙ፣ እድሎችን ይፈልጉ እና የአገልግሎት ንግድዎን በሚደግፍ ማህበረሰብ ውስጥ ያሳድጉ።",
+      "tags": {
+        "taskers": "ስራ ሰጪዎች",
+        "freshGraduate": "አዲስ የተመረቁ"
+      },
+      "messages": {
+        "thanks": "✅ እናመሰግናለን! ጥያቄዎ ተቀብሎአል። በቅርቡ እንመልስዎታለን።"
+      },
+      "fields": {
+        "currentLocation": "አሁን አካባቢ",
+        "whatsapp": "ዋትስአፕ",
+        "linkedInProfile": "የLinkedIn መገለጫ",
+        "selectSpecialization": "ልዩ ባለሙያነት ይምረጡ",
+        "uploadCv": "CV ይስቀሉ",
+        "uploadCredentials": "ማስረጃዎች ይስቀሉ"
+      },
+      "placeholders": {
+        "currentLocation": "አሁን አካባቢ",
+        "whatsappOptional": "ዋትስአፕ (አማራጭ)",
+        "linkedInOptional": "የLinkedIn መገለጫ (አማራጭ)"
+      },
+      "selectSpecializationPrompt": "-- ልዩ ባለሙያነት ይምረጡ --",
+      "specializations": {
+        "educationAndTraining": "ትምህርት እና ስልጠና",
+        "technologyAndDesign": "ቴክኖሎጂ እና ንድፍ",
+        "businessAndOperations": "ንግድ እና ኦፕሬሽን"
+      },
+      "noFileChosen": "ፋይል አልተመረጠም",
+      "errors": {
+        "fullNameRequired": "ሙሉ ስም ያስፈልጋል።",
+        "emailRequired": "ኢሜል ያስፈልጋል።",
+        "phoneRequired": "ስልክ ያስፈልጋል።",
+        "currentLocationRequired": "አሁን አካባቢ ያስፈልጋል።",
+        "specializationRequired": "ልዩ ባለሙያነት ይምረጡ።",
+        "cvRequired": "CV እባክዎ ይስቀሉ።",
+        "credentialsRequired": "ማስረጃዎች እባክዎ ይስቀሉ።"
+      }
+    },
+    "joinCommunity": {
+      "titlePrefix": "ከኛ ጋር",
+      "titleHighlight": "ማህበረሰብ",
+      "description": "ችላችሁን የሚስማማ የስራ እድሎችን ይፈልጉ እና እያደገ ያለ የአገልግሎት አቅራቢዎች ማህበረሰብ ይሁኑ።",
+      "features": {
+        "jobOpportunities": {
+          "title": "የስራ እድሎችን ይፈልጉ",
+          "description": "ክህሎትዎን የሚስማማ አዲስ የስራ እድሎችን ይመልከቱ እና ስራዎን ያሳድጉ።"
+        },
+        "diaspora": {
+          "title": "የውጭ አገር ማህበረሰብ",
+          "description": "በውጭ አገር ያለዎትን ማህበረሰብ ይገናኙ፣ ተሞክሮዎችን ይካፈሉ እና ቤት ለመመለስ አዲስ እድሎችን ያግኙ።"
+        },
+        "premiumMembership": {
+          "title": "ፕሪሚየም አባልነት",
+          "description": "ለፕሪሚየም አገልግሎቶች ልዩ መዳረሻ፣ ቀዳሚ ቦኪንግ እና የተሻለ የመድረክ ባህሪዎችን ይክፈቱ።"
+        }
+      },
+      "trustLabels": {
+        "verifiedProviders": "ተረጋግጠ አቅራቢዎች",
+        "fiveStarRated": "ከ5-ኮከብ የተመዘነ",
+        "secureTrusted": "ደህንነት እና እምነት"
+      },
+      "cta": {
+        "title": "ልዩነቱን ለመሞከር ዝግጁ ነዎት?",
+        "description": "በየቀኑ የአገልግሎት ፍላጎትዎን ለማሟላት ለHomeHub እምነት የሚሰጡ ብዙ ደንበኞችንና አገልግሎት ሰጪዎችን ይቀላቀሉ።",
+        "bookServiceNow": "አሁን አገልግሎት ይያዙ",
+        "signUpNow": "አሁን ይመዝገቡ"
+      }
+    },
+    "jobs": {
+      "sectionTitle": "የስራ እድሎች",
+      "empty": "በአሁኑ ጊዜ የስራ እድሎች አይገኙም",
+      "checkBackLater": "ለሚመጡ አዲስ እድሎች በቅርቡ ይመልከቱ",
+      "jobSingular": "ስራ",
+      "jobPlural": "ስራዎች",
+      "available": "ይገኛሉ",
+      "applyButton": "ለስራ ይምዝገቡ",
+      "applicationSubmittedTitle": "درخواستዎ ተልኳል!",
+      "applicationSubmittedMessage": "ለፍላጎትዎ እናመሰግናለን። درخواستዎን እንመለከታለን እና በቅርቡ እንመልስዎታለን።",
+      "form": {
+        "personalInfoTitle": "የግል መረጃ",
+        "contactInfoTitle": "የሚያገኙዎ መረጃ",
+        "genderSelectLabel": "ጾታ ይምረጡ",
+        "dateOfBirthLabel": "የትውልድ ቀን",
+        "genderLabel": "ጾታ",
+        "nationalityLabel": "ዜግነት",
+        "gender": {
+          "male": "ወንድ",
+          "female": "ሴት",
+          "other": "ሌላ",
+          "preferNotToSay": "ለመናገር አልፈልግም"
+        },
+        "alternativePhoneOptional": "ተጨማሪ ስልክ (አማራጭ)",
+        "coverLetterLabel": "የሽፋን ደብዳቤ",
+        "resumeOptionalLabel": "መዝገብ/ CV (አማራጭ)",
+        "acceptedFormats": "የሚቀበሉ ቅርጸቶች፡ PDF, DOC, DOCX (ከፍተኛ: 5MB)",
+        "submitButton": "ለስራ درخواست ይላኩ",
+        "submittingButton": "በመላክ ላይ..."
+        ,
+        "placeholders": {
+          "fullName": "ሙሉ ስምዎን ያስገቡ",
+          "nationality": "ለምሳሌ፡ ኢትዮጵያዊ፣ አሜሪካዊ፣ ወዘተ.",
+          "email": "your.email@example.com",
+          "phone": "+251 9XX XXX XXX",
+          "alternativePhone": "+251 9XX XXX XXX",
+          "address": "የመንገድ አድራሻ፣ ፒ.ኦ. ቦክስ ወዘተ.",
+          "city": "ለምሳሌ፡ አዲስ አበባ",
+          "country": "ለምሳሌ፡ ኢትዮጵያ",
+          "coverLetter": "በዚህ ስራ ምን እንደሚፈልጉ እና ለምን ጥሩ እንደሚስማማዎ ያስረዱን..."
+        }
+      }
+      ,
+      "errors": {
+        "requiredFields": "እባክዎ ሁሉንም የሚያስፈልጉ መስኮች ይሙሉ",
+        "fileSizeTooLarge": "የፋይሉ መጠን ከ 5MB በታች መሆን አለበት"
+      }
     }
   },
   "services": {
@@ -140,7 +336,8 @@
       "providers": "አገልግሎት ሰጪዎች",
       "reports": "ሪፖርቶች እና ትንተና",
       "settings": "የስርዓት ቅንብሮች"
-    }
+    },
+    "redirectingToDashboard": "ወደ ዳሽቦርድዎ በመሄድ ላይ..."
   },
   "booking": {
     "title": "አገልግሎት ይያዙ",
@@ -176,7 +373,8 @@
     "uploadPhoto": "ፎቶ ይጭኑ",
     "verification": "የአካውንት ማረጋገጫ",
     "verified": "ተረጋግጦ የሚገኝ አካውንት",
-    "unverified": "ያልተረጋገጠ አካውንት"
+    "unverified": "ያልተረጋገጠ አካውንት",
+    "manageDetails": "ዝርዝሮችዎን ያስተዳድሩ"
   },
   "footer": {
     "description": "HomeHub - ለተሻለ አገልግሎት የታመነ መድረክ",
@@ -200,7 +398,10 @@
     "forbidden": "መዳረሻ የተከለከለ",
     "somethingWentWrong": "አንድ ነገር ተሳስቷል",
     "tryAgain": "እንደገና ይሞክሩ",
-    "goHome": "ወደ ቤት ይሂዱ"
+    "goHome": "ወደ ቤት ይሂዱ",
+    "failedToFetchProfile": "መገለጫዎን ማምጣት አልተሳካም",
+    "updateFailed": "ማዘመን አልተሳካም",
+    "failedToSearchServices": "አገልግሎቶችን መፍለጥ አልተሳካም"
   },
   "validation": {
     "required": "ይህ መስክ ያስፈልጋል",
@@ -212,5 +413,157 @@
     "maxLength": "ከፍተኛው ርዝመት {{count}} ቁምፊዎች ነው",
     "numeric": "እባክዎ ትክክለኛ ቁጥር ያስገቡ",
     "positive": "እባክዎ አዎንታዊ ቁጥር ያስገቡ"
+  },
+  "serviceRequest": {
+    "title": "የአገልግሎት ጥያቄ ያቅርቡ",
+    "subtitle": "የሚፈልጉትን ያሳውቁን፣ ተገቢውን ቡድን/አቅራቢ እናሳውቃለን።",
+    "fields": {
+      "fullName": "ሙሉ ስም",
+      "email": "የኢሜይል አድራሻ",
+      "phone": "ስልክ ቁጥር",
+      "whatsappOptional": "የዋትስአፕ ቁጥር (አማራጭ)",
+      "location": "አካባቢ / አድራሻ",
+      "serviceNeeded": "የሚፈለገው አገልግሎት (ለምሳሌ ፕላምቢንግ፣ ጽዳት፣ ኤሌክትሪሻን)",
+      "budget": "በጀት (ETB)",
+      "details": "ጥያቄዎን በዝርዝር ያብራሩ..."
+    },
+    "buttons": {
+      "submit": "የአገልግሎት ጥያቄ ላክ",
+      "submitting": "በመላክ ላይ..."
+    },
+    "messages": {
+      "submitted": "የአገልግሎት ጥያቄዎ ተልኳል። በቅርቡ እናገናኝዎታለን።",
+      "endpointUnavailable": "የአገልግሎት ጥያቄ endpoint በአሁኑ backend ላይ አይገኝም። backend ዳግም ያስነሱ (ወይም አዲሱን server ለውጦች ያቀርቡ) እና እንደገና ይሞክሩ።",
+      "failed": "የአገልግሎት ጥያቄውን መላክ አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+    }
+  },
+  "homeFeatured": {
+    "titlePrefix": "ተመራጭ",
+    "titleHighlight": "ባለሙያዎች",
+    "subtitle": "በኤጀንት አውታረ መረባችን የተጨመሩ የታመኑ ባለሙያዎች",
+    "viewAll": "ሁሉንም አገልግሎቶች ይመልከቱ",
+    "agentListing": "የኤጀንት ዝርዝር",
+    "professionalBadge": "ባለሙያ",
+    "bookNow": "አሁን ይያዙ",
+    "empty": "እስካሁን በኤጀንት የተዘረዘሩ ባለሙያዎች የሉም። አቅራቢዎችን ለማግኘት ሁሉንም አገልግሎቶች ይመልከቱ።",
+    "contactForPrice": "ለዋጋ ያነጋግሩ",
+    "priceFrom": "ከ {{amount}} ETB ጀምሮ",
+    "priceExact": "{{amount}} ETB"
+  },
+  "invoice": {
+    "companyTinAddress": "ቲን: 0106286060 | አዲስ አበባ፣ ኢትዮጵያ",
+    "phoneLabel": "ስልክ:",
+    "brandName": "HomeHub ዲጂታል መፍትሔዎች",
+    "title": "ደረሰኝ",
+    "download": "አውርድ",
+    "downloadInvoice": "ደረሰኝ አውርድ",
+    "invoiceNumberLabel": "የደረሰኝ ቁጥር",
+    "dateLabel": "ቀን",
+    "customerInformation": "የደንበኛ መረጃ",
+    "nameLabel": "ስም:",
+    "emailLabel": "ኢሜል:",
+    "organizationLabel": "ድርጅት:",
+    "roleLabel": "ሚና:",
+    "planDetails": "የእቅድ ዝርዝሮች",
+    "planLabel": "እቅድ:",
+    "typeLabel": "አይነት:",
+    "periodLabel": "ጊዜ:",
+    "paymentDetails": "የክፍያ ዝርዝሮች",
+    "subtotalLabel": "ንዑስ ጠቅላላ:",
+    "taxLabel": "ታክስ:",
+    "totalLabel": "ጠቅላላ:",
+    "statusLabel": "ሁኔታ:",
+    "methodLabel": "የክፍያ ዘዴ:",
+    "transactionIdLabel": "የግብይት መለያ:",
+    "paidAtLabel": "የተከፈለበት:",
+    "membershipPeriod": "የአባልነት ጊዜ",
+    "startDateLabel": "መጀመሪያ ቀን:",
+    "endDateLabel": "መጨረሻ ቀን:",
+    "invoiceInformationNotAvailable": "የደረሰኝ መረጃ አልተገኘም",
+    "invoiceDateLabel": "የደረሰኝ ቀን:",
+    "invoiceNumberShortLabel": "ደረሰኝ #:",
+    "customerLabel": "ደንበኛ:",
+    "statusPendingPayment": "ሁኔታ: ክፍያ በጥበቃ ላይ",
+    "totalAmountDueLabel": "መክፈል ያለበት ጠቅላላ:",
+    "statusPending": "ሁኔታ: በጥበቃ ላይ",
+    "scanToVerifyLabel": "ይህን ደረሰኝ ለማረጋገጥ ይቃኙ"
+  },
+  "placeholders": {
+    "phoneExample": "ለምሳሌ፡ +251912345678",
+    "leaveBlankKeepCurrent": "ለማስቀመጥ ካሁኑ ይቆይ ዘንድ ባዶ ይተዉ",
+    "searchForServicesProvidersCategories": "አገልግሎቶችን፣ አቅራቢዎችን ወይም ምድቦችን ይፈልጉ..."
+  },
+  "messages": {
+    "profileUpdatedSuccess": "✅ መገለጫዎ ተዘምኗል"
+  },
+  "community": {
+    "joinCommunity": "በማህበሩ ይቀላቀሉ"
+  },
+  "navbar": {
+    "toggleMenu": "ምናሌ ቀይር",
+    "mobileTagline": "Home አገልግሎቶች ተሻሽለው በፍጥነት ይደርሳሉ",
+    "live": "በሕይወት",
+    "newProvidersJoinedThisWeek": "በዚህ ሳምንት አዲስ አገልግሎት ሰጪዎች ተቀላቅለዋል",
+    "completedBookingsLabel": "የተጠናቀቁ ቦኪንጎች",
+    "ratingLabel": "ደረጃ",
+    "servicePrompts": [
+      "የቤት ጥገና ባለሙያዎች",
+      "በአቅራቢዎ የሚገኙ የጽዳት አገልግሎቶች",
+      "የመሳሪያ ጥገና ባለሙያዎች",
+      "የግል እንክብካቤ ባለሙያዎች",
+      "የቤት ድጋፍ ቡድኖች",
+      "የሆቴል እና ሎውንጅ ሠራተኞች"
+    ],
+    "verifiedServiceProviders": "ተረጋግጠ አገልግሎት ሰጪዎች",
+    "qualityGuaranteed": "ጥራት ተረጋግጧል",
+    "seamlessConnection": "ቀላል አገናኝ",
+    "searching": "በመፈለግ ላይ...",
+    "foundServices_one": "1 አገልግሎት ተገኝቷል",
+    "foundServices_other": "{{count}} አገልግሎቶች ተገኝተዋል",
+    "noServicesFoundForQuery": "በ \"{{query}}\" ላይ አገልግሎቶች አልተገኙም",
+    "tryDifferentKeywords": "የተለያዩ ቃላት ይሞክሩ ወይም ፊደል ይመልከቱ",
+    "popularSearches": "ታዋቂ ፍለጋዎች",
+    "noDescriptionAvailable": "መግለጫ አልተገኘም",
+    "locationNotSpecified": "ቦታ አልተገለጸም",
+    "uncategorized": "ያልተመደበ",
+    "etbPerHour": "ETB/በሰዓት",
+    "etbPerSqft": "ETB/ካሬ ጫማ",
+    "priceFrom": "ከ {{amount}} ETB ጀምሮ",
+    "popularSearchesItems": {
+      "plumbing": "የቧንቧ ጥገና",
+      "cleaning": "ጽዳት",
+      "electrician": "ኤሌክትሪሻን",
+      "painting": "ሥዕል መቀባት",
+      "gardening": "የአትክልት እንክብካቤ",
+      "babysitting": "የህፃን እንክብካቤ",
+      "carpentry": "እንጨት ማስሪያ",
+      "applianceRepair": "የመሳሪያ ጥገና"
+    }
+  },
+  "paymentSuccess": {
+    "bookingConfirmedTitle": "ቦኪንግ ተረጋግጧል! 🎉",
+    "paymentSuccessfulTitle": "ክፍያ ተሳክቷል! 🎉",
+    "premiumCashActivated": "የፕሪሚየም አባልነትዎ ተንቀሳቅሷል። ከ7 ቀናት በውስጥ በጥሬ ክፍያ ያጠናቅቁ፤ ደረሰኝ ተፈጥሯል።",
+    "premiumActivated": "የፕሪሚየም አባልነትዎ በተሳካ ሁኔታ ተንቀሳቅሷል።",
+    "bookingCashConfirmed": "ቦኪንግዎ ተረጋግጧል። አገልግሎቱ እንደተጠናቀቀ በጥሬ ይክፍሉ።",
+    "bookingOnlineConfirmed": "ለክፍያዎ እናመሰግናለን። ቦኪንግዎ ተረጋግጧል።",
+    "failedToGeneratePdf": "PDF ለመፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+    "completePurchase": "ግዢን ያጠናቅቁ",
+    "bookingConfirmedSuccessfully": "ቦኪንግዎ በተሳካ ሁኔታ ተረጋግጧል!",
+    "serviceLabel": "አገልግሎት:",
+    "dateLabel": "ቀን:",
+    "amountLabel": "መጠን:",
+    "backToHome": "ወደ መነሻ",
+    "createSpecialOffers": "ልዩ ቅናሾች ይፍጠሩ",
+    "browseServices": "አገልግሎቶችን ይመልከቱ",
+    "goToDashboard": "ወደ ዳሽቦርድ ይሂዱ",
+    "premiumAccessActivatedTitle": "🎉 ፕሪሚየም መዳረሻ ተነቃቅቷል!",
+    "premiumAccessActivatedDescription": "በፕሪሚየም አባል ሆነው አሁን የአገልግሎት ሰጪዎችን ዝርዝር መረጃ (የሰነዶቻቸውን፣ የንግድ መረጃቸውን እና ሙሉ የአገልግሎት መረጃ) ለማየት ልዩ መዳረሻ አለዎት።",
+    "premiumAccessBullet1": "የአገልግሎት ሰጪ ሰነዶችን እና ማረጋገጫዎችን ይመልከቱ",
+    "premiumAccessBullet2": "ዝርዝር የንግድ መረጃ ያግኙ",
+    "premiumAccessBullet3": "ሙሉ ዝርዝር የአገልግሎት ሰጪ መገለጫዎችን ይመልከቱ",
+    "premiumAccessBullet4": "በሙሉ ግልጽነት ተመስርተው ውሳኔ ይውሰኑ",
+    "premiumAccessExploreNote": "ማንኛውንም አገልግሎት ይጫኑ እና {{buttonLabel}} የሚለውን ቁልፍ ተመልከቱ እንዲሁም የአገልግሎት ሰጪ መረጃን ያስሱ!",
+    "viewProviderDetailsButton": "የአገልግሎት ሰጪ ዝርዝሮችን ይመልከቱ"
   }
 }

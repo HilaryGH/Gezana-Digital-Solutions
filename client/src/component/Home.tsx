@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { ChevronDown, X, Star, Tag } from "lucide-react";
 import { FaWrench, FaBroom, FaTools, FaBaby, FaHome, FaHotel, FaPhone, FaWhatsapp, FaEnvelope, FaComments, FaTimes } from "react-icons/fa";
 import {
@@ -80,6 +81,7 @@ const serviceCategories = [
 ];
 
 const Home = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState<number | null>(null);
   const [showServicesModal, setShowServicesModal] = useState(false);
@@ -633,7 +635,7 @@ const Home = () => {
                     }}
                   >
                     <span className="relative z-10 flex items-center justify-center" style={{ color: '#FFFFFF' }}>
-                      Become a Provider
+                      {t("home.hero.becomeProvider")}
                     </span>
                   </button>
                 </div>
@@ -993,7 +995,7 @@ const Home = () => {
                       background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
                     }}></div>
                     <span className="relative z-10 flex items-center justify-center whitespace-nowrap">
-                      Become a Provider
+                      {t("home.hero.becomeProvider")}
                     </span>
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full"></div>
                   </button>
@@ -1047,10 +1049,10 @@ const Home = () => {
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text'
                 }}>
-                  Our Services
+                {t("home.servicesMenu.title")}
                 </h2>
                 <p className="text-gray-700 text-[9px] xs:text-[10px] sm:text-xs lg:text-sm font-medium">
-                  Choose a category to explore
+                  {t("home.servicesMenu.subtitle")}
                 </p>
               </div>
               
@@ -1099,7 +1101,7 @@ const Home = () => {
                             {category.name}
                           </h3>
                           <p className="text-[7px] xs:text-[8px] sm:text-[7.5px] lg:text-[8px] xl:text-[9px] text-gray-600 font-medium">
-                            {category.services.length} services
+                            {t("home.servicesMenu.categoryServicesCount", { count: category.services.length })}
                           </p>
                         </div>
                       </div>
@@ -1138,19 +1140,20 @@ const Home = () => {
               {/* Left: text + search + CTAs */}
               <div>
                 <div className="inline-flex items-center rounded-full border border-blue-100 bg-gradient-to-r from-white/80 to-white/50 px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700 transition-colors duration-300">
-                  Home Services, Redefined & Delivered
+                  {t("home.hero.topPill")}
                 </div>
 
                 <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.05] text-[#0f172a]">
-                  Find{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-                    trusted
-                  </span>{" "}
-                  home services near you
+                  <Trans
+                    i18nKey="home.hero.findTrustedHomeServices"
+                    components={[
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
+                    ]}
+                  />
                 </h1>
 
                 <p className="mt-5 text-base sm:text-lg text-slate-500 leading-relaxed max-w-xl">
-                  Book verified professionals in minutes.
+                  {t("home.hero.bookVerifiedProfessionals")}
                 </p>
 
                 {/* Search Bar */}
@@ -1189,9 +1192,9 @@ const Home = () => {
                       value={heroQuery}
                       onChange={(e) => setHeroQuery(e.target.value)}
                       type="text"
-                      placeholder="Search cleaning, plumbing, electrician..."
+                      placeholder={t("home.hero.searchPlaceholder")}
                       className="w-64 sm:w-72 bg-transparent outline-none text-slate-900 placeholder-slate-400 text-sm sm:text-base"
-                      aria-label="Search services"
+                      aria-label={t("home.hero.searchAriaLabel")}
                     />
                     <div className="ml-4 pl-4 border-l border-slate-200/80 hidden sm:flex items-center">
                       <button
@@ -1239,7 +1242,7 @@ const Home = () => {
                     onClick={() => goToServicesFromHero(heroQuery)}
                     className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-[0_18px_50px_-28px_rgba(37,99,235,0.9)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5 hover:shadow-[0_22px_60px_-28px_rgba(79,70,229,0.95)] active:scale-100 active:translate-y-0"
                   >
-                    Book a Service
+                    {t("home.hero.bookService")}
                   </button>
 
                   <button
@@ -1247,7 +1250,7 @@ const Home = () => {
                     onClick={() => navigate("/signup")}
                     className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-full font-semibold text-slate-900 border border-slate-900/10 bg-white/70 transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-0.5 hover:bg-white hover:border-slate-900/15 hover:shadow-[0_18px_50px_-34px_rgba(2,6,23,0.45)] active:scale-100 active:translate-y-0"
                   >
-                    Become a Provider
+                    {t("home.hero.becomeProvider")}
                   </button>
                 </div>
 
@@ -1255,15 +1258,15 @@ const Home = () => {
                 <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm sm:text-[15px] text-gray-700">
                   <div className="flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200 group-hover:bg-white/60">
                     <span aria-hidden>⭐</span>
-                    <span className="font-semibold text-gray-900">4.8 rating</span>
+                    <span className="font-semibold text-gray-900">{t("home.hero.trustRating")}</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200">
                     <span aria-hidden>✔</span>
-                    <span className="font-semibold text-gray-900">Verified providers</span>
+                    <span className="font-semibold text-gray-900">{t("home.hero.verifiedProviders")}</span>
                   </div>
                   <div className="flex items-center gap-2 rounded-full px-2.5 py-1 transition-colors duration-200">
                     <span aria-hidden>⚡</span>
-                    <span className="font-semibold text-gray-900">Fast booking</span>
+                    <span className="font-semibold text-gray-900">{t("home.hero.fastBooking")}</span>
                   </div>
                 </div>
               </div>
@@ -1282,7 +1285,7 @@ const Home = () => {
 
                   <img
                     src="/hero.png"
-                    alt="Trusted home services"
+                      alt={t("home.hero.imageAlt")}
                     className="relative z-10 w-full max-w-[640px] mx-auto lg:mx-0 object-contain"
                   />
                 </div>
@@ -1312,11 +1315,13 @@ const Home = () => {
                   <div>
                     <h2 className="text-2xl font-bold text-white">{serviceCategories[currentCategoryIndex].name}</h2>
                     <p className="text-white/80 text-sm">
-                      {loadingCategoryServices 
-                        ? 'Loading...' 
-                        : categoryServices.length > 0 
-                          ? `${categoryServices.length} services available` 
-                          : `${serviceCategories[currentCategoryIndex].services.length} service types available`}
+                      {loadingCategoryServices
+                        ? t("common.loading")
+                        : categoryServices.length > 0
+                          ? t("home.servicesModal.servicesAvailable", { count: categoryServices.length })
+                          : t("home.servicesModal.serviceTypesAvailable", {
+                              count: serviceCategories[currentCategoryIndex].services.length
+                            })}
                     </p>
                   </div>
                 </div>
@@ -1401,7 +1406,9 @@ const Home = () => {
                   onClick={() => handleViewServices(serviceCategories[currentCategoryIndex].name)}
                   className={`w-full bg-gradient-to-r ${serviceCategories[currentCategoryIndex].gradient} text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl`}
                 >
-                  View All {serviceCategories[currentCategoryIndex].name} Services
+                  {t("home.servicesModal.viewAllServices", {
+                    category: serviceCategories[currentCategoryIndex].name
+                  })}
                 </button>
               </div>
             </div>
@@ -1415,10 +1422,11 @@ const Home = () => {
             {/* Section Header */}
             <div className="text-left mb-8">
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Recently Added <span className="text-orange-600">Services</span>
+                {t("home.recentlyAdded.titlePrefix")}{" "}
+                <span className="text-orange-600">{t("home.recentlyAdded.titleHighlight")}</span>
               </h2>
               <p className="text-sm md:text-base text-gray-600">
-                Discover the latest services added to our platform
+                {t("home.recentlyAdded.subtitle")}
               </p>
             </div>
 
@@ -1465,7 +1473,7 @@ const Home = () => {
                               });
                               return normalized || photoUrl || '';
                             })()}
-                            alt={service.title || (service as any).name || 'Service'}
+                            alt={service.title || (service as any).name || t("common.service")}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                             onError={(e) => {
@@ -1503,7 +1511,7 @@ const Home = () => {
                           {/* New Badge */}
                           <div className="absolute top-3 left-3 z-20">
                             <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-bold shadow-lg">
-                              New
+                              {t("common.new")}
                             </span>
                           </div>
 
@@ -1515,10 +1523,10 @@ const Home = () => {
                             </h3>
                             <div className="flex items-center justify-between">
                               <span className="text-white text-sm font-semibold drop-shadow-lg">
-                                {service.category || 'Service'}
+                                {service.category || t("common.service")}
                               </span>
                               <span className="text-white font-bold text-base sm:text-lg drop-shadow-lg">
-                                {service.price ? `${service.price} ETB` : 'Contact for price'}
+                                {service.price ? `${service.price} ETB` : t("homeFeatured.contactForPrice")}
                               </span>
                             </div>
                           </div>
@@ -1529,12 +1537,12 @@ const Home = () => {
                             <div className="w-12 h-12 bg-orange-300 rounded-full flex items-center justify-center mx-auto mb-2">
                               <span className="text-xl">🔧</span>
                             </div>
-                            <p className="text-gray-600 text-xs">No image</p>
+                            <p className="text-gray-600 text-xs">{t("common.noImage")}</p>
                           </div>
                           {/* New Badge */}
                           <div className="absolute top-3 left-3">
                             <span className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-bold shadow-lg">
-                              New
+                              {t("common.new")}
                             </span>
                           </div>
                         </div>
@@ -1551,7 +1559,7 @@ const Home = () => {
                             </span>
                             {service.ratingCount !== undefined && service.ratingCount > 0 && (
                               <span className="text-xs text-gray-500">
-                                ({service.ratingCount} {service.ratingCount === 1 ? 'rating' : 'ratings'})
+                                ({service.ratingCount} {service.ratingCount === 1 ? t("common.ratingSingular") : t("common.ratingPlural")})
                               </span>
                             )}
                           </div>
@@ -1574,7 +1582,7 @@ const Home = () => {
                             }}
                             className="bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-semibold hover:bg-orange-700 transition-all duration-300 whitespace-nowrap"
                           >
-                            Discover More
+                            {t("home.recentlyAdded.discoverMore")}
                           </button>
                         </div>
                       </div>
@@ -1584,7 +1592,7 @@ const Home = () => {
               </div>
             ) : (
               <div className="text-left py-8">
-                <p className="text-gray-500 text-sm">No recent services available</p>
+                <p className="text-gray-500 text-sm">{t("home.recentlyAdded.empty")}</p>
               </div>
             )}
           </div>
@@ -1596,10 +1604,10 @@ const Home = () => {
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
               <div className="text-left">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                  Featured <span className="text-indigo-600">Professionals</span>
+                  {t("homeFeatured.titlePrefix")} <span className="text-indigo-600">{t("homeFeatured.titleHighlight")}</span>
                 </h2>
                 <p className="text-sm md:text-base text-gray-600">
-                  Trusted professionals added through our agent network
+                  {t("homeFeatured.subtitle")}
                 </p>
               </div>
               {!loadingFeaturedProfessionals && featuredProfessionals.length > 0 && (
@@ -1608,7 +1616,7 @@ const Home = () => {
                   onClick={() => navigate("/services")}
                   className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap self-start sm:self-auto"
                 >
-                  View all services
+                  {t("homeFeatured.viewAll")}
                 </button>
               )}
             </div>
@@ -1667,7 +1675,7 @@ const Home = () => {
                             </span>
                           </div>
                           <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                            <p className="text-white/90 text-xs font-medium drop-shadow">Agent listing</p>
+                            <p className="text-white/90 text-xs font-medium drop-shadow">{t("homeFeatured.agentListing")}</p>
                             <h3 className="text-white font-bold text-base sm:text-lg drop-shadow-lg line-clamp-2">
                               {pro.providerName}
                             </h3>
@@ -1677,7 +1685,7 @@ const Home = () => {
                         <div className="w-full h-48 sm:h-52 bg-gradient-to-br from-indigo-100 to-violet-200 flex flex-col items-center justify-center relative p-4">
                           <div className="absolute top-3 left-3">
                             <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                              Professional
+                              {t("homeFeatured.professionalBadge")}
                             </span>
                           </div>
                           <div className="w-14 h-14 bg-white/80 rounded-full flex items-center justify-center mb-2 shadow-inner">
@@ -1704,9 +1712,15 @@ const Home = () => {
                             <span className="truncate">{pro.location}</span>
                           </p>
                         ) : null}
-                        <p className="text-gray-500 text-xs flex-1">Set amount when booking</p>
+                        <p className="text-gray-500 text-xs flex-1">
+                          {pro.suggestedBookingPrice && pro.suggestedBookingPrice > 0
+                            ? t("homeFeatured.priceFrom", { amount: pro.suggestedBookingPrice })
+                            : pro.price && pro.price > 0
+                              ? t("homeFeatured.priceExact", { amount: pro.price })
+                              : t("homeFeatured.contactForPrice")}
+                        </p>
                         <span className="mt-1 w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-semibold text-center group-hover:bg-indigo-700 transition-colors block">
-                          Book now
+                          {t("homeFeatured.bookNow")}
                         </span>
                       </div>
                     </button>
@@ -1716,14 +1730,14 @@ const Home = () => {
             ) : (
               <div className="text-left py-6">
                 <p className="text-gray-500 text-sm">
-                  No agent-listed professionals yet. Browse all services to find providers.
+                  {t("homeFeatured.empty")}
                 </p>
                 <button
                   type="button"
                   onClick={() => navigate("/services")}
                   className="mt-3 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
                 >
-                  View all services
+                  {t("homeFeatured.viewAll")}
                 </button>
               </div>
             )}
@@ -1737,10 +1751,11 @@ const Home = () => {
             <div className="flex items-end justify-between gap-4 mb-8">
               <div className="text-left">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                  Most Booked <span className="text-blue-600">Services</span>
+                  {t("home.mostBooked.titlePrefix")}{" "}
+                  <span className="text-blue-600">{t("home.mostBooked.titleHighlight")}</span>
                 </h2>
                 <p className="text-sm md:text-base text-gray-600">
-                  Popular choices trusted by our community
+                  {t("home.mostBooked.subtitle")}
                 </p>
               </div>
 
@@ -1799,7 +1814,7 @@ const Home = () => {
                             });
                             return normalized || photoUrl || '';
                           })()}
-                          alt={service.title || (service as any).name || 'Service'}
+                          alt={service.title || (service as any).name || t("common.service")}
                           className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
                           loading="lazy"
                           onError={(e) => {
@@ -1838,7 +1853,7 @@ const Home = () => {
                             <div className="w-14 h-14 bg-orange-200/80 rounded-full flex items-center justify-center mx-auto mb-2">
                               <span className="text-xl">🔧</span>
                             </div>
-                            <p className="text-gray-500 text-xs font-medium">No image</p>
+                            <p className="text-gray-500 text-xs font-medium">{t("common.noImage")}</p>
                           </div>
                         </div>
                       )}
@@ -1847,7 +1862,7 @@ const Home = () => {
                       <div className="absolute top-3 right-3 z-10">
                         <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold shadow-md ring-1 ring-white/40 flex items-center gap-1">
                           <span aria-hidden>🔥</span>
-                          <span>Most Booked</span>
+                          <span>{t("home.mostBooked.badge")}</span>
                         </div>
                       </div>
                       </div>
@@ -1866,7 +1881,7 @@ const Home = () => {
 
                         <div className="flex items-center flex-wrap gap-2">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-gray-900 text-white font-semibold text-xs">
-                            {service.price ? `${service.price} ETB` : 'Contact'}
+                            {service.price ? `${service.price} ETB` : t("common.contact")}
                           </span>
                           {service.serviceRating !== null && service.serviceRating !== undefined ? (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 text-[11px] font-bold border border-amber-100">
@@ -1874,7 +1889,7 @@ const Home = () => {
                             </span>
                           ) : (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-gray-100 text-gray-500 text-[11px] font-semibold">
-                              No rating
+                              {t("common.noRating")}
                             </span>
                           )}
                         </div>
@@ -1894,7 +1909,7 @@ const Home = () => {
                           }}
                           className="mt-auto inline-flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg font-semibold text-xs hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm hover:shadow-md"
                         >
-                          View details
+                          {t("services.viewDetails")}
                         </button>
                       </div>
                     </div>
@@ -1903,7 +1918,7 @@ const Home = () => {
               </div>
             ) : (
               <div className="text-left py-8">
-                <p className="text-gray-500 text-sm">No booked services available. Services will appear here once bookings are made.</p>
+                <p className="text-gray-500 text-sm">{t("home.mostBooked.empty")}</p>
               </div>
             )}
           </div>
@@ -1916,10 +1931,11 @@ const Home = () => {
             <div className="text-left mb-8">
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <Tag className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
-                Special <span className="text-orange-600">Offers</span>
+                {t("home.specialOffers.titlePrefix")}{" "}
+                <span className="text-orange-600">{t("home.specialOffers.titleHighlight")}</span>
               </h2>
               <p className="text-sm md:text-base text-gray-600">
-                Exclusive deals and discounts from our service providers
+                {t("home.specialOffers.subtitle")}
               </p>
             </div>
 
@@ -2000,8 +2016,9 @@ const Home = () => {
                       <div className="p-4 space-y-3">
                         {/* Service Name */}
                         {offer.service?.name && (
-                          <div className="text-sm text-gray-600">
-                            <span className="font-semibold">Service:</span> {offer.service.name}
+                        <div className="text-sm text-gray-600">
+                            <span className="font-semibold">{t("home.specialOffers.serviceLabel")}</span>{" "}
+                            {offer.service.name}
                           </div>
                         )}
 
@@ -2010,13 +2027,13 @@ const Home = () => {
                         {/* Pricing */}
                         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                           <div>
-                            <div className="text-xs text-gray-500 mb-1">Original Price</div>
+                            <div className="text-xs text-gray-500 mb-1">{t("home.specialOffers.originalPrice")}</div>
                             <div className="text-sm text-gray-400 line-through">
                               {offer.originalPrice?.toFixed(2)} ETB
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-gray-500 mb-1">Now</div>
+                            <div className="text-xs text-gray-500 mb-1">{t("home.specialOffers.now")}</div>
                             <div className="text-lg font-bold text-orange-600">
                               {offer.discountedPrice?.toFixed(2)} ETB
                             </div>
@@ -2034,7 +2051,8 @@ const Home = () => {
                         {/* Provider Info */}
                         {offer.provider && (
                           <div className="text-xs text-gray-500 pt-2 border-t border-gray-100">
-                            <span className="font-semibold">Provider:</span> {offer.provider.companyName || offer.provider.name}
+                            <span className="font-semibold">{t("home.specialOffers.providerLabel")}</span>{" "}
+                            {offer.provider.companyName || offer.provider.name}
                           </div>
                         )}
 
@@ -2088,8 +2106,8 @@ const Home = () => {
                             }
                           }}
                           className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-105 mt-2"
-                        >
-                          View Details
+                          >
+                          {t("services.viewDetails")}
                         </button>
                       </div>
                     </div>
@@ -2098,11 +2116,11 @@ const Home = () => {
               </div>
             ) : (
               <div className="text-left py-8">
-                <p className="text-gray-500 text-sm">No special offers available at the moment. Check back soon for exciting deals!</p>
+                <p className="text-gray-500 text-sm">{t("home.specialOffers.empty")}</p>
                 {import.meta.env.DEV && (
                   <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-xs text-yellow-800">
-                      <strong>Debug Info:</strong> Check browser console and server logs for details.
+                      <strong>{t("home.specialOffers.debugInfo")}</strong> Check browser console and server logs for details.
                       {specialOffers && specialOffers.length === 0 && (
                         <span className="block mt-2">
                           Loading: {loadingSpecialOffers ? 'Yes' : 'No'} | 
@@ -2130,10 +2148,13 @@ const Home = () => {
             {/* Section Header */}
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                Special <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600">Programs</span>
+                {t("home.specialPrograms.titlePrefix")}{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600">
+                  {t("home.specialPrograms.titleHighlight")}
+                </span>
               </h2>
               <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-                Join our specialized programs designed to empower and connect communities.
+                {t("home.specialPrograms.description")}
               </p>
             </div>
 
@@ -2166,7 +2187,7 @@ const Home = () => {
                   </p>
                   
                   <button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
-                    Join Now
+                    {t("home.programs.joinNow")}
                   </button>
                 </div>
               </div>
@@ -2198,7 +2219,7 @@ const Home = () => {
                   </p>
                   
                   <button className="w-full bg-gradient-to-r from-blue-600 to-orange-600 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-orange-700 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
-                    Join Now
+                    {t("home.programs.joinNow")}
                   </button>
                 </div>
               </div>
@@ -2226,15 +2247,15 @@ const Home = () => {
                   </div>
 
                   <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 transition-all">
-                    Professionals Community
+                    {t("home.professionalsCommunity.title")}
                   </h3>
 
                   <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                    Connect with skilled pros, discover opportunities, and grow your service business with a supportive community.
+                    {t("home.professionalsCommunity.description")}
                   </p>
 
                   <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform group-hover:scale-105 shadow-lg group-hover:shadow-xl">
-                    Explore now Professionals Community
+                    {t("home.professionalsCommunity.exploreNow")}
                   </button>
                 </div>
               </div>
@@ -2255,9 +2276,9 @@ const Home = () => {
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold">Professionals Community</h2>
+                    <h2 className="text-2xl font-bold">{t("home.professionalsCommunity.formTitle")}</h2>
                     <p className="text-white/90 mt-1">
-                      Join us by filling the form below
+                      {t("home.professionalsCommunity.formDescription")}
                     </p>
                   </div>
                   <button
@@ -2272,10 +2293,10 @@ const Home = () => {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="bg-white/15 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold">
-                    Taskers
+                    {t("home.professionalsCommunity.tags.taskers")}
                   </span>
                   <span className="bg-white/15 border border-white/20 px-3 py-1 rounded-full text-sm font-semibold">
-                    Fresh Graduate
+                    {t("home.professionalsCommunity.tags.freshGraduate")}
                   </span>
                 </div>
               </div>
@@ -2288,7 +2309,7 @@ const Home = () => {
                 )}
                 {professionalsCommunitySuccess && (
                   <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 font-medium">
-                    ✅ Thanks! Your request has been received. We'll reach out soon.
+                    {t("home.professionalsCommunity.messages.thanks")}
                   </div>
                 )}
 
@@ -2309,16 +2330,34 @@ const Home = () => {
                         credentials,
                       } = professionalsCommunityForm;
 
-                      if (!fullName.trim()) return setProfessionalsCommunityError("Full Name is required.");
-                      if (!email.trim()) return setProfessionalsCommunityError("Email is required.");
-                      if (!phone.trim()) return setProfessionalsCommunityError("Phone is required.");
+                      if (!fullName.trim())
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.fullNameRequired")
+                        );
+                      if (!email.trim())
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.emailRequired")
+                        );
+                      if (!phone.trim())
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.phoneRequired")
+                        );
                       if (!currentLocation.trim())
-                        return setProfessionalsCommunityError("Current Location is required.");
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.currentLocationRequired")
+                        );
                       if (!specialization.trim())
-                        return setProfessionalsCommunityError("Please select Specialization.");
-                      if (!cv) return setProfessionalsCommunityError("Please upload your CV.");
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.specializationRequired")
+                        );
+                      if (!cv)
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.cvRequired")
+                        );
                       if (!credentials)
-                        return setProfessionalsCommunityError("Please upload your Credentials.");
+                        return setProfessionalsCommunityError(
+                          t("home.professionalsCommunity.errors.credentialsRequired")
+                        );
 
                       // Frontend-only submission (no backend/API calls per your request).
                       setProfessionalsCommunitySuccess(true);
@@ -2327,7 +2366,7 @@ const Home = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Full Name <span className="text-red-500">*</span>
+                          {t("common.fullName")} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -2339,14 +2378,14 @@ const Home = () => {
                             }))
                           }
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
-                          placeholder="Full Name"
+                          placeholder={t("common.fullName")}
                           required
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Email <span className="text-red-500">*</span>
+                          {t("common.email")} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="email"
@@ -2358,14 +2397,14 @@ const Home = () => {
                             }))
                           }
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
-                          placeholder="Email"
+                          placeholder={t("common.email")}
                           required
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Phone <span className="text-red-500">*</span>
+                          {t("common.phone")} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="tel"
@@ -2377,14 +2416,15 @@ const Home = () => {
                             }))
                           }
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
-                          placeholder="Phone"
+                          placeholder={t("common.phone")}
                           required
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Current Location <span className="text-red-500">*</span>
+                          {t("home.professionalsCommunity.fields.currentLocation")}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -2396,7 +2436,7 @@ const Home = () => {
                             }))
                           }
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
-                          placeholder="Current Location"
+                          placeholder={t("home.professionalsCommunity.placeholders.currentLocation")}
                           required
                         />
                       </div>
@@ -2405,7 +2445,8 @@ const Home = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          WhatsApp <span className="text-gray-500 text-xs">(Optional)</span>
+                          {t("home.professionalsCommunity.fields.whatsapp")}{" "}
+                          <span className="text-gray-500 text-xs">{t("common.optional")}</span>
                         </label>
                         <input
                           type="tel"
@@ -2417,13 +2458,14 @@ const Home = () => {
                             }))
                           }
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
-                          placeholder="WhatsApp (Optional)"
+                          placeholder={t("home.professionalsCommunity.placeholders.whatsappOptional")}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          LinkedIn Profile <span className="text-gray-500 text-xs">(Optional)</span>
+                          {t("home.professionalsCommunity.fields.linkedInProfile")}{" "}
+                          <span className="text-gray-500 text-xs">{t("common.optional")}</span>
                         </label>
                         <input
                           type="url"
@@ -2435,14 +2477,17 @@ const Home = () => {
                             }))
                           }
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
-                          placeholder="LinkedIn Profile (Optional)"
+                          placeholder={t(
+                            "home.professionalsCommunity.placeholders.linkedInOptional"
+                          )}
                         />
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Select Specialization <span className="text-red-500">*</span>
+                        {t("home.professionalsCommunity.fields.selectSpecialization")}{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={professionalsCommunityForm.specialization}
@@ -2455,18 +2500,20 @@ const Home = () => {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
                         required
                       >
-                        <option value="">-- Select Specialization --</option>
+                        <option value="">
+                          {t("home.professionalsCommunity.selectSpecializationPrompt")}
+                        </option>
                         <option value="taskers">
-                          Taskers
+                          {t("home.professionalsCommunity.tags.taskers")}
                         </option>
                         <option value="education and training">
-                          education and training
+                          {t("home.professionalsCommunity.specializations.educationAndTraining")}
                         </option>
                         <option value="technology and design">
-                          technology and design
+                          {t("home.professionalsCommunity.specializations.technologyAndDesign")}
                         </option>
                         <option value="business and operations">
-                          business and operations
+                          {t("home.professionalsCommunity.specializations.businessAndOperations")}
                         </option>
                       </select>
                     </div>
@@ -2474,7 +2521,8 @@ const Home = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
-                          Upload CV <span className="text-red-500">*</span>
+                          {t("home.professionalsCommunity.fields.uploadCv")}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <label className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors cursor-pointer">
                           <input
@@ -2488,14 +2536,15 @@ const Home = () => {
                           <span className="text-sm text-gray-600">
                             {professionalsCommunityForm.cv
                               ? professionalsCommunityForm.cv.name
-                              : "No file chosen"}
+                              : t("home.professionalsCommunity.noFileChosen")}
                           </span>
                         </label>
                       </div>
 
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
-                          Upload Credentials <span className="text-red-500">*</span>
+                          {t("home.professionalsCommunity.fields.uploadCredentials")}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <label className="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 transition-colors cursor-pointer">
                           <input
@@ -2509,7 +2558,7 @@ const Home = () => {
                           <span className="text-sm text-gray-600">
                             {professionalsCommunityForm.credentials
                               ? professionalsCommunityForm.credentials.name
-                              : "No file chosen"}
+                              : t("home.professionalsCommunity.noFileChosen")}
                           </span>
                         </label>
                       </div>
@@ -2520,7 +2569,7 @@ const Home = () => {
                         type="submit"
                         className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
                       >
-                        Submit
+                        {t("common.submit")}
                       </button>
                     </div>
                   </form>
@@ -2548,7 +2597,7 @@ const Home = () => {
                         });
                       }}
                     >
-                      Done
+                      {t("common.done")}
                     </button>
                   </div>
                 )}
@@ -2569,10 +2618,13 @@ const Home = () => {
             {/* Section Header */}
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                Join Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600">Community</span>
+                {t("home.joinCommunity.titlePrefix")}{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-orange-600">
+                  {t("home.joinCommunity.titleHighlight")}
+                </span>
               </h2>
               <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-                Connect with skilled professionals and find exciting job opportunities. Be part of a growing community of service providers.
+                {t("home.joinCommunity.description")}
               </p>
             </div>
 
@@ -2596,14 +2648,16 @@ const Home = () => {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-                    Find Job Opportunities
+                    {t("home.joinCommunity.features.jobOpportunities.title")}
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Discover new job opportunities that match your skills and grow your career with us.
+                    {t("home.joinCommunity.features.jobOpportunities.description")}
                   </p>
                   {jobs.length > 0 && (
                     <div className="mt-3 text-xs text-orange-600 font-semibold">
-                      {jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} available
+                      {jobs.length}{" "}
+                      {jobs.length === 1 ? t("home.jobs.jobSingular") : t("home.jobs.jobPlural")}{" "}
+                      {t("home.jobs.available")}
                     </div>
                   )}
                 </div>
@@ -2627,13 +2681,13 @@ const Home = () => {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
-                    Diaspora Community
+                    {t("home.joinCommunity.features.diaspora.title")}
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Connect with your community abroad. Share experiences and discover opportunities to contribute back home.
+                    {t("home.joinCommunity.features.diaspora.description")}
                   </p>
                   <button className="mt-4 w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform group-hover:scale-105 shadow-md">
-                    Join Now
+                    {t("home.programs.joinNow")}
                   </button>
                 </div>
               </div>
@@ -2656,13 +2710,13 @@ const Home = () => {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-orange-600 transition-all">
-                    Premium Membership
+                    {t("home.joinCommunity.features.premiumMembership.title")}
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Unlock exclusive access to premium services, priority booking, and advanced platform features.
+                    {t("home.joinCommunity.features.premiumMembership.description")}
                   </p>
                   <button className="mt-4 w-full bg-gradient-to-r from-blue-600 to-orange-600 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:from-blue-700 hover:to-orange-700 transition-all duration-300 transform group-hover:scale-105 shadow-md">
-                    Join Now
+                    {t("home.programs.joinNow")}
                   </button>
                 </div>
               </div>
@@ -2704,11 +2758,11 @@ const Home = () => {
               </div>
               
               <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-3 leading-snug">
-                Ready to Experience the <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-orange-100 to-white">Difference?</span>
+                {t("home.joinCommunity.cta.title")}
               </h2>
               
               <p className="text-sm md:text-base text-orange-50 mb-5 md:mb-6 leading-relaxed max-w-4xl mx-auto">
-                Join thousands of satisfied customers and service providers who trust HomeHub for their daily service needs.
+                {t("home.joinCommunity.cta.description")}
               </p>
               
               {/* Action Buttons */}
@@ -2722,7 +2776,7 @@ const Home = () => {
                     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Book a Service Now
+                    {t("home.joinCommunity.cta.bookServiceNow")}
                   </span>
                 </button>
                 
@@ -2735,7 +2789,7 @@ const Home = () => {
                     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
-                    Sign Up Now
+                    {t("home.joinCommunity.cta.signUpNow")}
                   </span>
                 </button>
               </div>
@@ -2746,19 +2800,19 @@ const Home = () => {
                   <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Verified Providers</span>
+                  <span>{t("home.joinCommunity.trustLabels.verifiedProviders")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
-                  <span>5-Star Rated</span>
+                  <span>{t("home.joinCommunity.trustLabels.fiveStarRated")}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Secure & Trusted</span>
+                  <span>{t("home.joinCommunity.trustLabels.secureTrusted")}</span>
                 </div>
               </div>
             </div>
@@ -2773,7 +2827,7 @@ const Home = () => {
             {/* Modal Header */}
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-600 to-orange-700">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white">Job Opportunities</h2>
+                <h2 className="text-2xl font-bold text-white">{t("home.jobs.sectionTitle")}</h2>
                 <button
                   onClick={() => setShowJobsModal(false)}
                   className="text-white hover:text-gray-200 transition-colors"
@@ -2794,8 +2848,8 @@ const Home = () => {
                   <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <p className="text-gray-600 text-lg">No job opportunities available at the moment</p>
-                  <p className="text-gray-500 text-sm mt-2">Check back later for new opportunities</p>
+                  <p className="text-gray-600 text-lg">{t("home.jobs.empty")}</p>
+                  <p className="text-gray-500 text-sm mt-2">{t("home.jobs.checkBackLater")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2883,7 +2937,7 @@ const Home = () => {
                           }}
                           className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                         >
-                          Apply for this Job
+                          {t("home.jobs.applyButton")}
                         </button>
                       </div>
                     </div>
@@ -2921,7 +2975,7 @@ const Home = () => {
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-600 to-orange-700">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Apply for Job</h2>
+                  <h2 className="text-2xl font-bold text-white">{t("home.jobs.applyButton")}</h2>
                   <p className="text-orange-100 text-sm mt-1">{selectedJob.title}</p>
                 </div>
                 <button
@@ -2960,8 +3014,10 @@ const Home = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
-                  <p className="text-gray-600 mb-6">Thank you for your interest. We'll review your application and get back to you soon.</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {t("home.jobs.applicationSubmittedTitle")}
+                  </h3>
+                  <p className="text-gray-600 mb-6">{t("home.jobs.applicationSubmittedMessage")}</p>
                   <button
                     onClick={() => {
                       setShowApplicationModal(false);
@@ -2983,7 +3039,7 @@ const Home = () => {
                     }}
                     className="px-6 py-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all"
                   >
-                    Close
+                    {t("common.close")}
                   </button>
                 </div>
               ) : (
@@ -3010,7 +3066,7 @@ const Home = () => {
                       if (!applicationForm.fullName || !applicationForm.email || !applicationForm.phone || 
                           !applicationForm.dateOfBirth || !applicationForm.gender || !applicationForm.nationality ||
                           !applicationForm.address || !applicationForm.city || !applicationForm.country) {
-                        setApplicationError('Please fill in all required fields');
+                        setApplicationError(t("home.jobs.errors.requiredFields"));
                         setSubmittingApplication(false);
                         return;
                       }
@@ -3059,11 +3115,13 @@ const Home = () => {
 
                   {/* Personal Information Section */}
                   <div className="border-b border-gray-200 pb-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      {t("home.jobs.form.personalInfoTitle")}
+                    </h3>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Full Name {!localStorage.getItem('user') && '*'}
+                          {t("common.fullName")} {!localStorage.getItem('user') && '*'}
                         </label>
                         <input
                           type="text"
@@ -3071,13 +3129,13 @@ const Home = () => {
                           value={applicationForm.fullName}
                           onChange={(e) => setApplicationForm({ ...applicationForm, fullName: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="Enter your full name"
+                          placeholder={t("home.jobs.form.placeholders.fullName")}
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Date of Birth {!localStorage.getItem('user') && '*'}
+                            {t("home.jobs.form.dateOfBirthLabel")} {!localStorage.getItem('user') && '*'}
                           </label>
                           <input
                             type="date"
@@ -3089,7 +3147,7 @@ const Home = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Gender {!localStorage.getItem('user') && '*'}
+                            {t("home.jobs.form.genderLabel")} {!localStorage.getItem('user') && '*'}
                           </label>
                           <select
                             required={!localStorage.getItem('user')}
@@ -3097,17 +3155,19 @@ const Home = () => {
                             onChange={(e) => setApplicationForm({ ...applicationForm, gender: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                           >
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                            <option value="prefer-not-to-say">Prefer not to say</option>
+                            <option value="">{t("home.jobs.form.genderSelectLabel")}</option>
+                            <option value="male">{t("home.jobs.form.gender.male")}</option>
+                            <option value="female">{t("home.jobs.form.gender.female")}</option>
+                            <option value="other">{t("home.jobs.form.gender.other")}</option>
+                            <option value="prefer-not-to-say">
+                              {t("home.jobs.form.gender.preferNotToSay")}
+                            </option>
                           </select>
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Nationality {!localStorage.getItem('user') && '*'}
+                          {t("home.jobs.form.nationalityLabel")} {!localStorage.getItem('user') && '*'}
                         </label>
                         <input
                           type="text"
@@ -3115,7 +3175,7 @@ const Home = () => {
                           value={applicationForm.nationality}
                           onChange={(e) => setApplicationForm({ ...applicationForm, nationality: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="e.g., Ethiopian, American, etc."
+                          placeholder={t("home.jobs.form.placeholders.nationality")}
                         />
                       </div>
                     </div>
@@ -3123,12 +3183,14 @@ const Home = () => {
 
                   {/* Contact Information Section */}
                   <div className="border-b border-gray-200 pb-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      {t("home.jobs.form.contactInfoTitle")}
+                    </h3>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Email Address {!localStorage.getItem('user') && '*'}
+                            {t("common.emailAddress")} {!localStorage.getItem('user') && '*'}
                           </label>
                           <input
                             type="email"
@@ -3136,12 +3198,12 @@ const Home = () => {
                             value={applicationForm.email}
                             onChange={(e) => setApplicationForm({ ...applicationForm, email: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            placeholder="your.email@example.com"
+                            placeholder={t("home.jobs.form.placeholders.email")}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Phone Number {!localStorage.getItem('user') && '*'}
+                            {t("common.phoneNumber")} {!localStorage.getItem('user') && '*'}
                           </label>
                           <input
                             type="tel"
@@ -3149,25 +3211,25 @@ const Home = () => {
                             value={applicationForm.phone}
                             onChange={(e) => setApplicationForm({ ...applicationForm, phone: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            placeholder="+251 9XX XXX XXX"
+                            placeholder={t("home.jobs.form.placeholders.phone")}
                           />
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Alternative Phone (Optional)
+                          {t("home.jobs.form.alternativePhoneOptional")}
                         </label>
                         <input
                           type="tel"
                           value={applicationForm.alternativePhone}
                           onChange={(e) => setApplicationForm({ ...applicationForm, alternativePhone: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="+251 9XX XXX XXX"
+                          placeholder={t("home.jobs.form.placeholders.alternativePhone")}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Address {!localStorage.getItem('user') && '*'}
+                          {t("common.address")} {!localStorage.getItem('user') && '*'}
                         </label>
                         <input
                           type="text"
@@ -3175,13 +3237,13 @@ const Home = () => {
                           value={applicationForm.address}
                           onChange={(e) => setApplicationForm({ ...applicationForm, address: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="Street address, P.O. Box, etc."
+                          placeholder={t("home.jobs.form.placeholders.address")}
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            City {!localStorage.getItem('user') && '*'}
+                            {t("common.city")} {!localStorage.getItem('user') && '*'}
                           </label>
                           <input
                             type="text"
@@ -3189,12 +3251,12 @@ const Home = () => {
                             value={applicationForm.city}
                             onChange={(e) => setApplicationForm({ ...applicationForm, city: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            placeholder="e.g., Addis Ababa"
+                            placeholder={t("home.jobs.form.placeholders.city")}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Country {!localStorage.getItem('user') && '*'}
+                            {t("common.country")} {!localStorage.getItem('user') && '*'}
                           </label>
                           <input
                             type="text"
@@ -3202,7 +3264,7 @@ const Home = () => {
                             value={applicationForm.country}
                             onChange={(e) => setApplicationForm({ ...applicationForm, country: e.target.value })}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            placeholder="e.g., Ethiopia"
+                            placeholder={t("home.jobs.form.placeholders.country")}
                           />
                         </div>
                       </div>
@@ -3212,7 +3274,7 @@ const Home = () => {
                   {/* Cover Letter */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cover Letter *
+                      {t("home.jobs.form.coverLetterLabel")} *
                     </label>
                     <textarea
                       required
@@ -3220,14 +3282,14 @@ const Home = () => {
                       value={applicationForm.coverLetter}
                       onChange={(e) => setApplicationForm({ ...applicationForm, coverLetter: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="Tell us why you're interested in this position and what makes you a great fit..."
+                      placeholder={t("home.jobs.form.placeholders.coverLetter")}
                     />
                   </div>
 
                   {/* Resume Upload */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Resume/CV (Optional)
+                      {t("home.jobs.form.resumeOptionalLabel")}
                     </label>
                     <input
                       type="file"
@@ -3237,7 +3299,7 @@ const Home = () => {
                         if (file) {
                           // Check file size (max 5MB)
                           if (file.size > 5 * 1024 * 1024) {
-                            setApplicationError('File size must be less than 5MB');
+                            setApplicationError(t("home.jobs.errors.fileSizeTooLarge"));
                             return;
                           }
                           setApplicationForm({ ...applicationForm, resume: file });
@@ -3248,7 +3310,7 @@ const Home = () => {
                     {applicationForm.resume && (
                       <p className="text-sm text-gray-600 mt-1">Selected: {applicationForm.resume.name}</p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">Accepted formats: PDF, DOC, DOCX (Max: 5MB)</p>
+                    <p className="text-xs text-gray-500 mt-1">{t("home.jobs.form.acceptedFormats")}</p>
                   </div>
 
                   {/* Submit Button */}
@@ -3275,14 +3337,16 @@ const Home = () => {
                       }}
                       className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </button>
                     <button
                       type="submit"
                       disabled={submittingApplication}
                       className="px-6 py-2 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-orange-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {submittingApplication ? 'Submitting...' : 'Submit Application'}
+                      {submittingApplication
+                        ? t("home.jobs.form.submittingButton")
+                        : t("home.jobs.form.submitButton")}
                     </button>
                   </div>
                 </form>
@@ -3307,7 +3371,9 @@ const Home = () => {
               <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors flex-shrink-0">
                 <FaPhone className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">Phone</span>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">
+                {t("common.phone")}
+              </span>
             </a>
 
             {/* WhatsApp */}
@@ -3322,7 +3388,9 @@ const Home = () => {
               <div className="w-10 h-10 md:w-12 md:h-12 bg-green-500 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors flex-shrink-0">
                 <FaWhatsapp className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">WhatsApp</span>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">
+                {t("common.whatsapp")}
+              </span>
             </a>
 
             {/* Email */}
@@ -3335,7 +3403,9 @@ const Home = () => {
               <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center group-hover:bg-orange-600 transition-colors flex-shrink-0">
                 <FaEnvelope className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">Email</span>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">
+                {t("common.email")}
+              </span>
             </a>
 
             {/* App Chat */}
@@ -3351,7 +3421,9 @@ const Home = () => {
               <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors flex-shrink-0">
                 <FaComments className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">App Chat</span>
+              <span className="text-gray-800 font-semibold text-sm md:text-base pr-2 md:pr-4">
+                {t("common.appChat")}
+              </span>
             </button>
           </div>
         )}

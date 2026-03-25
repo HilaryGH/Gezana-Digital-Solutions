@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { createServiceRequest } from "../../api/serviceRequests";
+import { useTranslation } from "react-i18next";
 
 type FormState = {
   fullName: string;
   email: string;
   phone: string;
+  whatsapp: string;
   location: string;
   serviceNeeded: string;
   preferredDate: string;
@@ -13,6 +15,7 @@ type FormState = {
 };
 
 const ServiceRequestPage = () => {
+  const { t } = useTranslation();
   const initialForm = useMemo<FormState>(() => {
     let fullName = "";
     let email = "";
@@ -34,6 +37,7 @@ const ServiceRequestPage = () => {
       fullName,
       email,
       phone,
+      whatsapp: "",
       location: "",
       serviceNeeded: "",
       preferredDate: "",
@@ -70,7 +74,7 @@ const ServiceRequestPage = () => {
 
       const response = await createServiceRequest(payload);
       setSuccessMessage(
-        response?.message || "Service request submitted. We will contact you soon."
+        response?.message || t("serviceRequest.messages.submitted")
       );
       setForm((prev) => ({
         ...prev,
@@ -83,13 +87,13 @@ const ServiceRequestPage = () => {
     } catch (error: any) {
       if (error?.response?.status === 404) {
         setErrorMessage(
-          "Service request endpoint is not available on the current backend. Restart the backend (or deploy latest server changes) and try again."
+          t("serviceRequest.messages.endpointUnavailable")
         );
         return;
       }
       setErrorMessage(
         error?.response?.data?.message ||
-          "Failed to submit service request. Please try again."
+          t("serviceRequest.messages.failed")
       );
     } finally {
       setLoading(false);
@@ -99,20 +103,20 @@ const ServiceRequestPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
       <div className="mx-auto w-full max-w-3xl px-4">
-        <div className="rounded-2xl bg-white p-6 shadow-xl md:p-10">
-          <h1 className="text-3xl font-bold text-gray-900">Post a Service Request</h1>
+        <div className="mx-auto mt-3 w-full max-w-xl rounded-2xl bg-white p-4 shadow-xl md:p-5">
+          <h1 className="text-xl font-bold text-gray-900">{t("serviceRequest.title")}</h1>
           <p className="mt-2 text-gray-600">
-            Tell us what you need, and we will notify the right team/provider.
+            {t("serviceRequest.subtitle")}
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
             <input
               name="fullName"
               value={form.fullName}
               onChange={handleChange}
               required
-              placeholder="Full name"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+              placeholder={t("serviceRequest.fields.fullName")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
             <input
               name="email"
@@ -120,32 +124,39 @@ const ServiceRequestPage = () => {
               value={form.email}
               onChange={handleChange}
               required
-              placeholder="Email address"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+              placeholder={t("serviceRequest.fields.email")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
             <input
               name="phone"
               value={form.phone}
               onChange={handleChange}
               required
-              placeholder="Phone number"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+              placeholder={t("serviceRequest.fields.phone")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
+            />
+            <input
+              name="whatsapp"
+              value={form.whatsapp}
+              onChange={handleChange}
+              placeholder={t("serviceRequest.fields.whatsappOptional")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
             <input
               name="location"
               value={form.location}
               onChange={handleChange}
               required
-              placeholder="Location / address"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+              placeholder={t("serviceRequest.fields.location")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
             <input
               name="serviceNeeded"
               value={form.serviceNeeded}
               onChange={handleChange}
               required
-              placeholder="Service needed (e.g. plumbing, cleaning, electrician)"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+              placeholder={t("serviceRequest.fields.serviceNeeded")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <input
@@ -153,7 +164,7 @@ const ServiceRequestPage = () => {
                 type="datetime-local"
                 value={form.preferredDate}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
               />
               <input
                 name="budgetEtb"
@@ -161,8 +172,8 @@ const ServiceRequestPage = () => {
                 min="0"
                 value={form.budgetEtb}
                 onChange={handleChange}
-                placeholder="Budget (ETB)"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                placeholder={t("serviceRequest.fields.budget")}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
               />
             </div>
             <textarea
@@ -171,8 +182,8 @@ const ServiceRequestPage = () => {
               onChange={handleChange}
               required
               rows={5}
-              placeholder="Describe your request in detail..."
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+              placeholder={t("serviceRequest.fields.details")}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
 
             {successMessage && (
@@ -189,9 +200,9 @@ const ServiceRequestPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-lg bg-blue-700 px-4 py-2.5 font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Submitting..." : "Submit Service Request"}
+              {loading ? t("serviceRequest.buttons.submitting") : t("serviceRequest.buttons.submit")}
             </button>
           </form>
         </div>

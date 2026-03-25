@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
-import { FileText, Download, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, Download, Eye, ChevronDown, ChevronUp, CheckCircle, Trash2, XCircle } from "lucide-react";
 
 type User = {
   _id: string;
@@ -9,6 +9,9 @@ type User = {
   phone?: string;
   role: string;
   createdAt: string;
+  isVerified?: boolean;
+  verificationStatus?: "pending" | "approved" | "rejected";
+  verificationNotes?: string;
   // Seeker files
   idFile?: string;
   // Provider files
@@ -39,6 +42,19 @@ const Users = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [actionUserId, setActionUserId] = useState<string | null>(null);
+
+  const currentUserRole = (() => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed?.role ?? null;
+    } catch {
+      return null;
+    }
+  })();
+  const isSuperadmin = currentUserRole === "superadmin";
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -65,6 +81,82 @@ const Users = () => {
 
     fetchUsers();
   }, []);
+
+  const updateUserInState = (updated: User) => {
+    setUsers((prev) => prev.map((u) => (u._id === updated._id ? { ...u, ...updated } : u)));
+    setFilteredUsers((prev) => prev.map((u) => (u._id === updated._id ? { ...u, ...updated } : u)));
+  };
+
+  const removeUserFromState = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u._id !== userId));
+    setFilteredUsers((prev) => prev.filter((u) => u._id !== userId));
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      next.delete(userId);
+      return next;
+    });
+  };
+
+  const handleVerifyUser = async (user: User, status: "approved" | "pending" | "rejected") => {
+    if (!isSuperadmin) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Missing token. Please login again.");
+      return;
+    }
+
+    const verb =
+      status === "approved" ? "verify" : status === "rejected" ? "reject" : "set to pending";
+    if (!confirm(`Are you sure you want to ${verb} ${user.name}?`)) return;
+
+    try {
+      setActionUserId(user._id);
+      const res = await axios.patch(
+        `/user/admin/users/${user._id}/verify`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data?.user) {
+        updateUserInState(res.data.user);
+      } else {
+        // fallback: update minimal fields
+        updateUserInState({
+          ...user,
+          isVerified: status === "approved",
+          verificationStatus: status,
+        });
+      }
+      setError(null);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || "Failed to verify user");
+    } finally {
+      setActionUserId(null);
+    }
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    if (!isSuperadmin) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Missing token. Please login again.");
+      return;
+    }
+
+    if (!confirm(`Delete ${user.name} permanently? This cannot be undone.`)) return;
+
+    try {
+      setActionUserId(user._id);
+      await axios.delete(`/user/admin/users/${user._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      removeUserFromState(user._id);
+      setError(null);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || "Failed to delete user");
+    } finally {
+      setActionUserId(null);
+    }
+  };
 
   // Map raw role to readable label
   const getRoleLabel = (role: string) => {
@@ -211,12 +303,17 @@ const Users = () => {
                 <th className="py-3 px-4 text-left">Role</th>
                 <th className="py-3 px-4 text-left">Joined</th>
                 <th className="py-3 px-4 text-left">Files</th>
+                {isSuperadmin && <th className="py-3 px-4 text-left">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user) => {
                 const uploadedFiles = getUploadedFiles(user);
                 const isExpanded = expandedRows.has(user._id);
+                const verificationStatus =
+                  user.verificationStatus ||
+                  (user.isVerified ? "approved" : "pending");
+                const isBusy = actionUserId === user._id;
                 
                 return (
                   <React.Fragment key={user._id}>
@@ -250,12 +347,60 @@ const Users = () => {
                           <span className="text-gray-400 text-sm">No files</span>
                         )}
                       </td>
+                      {isSuperadmin && (
+                        <td className="py-2 px-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                verificationStatus === "approved"
+                                  ? "bg-green-100 text-green-700"
+                                  : verificationStatus === "rejected"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-gray-100 text-gray-700"
+                              }`}
+                              title={user.verificationNotes || ""}
+                            >
+                              {verificationStatus.toUpperCase()}
+                            </span>
+
+                            <button
+                              disabled={isBusy}
+                              onClick={() => handleVerifyUser(user, "approved")}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-50 text-xs font-medium"
+                              title="Verify"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              Verify
+                            </button>
+
+                            <button
+                              disabled={isBusy}
+                              onClick={() => handleVerifyUser(user, "pending")}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100 disabled:opacity-50 text-xs font-medium"
+                              title="Set pending"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              Pending
+                            </button>
+
+                            <button
+                              disabled={isBusy}
+                              onClick={() => handleDeleteUser(user)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50 text-xs font-medium"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                     
                     {/* Expanded Row - Show Files */}
                     {isExpanded && uploadedFiles.length > 0 && (
                       <tr className="border-t bg-orange-50">
-                        <td colSpan={6} className="py-4 px-4">
+                        <td colSpan={isSuperadmin ? 7 : 6} className="py-4 px-4">
                           <div className="bg-white rounded-lg shadow-sm p-4">
                             <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                               <FileText className="w-5 h-5 text-orange-600" />

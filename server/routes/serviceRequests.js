@@ -39,6 +39,7 @@ router.post("/", async (req, res) => {
       fullName,
       email,
       phone,
+      whatsapp,
       location,
       serviceNeeded,
       preferredDate,
@@ -75,6 +76,7 @@ router.post("/", async (req, res) => {
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
+      whatsapp: whatsapp ? whatsapp.trim() : undefined,
       location: location.trim(),
       serviceNeeded: serviceNeeded.trim(),
       preferredDate: preferredDate ? new Date(preferredDate) : undefined,
@@ -94,6 +96,7 @@ router.post("/", async (req, res) => {
             name: requestDoc.fullName,
             email: requestDoc.email,
             phone: requestDoc.phone,
+            whatsapp: requestDoc.whatsapp,
           },
           requestDetails: {
             requestId: requestDoc._id.toString(),

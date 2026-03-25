@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import { useTranslation } from "react-i18next";
 
 type User = {
   name: string;
@@ -11,6 +12,7 @@ type User = {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -42,7 +44,7 @@ const Dashboard = () => {
     fetchUser();
   }, [navigate]);
 
-  return <p className="text-center mt-20">Redirecting to your dashboard...</p>;
+  return <p className="text-center mt-20">{t("dashboard.redirectingToDashboard")}</p>;
 };
 
 export default Dashboard;

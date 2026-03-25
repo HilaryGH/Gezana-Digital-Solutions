@@ -37,7 +37,25 @@
     "bookings": "Bookings",
     "settings": "Settings",
     "help": "Help",
-    "support": "Support"
+    "support": "Support",
+    "noImage": "No image",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "newPassword": "New Password",
+    "saveChanges": "Save Changes",
+    "language": "Language"
+    ,
+    "optional": "(Optional)",
+    "whatsapp": "WhatsApp",
+    "appChat": "App Chat",
+    "country": "Country",
+    "done": "Done",
+    "new": "New",
+    "service": "Service",
+    "ratingSingular": "rating",
+    "ratingPlural": "ratings",
+    "noRating": "No rating"
   },
   "auth": {
     "welcomeBack": "Welcome Back 👋",
@@ -69,6 +87,7 @@
     "login": "Login",
     "register": "Register",
     "dashboard": "Dashboard",
+    "requestService": "Request Service",
     "logout": "Logout"
   },
   "home": {
@@ -85,6 +104,184 @@
       "customers": "Happy Customers",
       "services": "Services Available",
       "bookings": "Completed Bookings"
+    },
+    "hero": {
+      "topPill": "Home Services, Redefined & Delivered",
+      "findTrustedHomeServices": "Find <0>trusted</0> home services near you",
+      "bookVerifiedProfessionals": "Book verified professionals in minutes.",
+      "searchPlaceholder": "Search cleaning, plumbing, electrician...",
+      "searchAriaLabel": "Search services",
+      "bookService": "Book a Service",
+      "becomeProvider": "Become a Provider",
+      "trustRating": "4.8 rating",
+      "verifiedProviders": "Verified providers",
+      "fastBooking": "Fast booking",
+      "imageAlt": "Trusted home services"
+    },
+    "servicesMenu": {
+      "title": "Our Services",
+      "subtitle": "Choose a category to explore",
+      "categoryServicesCount": "{{count}} services"
+    },
+    "servicesModal": {
+      "loading": "Loading...",
+      "servicesAvailable": "{{count}} services available",
+      "serviceTypesAvailable": "{{count}} service types available",
+      "viewAllServices": "View All {{category}} Services"
+    },
+    "recentlyAdded": {
+      "titlePrefix": "Recently Added",
+      "titleHighlight": "Services",
+      "subtitle": "Discover the latest services added to our platform",
+      "empty": "No recent services available",
+      "discoverMore": "Discover More"
+    },
+    "mostBooked": {
+      "titlePrefix": "Most Booked",
+      "titleHighlight": "Services",
+      "badge": "Most Booked",
+      "subtitle": "Popular choices trusted by our community",
+      "empty": "No booked services available. Services will appear here once bookings are made."
+    },
+    "specialOffers": {
+      "titlePrefix": "Special",
+      "titleHighlight": "Offers",
+      "subtitle": "Exclusive deals and discounts from our service providers",
+      "originalPrice": "Original Price",
+      "now": "Now",
+      "serviceLabel": "Service:",
+      "providerLabel": "Provider:",
+      "empty": "No special offers available at the moment. Check back soon for exciting deals!",
+      "debugInfo": "Debug Info:"
+    },
+    "specialPrograms": {
+      "titlePrefix": "Special",
+      "titleHighlight": "Programs",
+      "description": "Join our specialized programs designed to empower and connect communities."
+    },
+    "programs": {
+      "joinNow": "Join Now"
+    },
+    "professionalsCommunity": {
+      "title": "Professionals Community",
+      "exploreNow": "Explore now Professionals Community",
+      "formTitle": "Professionals Community",
+      "formDescription": "Join us by filling the form below",
+      "description": "Connect with skilled pros, discover opportunities, and grow your service business with a supportive community.",
+      "tags": {
+        "taskers": "Taskers",
+        "freshGraduate": "Fresh Graduate"
+      },
+      "messages": {
+        "thanks": "✅ Thanks! Your request has been received. We'll reach out soon."
+      },
+      "fields": {
+        "currentLocation": "Current Location",
+        "whatsapp": "WhatsApp",
+        "linkedInProfile": "LinkedIn Profile",
+        "selectSpecialization": "Select Specialization",
+        "uploadCv": "Upload CV",
+        "uploadCredentials": "Upload Credentials"
+      },
+      "placeholders": {
+        "currentLocation": "Current Location",
+        "whatsappOptional": "WhatsApp (Optional)",
+        "linkedInOptional": "LinkedIn Profile (Optional)"
+      },
+      "selectSpecializationPrompt": "-- Select Specialization --",
+      "specializations": {
+        "educationAndTraining": "education and training",
+        "technologyAndDesign": "technology and design",
+        "businessAndOperations": "business and operations"
+      },
+      "noFileChosen": "No file chosen",
+      "errors": {
+        "fullNameRequired": "Full Name is required.",
+        "emailRequired": "Email is required.",
+        "phoneRequired": "Phone is required.",
+        "currentLocationRequired": "Current Location is required.",
+        "specializationRequired": "Please select Specialization.",
+        "cvRequired": "Please upload your CV.",
+        "credentialsRequired": "Please upload your Credentials."
+      }
+    },
+    "joinCommunity": {
+      "titlePrefix": "Join Our",
+      "titleHighlight": "Community",
+      "description": "Connect with skilled professionals and find exciting job opportunities. Be part of a growing community of service providers.",
+      "features": {
+        "jobOpportunities": {
+          "title": "Find Job Opportunities",
+          "description": "Discover new job opportunities that match your skills and grow your career with us."
+        },
+        "diaspora": {
+          "title": "Diaspora Community",
+          "description": "Connect with your community abroad. Share experiences and discover opportunities to contribute back home."
+        },
+        "premiumMembership": {
+          "title": "Premium Membership",
+          "description": "Unlock exclusive access to premium services, priority booking, and advanced platform features."
+        }
+      },
+      "trustLabels": {
+        "verifiedProviders": "Verified Providers",
+        "fiveStarRated": "5-Star Rated",
+        "secureTrusted": "Secure & Trusted"
+      },
+      "cta": {
+        "title": "Ready to Experience the Difference?",
+        "verifiedNote": "Verified Providers",
+        "description": "Join thousands of satisfied customers and service providers who trust HomeHub for their daily service needs.",
+        "bookServiceNow": "Book a Service Now",
+        "signUpNow": "Sign Up Now"
+      }
+    },
+    "jobs": {
+      "sectionTitle": "Job Opportunities",
+      "empty": "No job opportunities available at the moment",
+      "checkBackLater": "Check back later for new opportunities",
+      "jobSingular": "job",
+      "jobPlural": "jobs",
+      "available": "available",
+      "applyButton": "Apply for Job",
+      "applicationSubmittedTitle": "Application Submitted!",
+      "applicationSubmittedMessage": "Thank you for your interest. We'll review your application and get back to you soon.",
+      "form": {
+        "personalInfoTitle": "Personal Information",
+        "contactInfoTitle": "Contact Information",
+        "genderSelectLabel": "Select Gender",
+        "dateOfBirthLabel": "Date of Birth",
+        "genderLabel": "Gender",
+        "nationalityLabel": "Nationality",
+        "gender": {
+          "male": "Male",
+          "female": "Female",
+          "other": "Other",
+          "preferNotToSay": "Prefer not to say"
+        },
+        "alternativePhoneOptional": "Alternative Phone (Optional)",
+        "coverLetterLabel": "Cover Letter",
+        "resumeOptionalLabel": "Resume/CV (Optional)",
+        "acceptedFormats": "Accepted formats: PDF, DOC, DOCX (Max: 5MB)",
+        "submitButton": "Submit Application",
+        "submittingButton": "Submitting..."
+        ,
+        "placeholders": {
+          "fullName": "Enter your full name",
+          "nationality": "e.g., Ethiopian, American, etc.",
+          "email": "your.email@example.com",
+          "phone": "+251 9XX XXX XXX",
+          "alternativePhone": "+251 9XX XXX XXX",
+          "address": "Street address, P.O. Box, etc.",
+          "city": "e.g., Addis Ababa",
+          "country": "e.g., Ethiopia",
+          "coverLetter": "Tell us why you're interested in this position and what makes you a great fit..."
+        }
+      },
+      "errors": {
+        "requiredFields": "Please fill in all required fields",
+        "fileSizeTooLarge": "File size must be less than 5MB"
+      }
     }
   },
   "services": {
@@ -140,7 +337,8 @@
       "providers": "Service Providers",
       "reports": "Reports & Analytics",
       "settings": "System Settings"
-    }
+    },
+    "redirectingToDashboard": "Redirecting to your dashboard..."
   },
   "booking": {
     "title": "Book a Service",
@@ -176,7 +374,8 @@
     "uploadPhoto": "Upload Photo",
     "verification": "Account Verification",
     "verified": "Verified Account",
-    "unverified": "Unverified Account"
+    "unverified": "Unverified Account",
+    "manageDetails": "Manage your details"
   },
   "footer": {
     "description": "HomeHub - Your trusted platform for quality services",
@@ -200,7 +399,10 @@
     "forbidden": "Access Forbidden",
     "somethingWentWrong": "Something went wrong",
     "tryAgain": "Try Again",
-    "goHome": "Go Home"
+    "goHome": "Go Home",
+    "failedToFetchProfile": "Failed to fetch profile",
+    "updateFailed": "Update failed",
+    "failedToSearchServices": "Failed to search services"
   },
   "validation": {
     "required": "This field is required",
@@ -212,5 +414,157 @@
     "maxLength": "Maximum length is {{count}} characters",
     "numeric": "Please enter a valid number",
     "positive": "Please enter a positive number"
+  },
+  "serviceRequest": {
+    "title": "Post a Service Request",
+    "subtitle": "Tell us what you need, and we will notify the right team/provider.",
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email address",
+      "phone": "Phone number",
+      "whatsappOptional": "WhatsApp number (optional)",
+      "location": "Location / address",
+      "serviceNeeded": "Service needed (e.g. plumbing, cleaning, electrician)",
+      "budget": "Budget (ETB)",
+      "details": "Describe your request in detail..."
+    },
+    "buttons": {
+      "submit": "Submit Service Request",
+      "submitting": "Submitting..."
+    },
+    "messages": {
+      "submitted": "Service request submitted. We will contact you soon.",
+      "endpointUnavailable": "Service request endpoint is not available on the current backend. Restart the backend (or deploy latest server changes) and try again.",
+      "failed": "Failed to submit service request. Please try again."
+    }
+  },
+  "homeFeatured": {
+    "titlePrefix": "Featured",
+    "titleHighlight": "Professionals",
+    "subtitle": "Trusted professionals added through our agent network",
+    "viewAll": "View all services",
+    "agentListing": "Agent listing",
+    "professionalBadge": "Professional",
+    "bookNow": "Book now",
+    "empty": "No agent-listed professionals yet. Browse all services to find providers.",
+    "contactForPrice": "Contact for price",
+    "priceFrom": "From {{amount}} ETB",
+    "priceExact": "{{amount}} ETB"
+  },
+  "invoice": {
+    "companyTinAddress": "TIN: 0106286060 | Addis Ababa, Ethiopia",
+    "phoneLabel": "Phone:",
+    "brandName": "HomeHub Digital Solutions",
+    "title": "Invoice",
+    "download": "Download",
+    "downloadInvoice": "Download Invoice",
+    "invoiceNumberLabel": "Invoice Number",
+    "dateLabel": "Date",
+    "customerInformation": "Customer Information",
+    "nameLabel": "Name:",
+    "emailLabel": "Email:",
+    "organizationLabel": "Organization:",
+    "roleLabel": "Role:",
+    "planDetails": "Plan Details",
+    "planLabel": "Plan:",
+    "typeLabel": "Type:",
+    "periodLabel": "Period:",
+    "paymentDetails": "Payment Details",
+    "subtotalLabel": "Subtotal:",
+    "taxLabel": "Tax:",
+    "totalLabel": "Total:",
+    "statusLabel": "Status:",
+    "methodLabel": "Method:",
+    "transactionIdLabel": "Transaction ID:",
+    "paidAtLabel": "Paid At:",
+    "membershipPeriod": "Membership Period",
+    "startDateLabel": "Start Date:",
+    "endDateLabel": "End Date:",
+    "invoiceInformationNotAvailable": "Invoice information not available",
+    "invoiceDateLabel": "Invoice Date:",
+    "invoiceNumberShortLabel": "Invoice #:",
+    "customerLabel": "Customer:",
+    "statusPendingPayment": "Status: Pending Payment",
+    "totalAmountDueLabel": "Total Amount Due:",
+    "statusPending": "Status: Pending",
+    "scanToVerifyLabel": "Scan to verify this invoice"
+  },
+  "placeholders": {
+    "phoneExample": "e.g. +251912345678",
+    "leaveBlankKeepCurrent": "Leave blank to keep current",
+    "searchForServicesProvidersCategories": "Search for services, providers, or categories..."
+  },
+  "messages": {
+    "profileUpdatedSuccess": "✅ Profile updated successfully"
+  },
+  "community": {
+    "joinCommunity": "Join Community"
+  },
+  "navbar": {
+    "toggleMenu": "Toggle menu",
+    "mobileTagline": "Home Services, Redefined & Delivered",
+    "live": "Live",
+    "newProvidersJoinedThisWeek": "new service providers joined this week",
+    "completedBookingsLabel": "Completed Bookings",
+    "ratingLabel": "Rating",
+    "servicePrompts": [
+      "Home Maintenance pros",
+      "Cleaning services near you",
+      "Appliance repair experts",
+      "Personal care specialists",
+      "Household support teams",
+      "Hotel & lounge staff"
+    ],
+    "verifiedServiceProviders": "Verified Service Providers",
+    "qualityGuaranteed": "Quality Guaranteed",
+    "seamlessConnection": "Seamless Connection",
+    "searching": "Searching...",
+    "foundServices_one": "Found 1 service",
+    "foundServices_other": "Found {{count}} services",
+    "noServicesFoundForQuery": "No services found for \"{{query}}\"",
+    "tryDifferentKeywords": "Try different keywords or check spelling",
+    "popularSearches": "Popular Searches",
+    "noDescriptionAvailable": "No description available",
+    "locationNotSpecified": "Location not specified",
+    "uncategorized": "Uncategorized",
+    "etbPerHour": "ETB/hour",
+    "etbPerSqft": "ETB/sq ft",
+    "priceFrom": "From {{amount}} ETB",
+    "popularSearchesItems": {
+      "plumbing": "Plumbing",
+      "cleaning": "Cleaning",
+      "electrician": "Electrician",
+      "painting": "Painting",
+      "gardening": "Gardening",
+      "babysitting": "Babysitting",
+      "carpentry": "Carpentry",
+      "applianceRepair": "Appliance Repair"
+    }
+  },
+  "paymentSuccess": {
+    "bookingConfirmedTitle": "Booking Confirmed! 🎉",
+    "paymentSuccessfulTitle": "Payment Successful! 🎉",
+    "premiumCashActivated": "Your premium membership has been activated. Please complete cash payment within 7 days. An invoice has been generated.",
+    "premiumActivated": "Your premium membership has been activated successfully.",
+    "bookingCashConfirmed": "Your booking has been confirmed. Please pay in cash when the service is completed.",
+    "bookingOnlineConfirmed": "Thank you for your payment. Your booking has been confirmed.",
+    "failedToGeneratePdf": "Failed to generate PDF. Please try again.",
+    "completePurchase": "Complete Purchase",
+    "bookingConfirmedSuccessfully": "Booking confirmed successfully!",
+    "serviceLabel": "Service:",
+    "dateLabel": "Date:",
+    "amountLabel": "Amount:",
+    "backToHome": "Back to Home",
+    "createSpecialOffers": "Create Special Offers",
+    "browseServices": "Browse Services",
+    "goToDashboard": "Go to Dashboard",
+    "premiumAccessActivatedTitle": "🎉 Premium Access Activated!",
+    "premiumAccessActivatedDescription": "As a premium member, you now have exclusive access to view detailed information about service providers, including their documents, business details, and comprehensive service information.",
+    "premiumAccessBullet1": "View provider documents and credentials",
+    "premiumAccessBullet2": "Access detailed business information",
+    "premiumAccessBullet3": "See comprehensive service provider profiles",
+    "premiumAccessBullet4": "Make informed decisions with full transparency",
+    "premiumAccessExploreNote": "Click on any service to view the \"{{buttonLabel}}\" button and explore provider information!",
+    "viewProviderDetailsButton": "View Provider Details"
   }
 }

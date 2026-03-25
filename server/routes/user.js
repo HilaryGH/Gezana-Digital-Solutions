@@ -333,6 +333,87 @@ router.patch("/admin/agents/:agentId/enable", authMiddleware, async (req, res) =
     res.status(500).json({ message: "Failed to update agent" });
   }
 });
+
+// Superadmin: verify/unverify any user
+router.patch("/admin/users/:userId/verify", authMiddleware, async (req, res) => {
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "Only superadmin can verify users" });
+  }
+
+  const { userId } = req.params;
+  const { status, notes } = req.body || {};
+  const allowedStatuses = ["approved", "rejected", "pending"];
+
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid verification status" });
+  }
+
+  try {
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (targetUser.role === "superadmin" && String(targetUser._id) !== String(req.user.userId)) {
+      return res.status(403).json({ message: "Cannot modify other superadmin accounts" });
+    }
+
+    const updatePayload = {
+      verificationStatus: status,
+      verificationNotes: typeof notes === "string" ? notes : undefined,
+      isVerified: status === "approved",
+      verifiedBy: req.user.userId,
+      verifiedAt: status === "approved" ? new Date() : null,
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updatePayload, { new: true }).select(
+      "-password"
+    );
+
+    res.json({
+      message:
+        status === "approved"
+          ? "User verified"
+          : status === "rejected"
+            ? "User rejected"
+            : "User set to pending",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error("Error verifying user:", err);
+    res.status(500).json({ message: "Failed to verify user" });
+  }
+});
+
+// Superadmin: permanently delete a user
+router.delete("/admin/users/:userId", authMiddleware, async (req, res) => {
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "Only superadmin can delete users" });
+  }
+
+  const { userId } = req.params;
+
+  try {
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (String(targetUser._id) === String(req.user.userId)) {
+      return res.status(400).json({ message: "You cannot delete your own account" });
+    }
+
+    if (targetUser.role === "superadmin") {
+      return res.status(403).json({ message: "Cannot delete superadmin account" });
+    }
+
+    await User.findByIdAndDelete(userId);
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ message: "Failed to delete user" });
+  }
+});
 router.get("/loyalty", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("loyaltyPoints");

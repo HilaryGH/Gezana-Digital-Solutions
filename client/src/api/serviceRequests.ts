@@ -6,6 +6,7 @@ export interface CreateServiceRequestData {
   fullName: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   location: string;
   serviceNeeded: string;
   preferredDate?: string;
