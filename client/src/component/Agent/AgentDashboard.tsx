@@ -20,6 +20,9 @@ type Me = {
   email: string;
   role: "agent";
   agentEnabled?: boolean;
+  agentType?: "individual" | "corporate";
+  verificationStatus?: "pending" | "approved" | "rejected";
+  isVerified?: boolean;
 };
 
 type AgentDashboardResponse = {
@@ -137,6 +140,12 @@ const ID_DOCUMENT_OPTIONS: { value: "" | IdDocumentType; label: string }[] = [
 const idDocumentTypeLabel = (t?: string | null) =>
   ID_DOCUMENT_OPTIONS.find((o) => o.value === t)?.label || (t || "—");
 
+const formatVerificationStatus = (status: "pending" | "approved" | "rejected") => {
+  if (status === "approved") return "Verified";
+  if (status === "rejected") return "Rejected";
+  return "Pending";
+};
+
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
@@ -207,6 +216,23 @@ const AgentDashboard = () => {
   const [editIdDocumentType, setEditIdDocumentType] = useState<"" | IdDocumentType>("");
   const [editIdAttachmentFile, setEditIdAttachmentFile] = useState<File | null>(null);
   const editIdAttachmentInputRef = useRef<HTMLInputElement>(null);
+
+  const accountVerificationStatus =
+    me?.verificationStatus || (me?.isVerified ? "approved" : "pending");
+  const accountVerificationLabel =
+    accountVerificationStatus === "approved"
+      ? "Verified"
+      : accountVerificationStatus === "rejected"
+        ? "Rejected"
+        : "Pending";
+  const accountVerificationBadgeClass =
+    accountVerificationStatus === "approved"
+      ? "bg-green-100 text-green-700 border border-green-200"
+      : accountVerificationStatus === "rejected"
+        ? "bg-red-100 text-red-700 border border-red-200"
+        : "bg-amber-100 text-amber-700 border border-amber-200";
+
+  const agentTierLabel = me?.agentType === "corporate" ? "Super / Elite" : "Standard";
 
   const extractServiceTypeTokens = (value?: string | null) =>
     (value || "")
@@ -615,12 +641,15 @@ const AgentDashboard = () => {
                   Agent workspace
                 </span>
                 <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 min-[400px]:text-3xl sm:text-4xl">
-                  Agent Dashboard
+                  {agentTierLabel} Agent Dashboard
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm text-slate-600 min-[400px]:text-base sm:text-lg leading-relaxed">
                   Welcome{me?.name ? `, ${me.name}` : ""}. Track referrals, commissions, and the
                   professionals you connect to Homehub.
                 </p>
+                <span className={`inline-flex mt-3 px-3 py-1 rounded-full text-xs font-semibold ${accountVerificationBadgeClass}`}>
+                  Super Admin Verification: {accountVerificationLabel}
+                </span>
               </div>
               <button
                 type="button"
@@ -812,7 +841,7 @@ const AgentDashboard = () => {
             <div className="rounded-2xl border border-slate-200/80 p-5 sm:p-6 bg-gradient-to-br from-blue-50/35 via-white to-white shadow-sm ring-1 ring-slate-900/[0.03]">
               <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Add professional</h2>
               <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Submit a lead for review. They can appear on the public catalog once approved.
+                Submit a lead for review. They can appear on the public catalog once verified by super admin.
               </p>
 
               <form onSubmit={submitProfessional} className="mt-4 space-y-4">
@@ -1204,7 +1233,7 @@ const AgentDashboard = () => {
                                   : "bg-amber-100 text-amber-700"
                             }`}
                           >
-                            {p.status.toUpperCase()}
+                            {formatVerificationStatus(p.status).toUpperCase()}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-gray-600">

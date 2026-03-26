@@ -9,6 +9,8 @@ import DutyStatus from './DutyStatus';
 import { getThumbnailUrl, handleImageError } from '../../utils/imageHelper';
 import axios from '../../api/axios';
 
+type VerificationStatus = "pending" | "approved" | "rejected";
+
 const ProviderDashboard: React.FC = () => {
   const location = useLocation();
   const [services, setServices] = useState<Service[]>([]);
@@ -22,6 +24,7 @@ const ProviderDashboard: React.FC = () => {
   const [showDutyStatus, setShowDutyStatus] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("pending");
   const [stats, setStats] = useState({
     totalServices: 0,
     activeServices: 0,
@@ -52,6 +55,21 @@ const ProviderDashboard: React.FC = () => {
       
       setLoading(true);
       try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const meRes = await axios.get<{ verificationStatus?: VerificationStatus; isVerified?: boolean }>("/user/me", {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (isMounted) {
+              const status = meRes.data?.verificationStatus || (meRes.data?.isVerified ? "approved" : "pending");
+              setVerificationStatus(status);
+            }
+          } catch (statusError) {
+            console.error("Error fetching verification status:", statusError);
+          }
+        }
+
         // Fetch services
         const servicesData = await getMyServices();
         
@@ -88,11 +106,11 @@ const ProviderDashboard: React.FC = () => {
             // Fetch review statistics for each service
             const reviewStatsPromises = serviceIds.map(async (serviceId) => {
               try {
-                const response = await axios.get(`/reviews/service/${serviceId}`, {
+                const response = await axios.get<{ averageRating?: string | number; totalReviews?: number }>(`/reviews/service/${serviceId}`, {
                   params: { page: 1, limit: 1 } // We only need the averageRating from response
                 });
                 return {
-                  averageRating: parseFloat(response.data.averageRating) || 0,
+                  averageRating: Number(response.data.averageRating ?? 0) || 0,
                   totalReviews: response.data.totalReviews || 0
                 };
               } catch (error) {
@@ -196,11 +214,11 @@ const ProviderDashboard: React.FC = () => {
           // Fetch review statistics for each service
           const reviewStatsPromises = serviceIds.map(async (serviceId) => {
             try {
-              const response = await axios.get(`/reviews/service/${serviceId}`, {
+              const response = await axios.get<{ averageRating?: string | number; totalReviews?: number }>(`/reviews/service/${serviceId}`, {
                 params: { page: 1, limit: 1 } // We only need the averageRating from response
               });
               return {
-                averageRating: parseFloat(response.data.averageRating) || 0,
+                averageRating: Number(response.data.averageRating ?? 0) || 0,
                 totalReviews: response.data.totalReviews || 0
               };
             } catch (error) {
@@ -281,6 +299,20 @@ const ProviderDashboard: React.FC = () => {
     }
   };
 
+  const verificationLabel =
+    verificationStatus === "approved"
+      ? "Verified"
+      : verificationStatus === "rejected"
+        ? "Rejected"
+        : "Pending";
+
+  const verificationBadgeClass =
+    verificationStatus === "approved"
+      ? "bg-green-100 text-green-700 border border-green-200"
+      : verificationStatus === "rejected"
+        ? "bg-red-100 text-red-700 border border-red-200"
+        : "bg-amber-100 text-amber-700 border border-amber-200";
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100">
@@ -296,6 +328,9 @@ const ProviderDashboard: React.FC = () => {
             <div>
                 <h1 className="text-3xl font-bold text-gray-900">{companyName}</h1>
                 <p className="text-gray-600 mt-1">{userEmail}</p>
+                <span className={`inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold ${verificationBadgeClass}`}>
+                  Super Admin Verification: {verificationLabel}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-3">

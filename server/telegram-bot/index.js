@@ -48,13 +48,23 @@ const WEBHOOK_URL = WEBHOOK_BASE_URL
   ? `${WEBHOOK_BASE_URL.replace(/\/+$/, "")}${WEBHOOK_PATH}`
   : "";
 
+// IMPORTANT:
+// - `RENDER_EXTERNAL_URL` typically points to *this* Render service (the bot),
+//   not the main API server. Using it here can cause the bot to call its own
+//   `/api/catalog` and `/api/services` endpoints (404) and show "No ... found."
+// - Prefer explicitly setting TELEGRAM_DATA_API_BASE_URL to the API base.
 const DATA_API_BASE_URL =
   process.env.TELEGRAM_DATA_API_BASE_URL ||
   process.env.API_BASE_URL ||
   process.env.SERVER_BASE_URL ||
-  process.env.RENDER_EXTERNAL_URL ||
-  WEBHOOK_BASE_URL ||
   "http://localhost:5000";
+
+if (WEBHOOK_BASE_URL && DATA_API_BASE_URL === WEBHOOK_BASE_URL) {
+  console.warn(
+    "[telegram-bot] DATA_API_BASE_URL equals WEBHOOK_BASE_URL. " +
+      "Set TELEGRAM_DATA_API_BASE_URL to your main API base URL to avoid empty listings."
+  );
+}
 
 console.log("[telegram-bot] DATA_API_BASE_URL:", DATA_API_BASE_URL);
 

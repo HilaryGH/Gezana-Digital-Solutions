@@ -82,6 +82,12 @@ const ID_DOC_LABELS: Record<string, string> = {
   passport: "Passport",
 };
 
+const formatVerificationStatus = (status: string) => {
+  if (status === "approved") return "Verified";
+  if (status === "rejected") return "Rejected";
+  return "Pending";
+};
+
 const SuperadminDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -814,7 +820,7 @@ const SuperadminDashboard = () => {
                                     : "bg-amber-100 text-amber-800"
                               }`}
                             >
-                              {p.status}
+                              {formatVerificationStatus(p.status)}
                             </span>
                           </td>
                           <td className="py-3 px-3 text-gray-600 whitespace-nowrap">

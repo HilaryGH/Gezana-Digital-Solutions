@@ -57,6 +57,12 @@ const Users = () => {
   })();
   const isSuperadmin = currentUserRole === "superadmin";
 
+  const formatVerificationStatus = (status: "pending" | "approved" | "rejected") => {
+    if (status === "approved") return "Verified";
+    if (status === "rejected") return "Rejected";
+    return "Pending";
+  };
+
   useEffect(() => {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
@@ -362,7 +368,7 @@ const Users = () => {
                               }`}
                               title={user.verificationNotes || ""}
                             >
-                              {verificationStatus.toUpperCase()}
+                              {formatVerificationStatus(verificationStatus)}
                             </span>
 
                             <button

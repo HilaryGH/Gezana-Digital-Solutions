@@ -41,6 +41,12 @@ const statusClasses: Record<VerificationStatus, string> = {
     "bg-rose-50 text-rose-700 border border-rose-200",
 };
 
+const statusLabel: Record<VerificationStatus, string> = {
+  approved: "Verified",
+  pending: "Pending",
+  rejected: "Rejected",
+};
+
 const gradientButtonStyle = {
   background: "linear-gradient(120deg, var(--brand-primary), var(--brand-secondary))",
   boxShadow: "0 12px 25px rgba(46, 61, 211, 0.25)",
@@ -191,7 +197,7 @@ const AdminProvidersList = () => {
         </div>
         <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-3">
           <div className="rounded-2xl bg-white/15 p-4 backdrop-blur-lg border border-white/20">
-            <p className="text-sm uppercase tracking-wider opacity-80">Approved</p>
+            <p className="text-sm uppercase tracking-wider opacity-80">Verified</p>
             <p className="text-2xl font-semibold mt-1">{stats.approved}</p>
           </div>
           <div className="rounded-2xl bg-white/15 p-4 backdrop-blur-lg border border-white/20">
@@ -257,7 +263,7 @@ const AdminProvidersList = () => {
 
                 <div className="flex items-center gap-3">
                   <span className={`px-4 py-1.5 rounded-full text-sm font-semibold ${statusClasses[provider.verificationStatus]}`}>
-                    {provider.verificationStatus.toUpperCase()}
+                    {statusLabel[provider.verificationStatus]}
                   </span>
                 </div>
               </div>
@@ -282,7 +288,7 @@ const AdminProvidersList = () => {
                     ) : (
                       <CheckCircle2 className="h-4 w-4" />
                     )}
-                    Approve
+                    Verify
                   </button>
                   {provider.verificationStatus !== "pending" && (
                     <button
