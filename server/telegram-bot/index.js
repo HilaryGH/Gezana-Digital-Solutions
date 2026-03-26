@@ -519,15 +519,21 @@ async function getOrCreateCategoryAndServiceType(categoryName, serviceTypeName) 
   if (!categoryDoc) {
     categoryDoc = await Category.create({ name: categoryName });
   }
-  let serviceTypeDoc = await ServiceType.findOne({
-    name: serviceTypeName,
-    category: categoryDoc._id,
-  });
+  // NOTE: ServiceType.name is globally unique in our schema. Do not scope the lookup
+  // by category, otherwise we might try to create a duplicate name under a different
+  // category and crash the Telegram booking flow.
+  let serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
   if (!serviceTypeDoc) {
-    serviceTypeDoc = await ServiceType.create({
-      name: serviceTypeName,
-      category: categoryDoc._id,
-    });
+    try {
+      serviceTypeDoc = await ServiceType.create({
+        name: serviceTypeName,
+        category: categoryDoc._id,
+      });
+    } catch (err) {
+      // If another process created it, or name already exists, re-fetch by name.
+      serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
+      if (!serviceTypeDoc) throw err;
+    }
   }
   return { categoryDoc, serviceTypeDoc };
 }
