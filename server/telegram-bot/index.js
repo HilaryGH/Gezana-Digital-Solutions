@@ -261,7 +261,12 @@ async function fetchCatalogFromApi() {
   const url = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/catalog`;
   try {
     const response = await axios.get(url, { timeout: 15000 });
-    return Array.isArray(response.data) ? response.data : [];
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.catalog)) return data.catalog;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
   } catch (err) {
     console.warn("[telegram-bot] fetchCatalogFromApi failed:", err?.message || err);
     return [];
@@ -320,12 +325,23 @@ async function fetchProfessionalsPage(cursor) {
     console.warn("[telegram-bot] DB fetchProfessionalsPage failed, using API fallback:", dbErr?.message || dbErr);
     const offset = parseApiOffsetCursor(cursor);
     const rows = await fetchCatalogFromApi();
-    const professionalRows = rows.filter((r) => String(r?.source || "").toLowerCase() === "agent");
+    const professionalRows = rows.filter((r) => {
+      const source = String(r?.source || "").toLowerCase();
+      if (source === "agent" || source === "professional") return true;
+      // Backward-compatible fallback for older /api/catalog shapes
+      return (
+        r?.serviceType != null ||
+        r?.fullName != null ||
+        r?.providerName != null ||
+        r?.city != null ||
+        r?.location != null
+      );
+    });
     const slice = professionalRows.slice(offset, offset + PAGE_SIZE);
     const items = slice.map((d) => ({
       id: String(d?._id || d?.id || ""),
       fullName: asDisplayText(d?.providerName || d?.fullName),
-      serviceType: asDisplayText(d?.title || d?.serviceType),
+      serviceType: asDisplayText(d?.serviceType || d?.title || d?.category),
       city: asDisplayText(d?.city || d?.location),
     }));
     const nextCursor = offset + PAGE_SIZE < professionalRows.length ? `api:${offset + PAGE_SIZE}` : null;

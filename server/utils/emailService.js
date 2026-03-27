@@ -753,6 +753,58 @@ const sendInternalServiceRequestAlert = async (toEmail, payload) => {
   }
 };
 
+const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => {
+  if (!toEmail || !String(toEmail).includes("@")) {
+    return { success: false, error: "No valid email" };
+  }
+  try {
+    const transporter = createTransporter();
+    const {
+      serviceName,
+      customerName,
+      customerEmail,
+      customerPhone,
+      date,
+      time,
+      location,
+      priceEtb,
+      note,
+    } = payload;
+
+    const mailOptions = {
+      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: `📌 New booking received: ${serviceName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #2E3DD3;">You have a new booking</h2>
+          <p>Hi ${providerName || "Provider"},</p>
+          <p>A customer has booked your service on HomeHub. Details are below:</p>
+          <ul>
+            <li><strong>Service:</strong> ${serviceName}</li>
+            <li><strong>Customer:</strong> ${customerName || "Customer"}</li>
+            <li><strong>Email:</strong> ${customerEmail || "Not provided"}</li>
+            <li><strong>Phone:</strong> ${customerPhone || "Not provided"}</li>
+            <li><strong>Date:</strong> ${date}</li>
+            <li><strong>Time:</strong> ${time}</li>
+            <li><strong>Location:</strong> ${location || "To be determined"}</li>
+            <li><strong>Amount:</strong> ${priceEtb} ETB</li>
+            <li><strong>Note:</strong> ${note || "No note"}</li>
+          </ul>
+          <p>Please review and prepare for the appointment.</p>
+        </div>
+      `,
+      text: `New booking for ${serviceName}. Customer: ${customerName || "Customer"}, Date: ${date} ${time}, Amount: ${priceEtb} ETB.`,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error sending provider booking alert email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendWelcomeEmailWithReferral,
@@ -760,6 +812,7 @@ module.exports = {
   sendBookingConfirmationEmail,
   sendPasswordResetEmail,
   sendInternalProfessionalBookingAlert,
+  sendProviderBookingAlertEmail,
   sendServiceRequestConfirmationEmail,
   sendInternalServiceRequestAlert,
   createTransporter

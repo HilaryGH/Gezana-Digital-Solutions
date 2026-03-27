@@ -151,7 +151,10 @@ const Footer = () => {
                 <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
                   <FaMapMarkerAlt className="w-3.5 h-3.5 text-blue-400" />
                 </div>
-                <span>Addis Ababa, Ethiopia</span>
+                <div className="flex flex-col">
+                  <span>22, Negat Building, 4th Floor.</span>
+                  <span className="text-gray-400">Addis Ababa, Ethiopia</span>
+                </div>
               </div>
               </div>
             </div>

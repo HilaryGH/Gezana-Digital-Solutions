@@ -3,6 +3,7 @@ const {
   sendServicePublishedEmail,
   sendBookingConfirmationEmail,
   sendInternalProfessionalBookingAlert,
+  sendProviderBookingAlertEmail,
   sendServiceRequestConfirmationEmail,
   sendInternalServiceRequestAlert,
 } = require('./emailService');
@@ -159,6 +160,28 @@ const sendServiceRequestNotifications = async ({ requester, requestDetails }) =>
   return results;
 };
 
+const sendProviderBookingNotification = async ({ provider, bookingDetails, customer }) => {
+  if (!provider?.email) {
+    return { success: false, error: "Provider email is missing" };
+  }
+
+  return sendProviderBookingAlertEmail(
+    provider.email,
+    provider.name || "Provider",
+    {
+      serviceName: bookingDetails.serviceName,
+      customerName: customer?.name || "Customer",
+      customerEmail: customer?.email || "",
+      customerPhone: customer?.phone || "",
+      date: bookingDetails.date,
+      time: bookingDetails.time,
+      location: bookingDetails.location,
+      priceEtb: bookingDetails.price,
+      note: bookingDetails.note || "",
+    }
+  );
+};
+
 module.exports = {
   sendWelcomeNotifications,
   sendServicePublishedNotifications,
@@ -166,5 +189,6 @@ module.exports = {
   sendProfessionalBookingStakeholderEmails,
   sendBookingReminderNotifications,
   sendServiceRequestNotifications,
+  sendProviderBookingNotification,
 };
 

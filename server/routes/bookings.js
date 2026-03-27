@@ -8,7 +8,11 @@ const ServiceType = require("../models/ServiceType");
 const User = require("../models/User");
 const Referral = require("../models/Referral");
 const AgentProfessional = require("../models/AgentProfessional");
-const { sendBookingConfirmationNotifications, sendProfessionalBookingStakeholderEmails } = require("../utils/notificationService");
+const {
+  sendBookingConfirmationNotifications,
+  sendProfessionalBookingStakeholderEmails,
+  sendProviderBookingNotification,
+} = require("../utils/notificationService");
 const { getDistanceBetween } = require("../utils/geolocation");
 const JWT_SECRET = require("../config/jwt");
 
@@ -284,9 +288,18 @@ router.post("/", async (req, res) => {
             price: priceNum,
             location:
               [proDoc.city, proDoc.location].filter(Boolean).join(", ") || "To be determined",
+            note: note || "",
           };
 
           await sendBookingConfirmationNotifications(customerInfo, bookingDetails);
+          await sendProviderBookingNotification({
+            provider: {
+              name: proDoc.fullName,
+              email: proDoc.email,
+            },
+            bookingDetails,
+            customer: customerInfo,
+          });
 
           const stakeholderPayload = {
             professionalName: proDoc.fullName,
@@ -557,15 +570,25 @@ router.post("/", async (req, res) => {
             minute: '2-digit' 
           }),
           price: serviceDoc.price,
-          location: serviceDoc.location || 'To be determined'
+          location: serviceDoc.location || 'To be determined',
+          note: note || "",
         };
 
         const notificationResults = await sendBookingConfirmationNotifications(
           customerInfo,
           bookingDetails
         );
+        const providerEmailResult = await sendProviderBookingNotification({
+          provider: {
+            name: serviceDoc.provider?.name || "Provider",
+            email: serviceDoc.provider?.email,
+          },
+          bookingDetails,
+          customer: customerInfo,
+        });
         
         console.log("✅ Booking confirmation notifications sent:", notificationResults);
+        console.log("✅ Provider booking email result:", providerEmailResult);
       } catch (notifError) {
         console.error("❌ Error sending booking notifications:", notifError);
         // Don't fail booking if notifications fail - booking is already created

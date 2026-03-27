@@ -415,6 +415,8 @@ const PaymentSuccess = () => {
                 <div className="text-center border-b border-gray-300 pb-2 mb-2">
                   <p className="text-xs font-semibold text-gray-900">{t("invoice.brandName")}</p>
                   <p className="text-xs text-gray-600">{t("invoice.companyTinAddress")}</p>
+                  <p className="text-xs text-gray-600">Homehub Address</p>
+                  <p className="text-xs text-gray-600">22, Negat Building, 4th Floor.</p>
                   <p className="text-xs text-gray-600">
                     {t("invoice.phoneLabel")} <a href="tel:+251994578759" className="underline text-gray-700">+251 994 578 759</a>
                   </p>
@@ -476,6 +478,10 @@ const PaymentSuccess = () => {
                         />
                       )}
                     </div>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600">
+                    <p>Homehub Address</p>
+                    <p>22, Negat Building, 4th Floor.</p>
                   </div>
                 </div>
 
@@ -555,6 +561,8 @@ const PaymentSuccess = () => {
               <div className="text-center border-b border-gray-300 pb-1 mb-1">
                 <p className="text-xs font-semibold text-gray-900">{t("invoice.brandName")}</p>
                   <p className="text-xs text-gray-600">{t("invoice.companyTinAddress")}</p>
+                  <p className="text-xs text-gray-600">Homehub Address</p>
+                  <p className="text-xs text-gray-600">22, Negat Building, 4th Floor.</p>
                 <p className="text-xs text-gray-600">
                     {t("invoice.phoneLabel")} <a href="tel:+251994578759" className="underline text-gray-700">+251 994 578 759</a>
                 </p>
@@ -614,6 +622,10 @@ const PaymentSuccess = () => {
                       fgColor="#000000"
                     />
                   </div>
+                </div>
+                <div className="mt-1 text-xs text-gray-600">
+                  <p>Homehub Address</p>
+                  <p>22, Negat Building, 4th Floor.</p>
                 </div>
               </div>
             </div>
