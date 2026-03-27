@@ -601,9 +601,17 @@ const ProviderDashboard: React.FC = () => {
                         {/* Customer Info */}
                         <div>
                           <p className="text-xs text-gray-500 mb-1">Customer</p>
-                          <p className="font-semibold text-gray-900">{booking.fullName || booking.user?.name || 'N/A'}</p>
-                          <p className="text-sm text-gray-600">{booking.email || booking.user?.email}</p>
-                          {booking.phone && <p className="text-sm text-gray-600">📞 {booking.phone}</p>}
+                          <p className="font-semibold text-gray-900">
+                            {booking.fullName || booking.guestInfo?.fullName || booking.user?.name || 'N/A'}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {booking.email || booking.guestInfo?.email || booking.user?.email || 'N/A'}
+                          </p>
+                          {(booking.phone || booking.guestInfo?.phone || booking.guestInfo?.phoneNumber || booking.user?.phone) && (
+                            <p className="text-sm text-gray-600">
+                              📞 {booking.phone || booking.guestInfo?.phone || booking.guestInfo?.phoneNumber || booking.user?.phone}
+                            </p>
+                          )}
                         </div>
                         
                         {/* Service & Date */}

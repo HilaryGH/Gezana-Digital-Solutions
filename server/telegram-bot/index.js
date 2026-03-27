@@ -265,6 +265,14 @@ function parseApiOffsetCursor(cursor) {
   return Math.floor(raw);
 }
 
+function formatBookingId4(bookingId) {
+  const bookingIdStr = String(bookingId || Date.now());
+  const hash = bookingIdStr
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return String(hash % 10000).padStart(4, "0");
+}
+
 async function fetchCatalogFromApi() {
   const url = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/catalog`;
   try {
@@ -1093,7 +1101,8 @@ bot.on("message", async (msg) => {
       try {
         const booking = await submitBookingThroughApi(flow, chatId);
         clearBookingFlow(chatId);
-        await bot.sendMessage(chatId, L(chatId).flow.success(booking._id, booking.status));
+        const shortBookingId = formatBookingId4(booking?._id || booking?.id);
+        await bot.sendMessage(chatId, L(chatId).flow.success(shortBookingId, booking.status));
       } catch (apiError) {
         console.error("BOOKING ERROR:", apiError?.response?.data || apiError?.message || apiError);
         const reason = extractApiErrorMessage(apiError);

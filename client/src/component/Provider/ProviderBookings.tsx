@@ -12,6 +12,13 @@ interface Booking {
   email?: string;
   phone?: string;
   address?: string;
+  guestInfo?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    phoneNumber?: string;
+    address?: string;
+  };
   user?: {
     _id: string;
     name: string;
@@ -161,7 +168,7 @@ const ProviderBookings = () => {
                           <div>
                             <p className="text-sm text-gray-500">Name</p>
                             <p className="font-semibold text-gray-900">
-                              {booking.fullName || booking.user?.name || "—"}
+                              {booking.fullName || booking.guestInfo?.fullName || booking.user?.name || "—"}
                             </p>
                           </div>
                         </div>
@@ -170,7 +177,7 @@ const ProviderBookings = () => {
                           <div>
                             <p className="text-sm text-gray-500">Email</p>
                             <p className="font-medium text-gray-900 break-all">
-                              {booking.email || booking.user?.email || "—"}
+                              {booking.email || booking.guestInfo?.email || booking.user?.email || "—"}
                             </p>
                           </div>
                         </div>
@@ -179,7 +186,7 @@ const ProviderBookings = () => {
                           <div>
                             <p className="text-sm text-gray-500">Phone</p>
                             <p className="font-medium text-gray-900">
-                              {booking.phone || booking.user?.phone || "Not provided"}
+                              {booking.phone || booking.guestInfo?.phone || booking.guestInfo?.phoneNumber || booking.user?.phone || "Not provided"}
                             </p>
                           </div>
                         </div>
@@ -188,7 +195,7 @@ const ProviderBookings = () => {
                           <div>
                             <p className="text-sm text-gray-500">Address</p>
                             <p className="font-medium text-gray-900">
-                              {booking.address || "Not provided"}
+                              {booking.address || booking.guestInfo?.address || "Not provided"}
                             </p>
                           </div>
                         </div>
