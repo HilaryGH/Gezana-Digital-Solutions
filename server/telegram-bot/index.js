@@ -58,6 +58,7 @@ const DATA_API_BASE_URL =
   process.env.API_BASE_URL ||
   process.env.SERVER_BASE_URL ||
   "http://localhost:5000";
+const BOOKINGS_ENDPOINT = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/bookings`;
 
 if (WEBHOOK_BASE_URL && DATA_API_BASE_URL === WEBHOOK_BASE_URL) {
   console.warn(
@@ -74,9 +75,6 @@ console.log("[telegram-bot] DATA_API_BASE_URL:", DATA_API_BASE_URL);
 
 const AgentProfessional = require(path.join(__dirname, "..", "models", "AgentProfessional"));
 const Service = require(path.join(__dirname, "..", "models", "Service"));
-const Booking = require(path.join(__dirname, "..", "models", "Booking"));
-const Category = require(path.join(__dirname, "..", "models", "Category"));
-const ServiceType = require(path.join(__dirname, "..", "models", "ServiceType"));
 require(path.join(__dirname, "..", "models", "User"));
 
 /** In-memory booking flow state keyed by chat id. */
@@ -134,9 +132,14 @@ const LANG = {
       askEmail: "Please send your email address.",
       askPhone: "Please send your phone number.",
       askAddress: "Please send your address/location.",
+      askConfirm:
+        "Please confirm your booking details:\n\nDate: {date}\nName: {name}\nEmail: {email}\nPhone: {phone}\nAddress: {address}\n\nReply with YES to submit or NO to cancel.",
       invalidDate: "Invalid date/time. Please use YYYY-MM-DD HH:mm and a future date.",
       invalidEmail: "Invalid email. Please enter a valid email.",
+      invalidPhone: "Invalid phone number. Please enter a valid phone number.",
+      invalidConfirm: "Please reply with YES to confirm or NO to cancel.",
       dateLost: "Date became invalid. Please restart booking.",
+      missingTarget: "Missing booking target (service/professional). Please restart from /professionals or /services.",
       success: (id, status) =>
         `✅ Booking created successfully.\nBooking ID: ${id}\nStatus: ${status}\n\nHomeHub team will follow up soon.`,
       failed: "Sorry, I couldn't complete your booking. Please try again from /professionals or /services.",
@@ -198,9 +201,14 @@ const LANG = {
       askEmail: "እባክዎ ኢሜይል አድራሻዎን ይላኩ።",
       askPhone: "እባክዎ ስልክ ቁጥርዎን ይላኩ።",
       askAddress: "እባክዎ አድራሻ/አካባቢዎን ይላኩ።",
+      askConfirm:
+        "እባክዎ የቦኪንግ ዝርዝሮቹን ያረጋግጡ:\n\nቀን: {date}\nስም: {name}\nኢሜይል: {email}\nስልክ: {phone}\nአድራሻ: {address}\n\nለማስገባት YES ይላኩ ወይም ለመሰረዝ NO ይላኩ።",
       invalidDate: "የቀን/ሰዓት መረጃ የተሳሳተ ነው። YYYY-MM-DD HH:mm ይጠቀሙ እና ወደፊት ቀን ይምረጡ።",
       invalidEmail: "የተሳሳተ ኢሜይል ነው። ትክክለኛ ኢሜይል ያስገቡ።",
+      invalidPhone: "የተሳሳተ ስልክ ቁጥር ነው። ትክክለኛ ስልክ ቁጥር ያስገቡ።",
+      invalidConfirm: "እባክዎ YES ብለው ያረጋግጡ ወይም NO ብለው ይሰርዙ።",
       dateLost: "ቀኑ ልክ አይደለም። እባክዎ ቦኪንግን ዳግም ይጀምሩ።",
+      missingTarget: "የቦኪንግ ዓይነት መለያ ጠፍቷል። እባክዎ /professionals ወይም /services እንደገና ይጀምሩ።",
       success: (id, status) =>
         `✅ ቦኪንግ በተሳካ ሁኔታ ተፈጥሯል።\nየቦኪንግ መለያ: ${id}\nሁኔታ: ${status}\n\nየHomeHub ቡድን በቅርቡ ይነግርዎታል።`,
       failed: "ይቅርታ፣ ቦኪንግዎን ማጠናቀቅ አልቻልኩም። እባክዎ /professionals ወይም /services ብለው ይሞክሩ።",
@@ -530,117 +538,94 @@ function buildServicesKeyboard(items, nextCursor) {
   return { inline_keyboard: rows };
 }
 
-async function getOrCreateCategoryAndServiceType(categoryName, serviceTypeName) {
-  let categoryDoc = await Category.findOne({ name: categoryName });
-  if (!categoryDoc) {
-    categoryDoc = await Category.create({ name: categoryName });
-  }
-  // NOTE: ServiceType.name is globally unique in our schema. Do not scope the lookup
-  // by category, otherwise we might try to create a duplicate name under a different
-  // category and crash the Telegram booking flow.
-  let serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
-  if (!serviceTypeDoc) {
-    try {
-      serviceTypeDoc = await ServiceType.create({
-        name: serviceTypeName,
-        category: categoryDoc._id,
-      });
-    } catch (err) {
-      // If another process created it, or name already exists, re-fetch by name.
-      serviceTypeDoc = await ServiceType.findOne({ name: serviceTypeName });
-      if (!serviceTypeDoc) throw err;
-    }
-  }
-  return { categoryDoc, serviceTypeDoc };
-}
-
 function parseBookingDateInput(raw) {
   const input = String(raw || "").trim();
-  const date = new Date(input);
-  if (Number.isNaN(date.getTime())) return null;
+  const match = input.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const [, y, m, d, hh, mm] = match;
+  const date = new Date(Number(y), Number(m) - 1, Number(d), Number(hh), Number(mm), 0, 0);
+  // Reject impossible values like 2026-02-31 25:61
+  if (
+    date.getFullYear() !== Number(y) ||
+    date.getMonth() !== Number(m) - 1 ||
+    date.getDate() !== Number(d) ||
+    date.getHours() !== Number(hh) ||
+    date.getMinutes() !== Number(mm)
+  ) {
+    return null;
+  }
   if (date.getTime() < Date.now()) return null;
   return date;
 }
 
-function normalizeBookingInput(flow, chatId) {
-  const c = flow.collected || {};
+function isValidPhoneNumber(input) {
+  const raw = String(input || "").trim();
+  if (!/^\+?[0-9()\-\s]{7,20}$/.test(raw)) return false;
+  const digits = raw.replace(/\D/g, "");
+  return digits.length >= 7;
+}
+
+function formatBookingDateForDisplay(dateValue) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return String(dateValue || "");
+  return date.toLocaleString("en-GB", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function buildBookingPayload(flow, chatId) {
+  if (!flow?.date || !flow?.name || !flow?.email || !flow?.phone || !flow?.address) {
+    throw new Error("Missing required booking fields in flow state.");
+  }
+  if (!flow.professionalId && !flow.serviceId) {
+    throw new Error("Missing service or professional id in flow state.");
+  }
+
   return {
-    date: parseBookingDateInput(c.dateText),
+    ...(flow.professionalId ? { agentProfessional: flow.professionalId } : {}),
+    ...(flow.serviceId ? { service: flow.serviceId } : {}),
+    date: new Date(flow.date).toISOString(),
+    paymentMethod: "cash",
+    note: `Telegram booking. chatId=${chatId}, username=${flow.username || "unknown"}`,
     guestInfo: {
-      fullName: c.fullName || "Telegram User",
-      email: c.email || `telegram+${chatId}@homehub.local`,
-      phone: c.phone || "N/A",
-      address: c.address || "N/A",
+      fullName: flow.name,
+      email: flow.email,
+      phone: flow.phone,
+      address: flow.address,
     },
-    noteSuffix: `chatId=${chatId}, username=${flow.username || "unknown"}`,
   };
 }
 
-async function createProfessionalBookingFromTelegram(professionalId, bookingInput) {
-  await ensureDbConnection();
-  const professional = await AgentProfessional.findById(professionalId).lean();
-  if (!professional || professional.status !== "approved") {
-    throw new Error("Professional is not available for booking.");
-  }
-
-  const { categoryDoc, serviceTypeDoc } = await getOrCreateCategoryAndServiceType(
-    "Agent-listed professionals",
-    (professional.serviceType || "Professional services").trim()
-  );
-
-  const eventDate = bookingInput.date;
-  const note = `Telegram booking (professional). ${bookingInput.noteSuffix}`;
-
-  const booking = await Booking.create({
-    bookingKind: "professional",
-    category: categoryDoc._id,
-    serviceType: serviceTypeDoc._id,
-    agentProfessional: professional._id,
-    agent: professional.agent || undefined,
-    professionalPrice: Number(process.env.AGENT_PROFESSIONAL_DEFAULT_BOOKING_PRICE || 500),
-    date: eventDate,
-    note,
-    paymentStatus: "pending",
-    paymentMethod: "cash",
-    guestInfo: bookingInput.guestInfo,
-  });
-  return booking;
+function extractApiErrorMessage(error) {
+  const apiData = error?.response?.data;
+  if (typeof apiData?.message === "string" && apiData.message.trim()) return apiData.message;
+  if (typeof apiData?.error === "string" && apiData.error.trim()) return apiData.error;
+  if (typeof error?.message === "string" && error.message.trim()) return error.message;
+  return "Unknown booking error";
 }
 
-async function createServiceBookingFromTelegram(serviceId, bookingInput) {
-  await ensureDbConnection();
-  const service = await Service.findById(serviceId).lean();
-  if (!service || service.isActive === false) {
-    throw new Error("Service is not available for booking.");
-  }
-
-  const { categoryDoc, serviceTypeDoc } = await getOrCreateCategoryAndServiceType(
-    service.category || "General",
-    service.type || "Standard"
-  );
-
-  const eventDate = bookingInput.date;
-  const note = `Telegram booking (service). ${bookingInput.noteSuffix}`;
-
-  const booking = await Booking.create({
-    bookingKind: "service",
-    category: categoryDoc._id,
-    serviceType: serviceTypeDoc._id,
-    service: service._id,
-    date: eventDate,
-    note,
-    paymentStatus: "pending",
-    paymentMethod: "cash",
-    guestInfo: bookingInput.guestInfo,
-  });
-  return booking;
+async function submitBookingThroughApi(flow, chatId) {
+  const bookingData = buildBookingPayload(flow, chatId);
+  console.log("BOOKING DATA:", bookingData);
+  const response = await axios.post(BOOKINGS_ENDPOINT, bookingData, { timeout: 15000 });
+  return response?.data;
 }
 
 function startBookingFlow(chatId, flow) {
   pendingBookings.set(chatId, {
-    ...flow,
     step: "date",
-    collected: {},
+    professionalId: flow.professionalId || null,
+    serviceId: flow.serviceId || null,
+    date: null,
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    username: flow.username || "",
   });
 }
 
@@ -668,6 +653,18 @@ async function promptForCurrentStep(chatId, step) {
   }
   if (step === "address") {
     await bot.sendMessage(chatId, ln.flow.askAddress);
+    return;
+  }
+  if (step === "confirm") {
+    const flow = pendingBookings.get(chatId);
+    if (!flow) return;
+    const text = ln.flow.askConfirm
+      .replace("{date}", escapeHtml(formatBookingDateForDisplay(flow.date)))
+      .replace("{name}", escapeHtml(flow.name))
+      .replace("{email}", escapeHtml(flow.email))
+      .replace("{phone}", escapeHtml(flow.phone))
+      .replace("{address}", escapeHtml(flow.address));
+    await bot.sendMessage(chatId, text, { parse_mode: "HTML" });
   }
 }
 
@@ -959,8 +956,7 @@ bot.on("callback_query", async (query) => {
         L(chatId).flow.begin
       );
       startBookingFlow(chatId, {
-        type: "professional",
-        targetId: professionalId,
+        professionalId,
         username: query.from?.username || query.from?.first_name || "",
       });
       await promptForCurrentStep(chatId, "date");
@@ -974,8 +970,7 @@ bot.on("callback_query", async (query) => {
         L(chatId).flow.begin
       );
       startBookingFlow(chatId, {
-        type: "service",
-        targetId: serviceId,
+        serviceId,
         username: query.from?.username || query.from?.first_name || "",
       });
       await promptForCurrentStep(chatId, "date");
@@ -1011,7 +1006,7 @@ bot.on("message", async (msg) => {
         );
         return;
       }
-      flow.collected.dateText = text;
+      flow.date = date.toISOString();
       flow.step = "fullName";
       pendingBookings.set(chatId, flow);
       await promptForCurrentStep(chatId, "fullName");
@@ -1019,7 +1014,11 @@ bot.on("message", async (msg) => {
     }
 
     if (flow.step === "fullName") {
-      flow.collected.fullName = text;
+      if (!text.trim()) {
+        await bot.sendMessage(chatId, L(chatId).flow.askFullName);
+        return;
+      }
+      flow.name = text.trim();
       flow.step = "email";
       pendingBookings.set(chatId, flow);
       await promptForCurrentStep(chatId, "email");
@@ -1031,7 +1030,7 @@ bot.on("message", async (msg) => {
         await bot.sendMessage(chatId, L(chatId).flow.invalidEmail);
         return;
       }
-      flow.collected.email = text;
+      flow.email = text.trim();
       flow.step = "phone";
       pendingBookings.set(chatId, flow);
       await promptForCurrentStep(chatId, "phone");
@@ -1039,7 +1038,11 @@ bot.on("message", async (msg) => {
     }
 
     if (flow.step === "phone") {
-      flow.collected.phone = text;
+      if (!isValidPhoneNumber(text)) {
+        await bot.sendMessage(chatId, L(chatId).flow.invalidPhone);
+        return;
+      }
+      flow.phone = text.trim();
       flow.step = "address";
       pendingBookings.set(chatId, flow);
       await promptForCurrentStep(chatId, "address");
@@ -1047,24 +1050,56 @@ bot.on("message", async (msg) => {
     }
 
     if (flow.step === "address") {
-      flow.collected.address = text;
-      const bookingInput = normalizeBookingInput(flow, chatId);
-      if (!bookingInput.date) {
-        await bot.sendMessage(chatId, L(chatId).flow.dateLost);
-        clearBookingFlow(chatId);
+      if (!text.trim()) {
+        await bot.sendMessage(chatId, L(chatId).flow.askAddress);
+        return;
+      }
+      flow.address = text.trim();
+      flow.step = "confirm";
+      pendingBookings.set(chatId, flow);
+      await promptForCurrentStep(chatId, "confirm");
+      return;
+    }
+
+    if (flow.step === "confirm") {
+      const normalized = text.toLowerCase();
+      const confirmYes = normalized === "yes" || normalized === "y";
+      const confirmNo = normalized === "no" || normalized === "n";
+
+      if (!confirmYes && !confirmNo) {
+        await bot.sendMessage(chatId, L(chatId).flow.invalidConfirm);
         return;
       }
 
-      const booking =
-        flow.type === "professional"
-          ? await createProfessionalBookingFromTelegram(flow.targetId, bookingInput)
-          : await createServiceBookingFromTelegram(flow.targetId, bookingInput);
+      if (confirmNo) {
+        clearBookingFlow(chatId);
+        await bot.sendMessage(chatId, L(chatId).common.cancelOk);
+        return;
+      }
 
-      clearBookingFlow(chatId);
-      await bot.sendMessage(
-        chatId,
-        L(chatId).flow.success(booking._id, booking.status)
-      );
+      if (!flow.serviceId && !flow.professionalId) {
+        clearBookingFlow(chatId);
+        await bot.sendMessage(chatId, L(chatId).flow.missingTarget);
+        return;
+      }
+
+      const parsedDate = new Date(flow.date);
+      if (Number.isNaN(parsedDate.getTime()) || parsedDate.getTime() < Date.now()) {
+        clearBookingFlow(chatId);
+        await bot.sendMessage(chatId, L(chatId).flow.dateLost);
+        return;
+      }
+
+      try {
+        const booking = await submitBookingThroughApi(flow, chatId);
+        clearBookingFlow(chatId);
+        await bot.sendMessage(chatId, L(chatId).flow.success(booking._id, booking.status));
+      } catch (apiError) {
+        console.error("BOOKING ERROR:", apiError?.response?.data || apiError?.message || apiError);
+        const reason = extractApiErrorMessage(apiError);
+        clearBookingFlow(chatId);
+        await bot.sendMessage(chatId, `${L(chatId).flow.failed}\nReason: ${reason}`);
+      }
     }
   } catch (err) {
     console.error("[telegram-bot] booking flow error:", err.message);
