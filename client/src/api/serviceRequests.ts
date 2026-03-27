@@ -12,10 +12,14 @@ export interface CreateServiceRequestData {
   preferredDate?: string;
   budgetEtb?: number;
   details: string;
+  videoDurationSeconds?: number;
 }
 
-export const createServiceRequest = async (payload: CreateServiceRequestData) => {
-  const response = await axios.post("/service-requests", payload);
+export const createServiceRequest = async (payload: CreateServiceRequestData | FormData) => {
+  const isMultipart = typeof FormData !== "undefined" && payload instanceof FormData;
+  const response = await axios.post("/service-requests", payload, isMultipart ? {
+    headers: { "Content-Type": "multipart/form-data" },
+  } : undefined);
   return response.data;
 };
 

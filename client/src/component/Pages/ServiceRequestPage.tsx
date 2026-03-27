@@ -50,6 +50,29 @@ const ServiceRequestPage = () => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedPhotos, setSelectedPhotos] = useState<File[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+
+  const getVideoDurationSeconds = (file: File) =>
+    new Promise<number>((resolve, reject) => {
+      const video = document.createElement("video");
+      const objectUrl = URL.createObjectURL(file);
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        const duration = Number(video.duration);
+        URL.revokeObjectURL(objectUrl);
+        if (!Number.isFinite(duration)) {
+          reject(new Error("Could not read video duration"));
+          return;
+        }
+        resolve(duration);
+      };
+      video.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Could not load video file"));
+      };
+      video.src = objectUrl;
+    });
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -65,12 +88,31 @@ const ServiceRequestPage = () => {
     setErrorMessage("");
 
     try {
-      const payload = {
-        ...form,
-        budgetEtb:
-          form.budgetEtb.trim() === "" ? undefined : Number(form.budgetEtb),
-        preferredDate: form.preferredDate || undefined,
-      };
+      let videoDurationSeconds: number | undefined;
+      if (selectedVideo) {
+        videoDurationSeconds = Math.ceil(await getVideoDurationSeconds(selectedVideo));
+        if (videoDurationSeconds > 30 * 60) {
+          setErrorMessage(t("serviceRequest.messages.videoTooLong"));
+          setLoading(false);
+          return;
+        }
+      }
+
+      const payload = new FormData();
+      payload.append("fullName", form.fullName);
+      payload.append("email", form.email);
+      payload.append("phone", form.phone);
+      payload.append("location", form.location);
+      payload.append("serviceNeeded", form.serviceNeeded);
+      payload.append("details", form.details);
+      if (form.whatsapp.trim()) payload.append("whatsapp", form.whatsapp);
+      if (form.preferredDate) payload.append("preferredDate", form.preferredDate);
+      if (form.budgetEtb.trim() !== "") payload.append("budgetEtb", String(Number(form.budgetEtb)));
+      if (videoDurationSeconds != null) {
+        payload.append("videoDurationSeconds", String(videoDurationSeconds));
+      }
+      selectedPhotos.forEach((file) => payload.append("photos", file));
+      if (selectedVideo) payload.append("video", selectedVideo);
 
       const response = await createServiceRequest(payload);
       setSuccessMessage(
@@ -84,6 +126,8 @@ const ServiceRequestPage = () => {
         budgetEtb: "",
         details: "",
       }));
+      setSelectedPhotos([]);
+      setSelectedVideo(null);
     } catch (error: any) {
       if (error?.response?.status === 404) {
         setErrorMessage(
@@ -185,6 +229,38 @@ const ServiceRequestPage = () => {
               placeholder={t("serviceRequest.fields.details")}
               className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-blue-500"
             />
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t("serviceRequest.fields.photosOptional")}
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) =>
+                    setSelectedPhotos(Array.from(event.target.files || []))
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t("serviceRequest.fields.videoOptional")}
+                </label>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(event) =>
+                    setSelectedVideo(event.target.files?.[0] || null)
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("serviceRequest.fields.videoHint")}
+                </p>
+              </div>
+            </div>
 
             {successMessage && (
               <div className="rounded-lg bg-green-50 px-4 py-3 text-green-700">

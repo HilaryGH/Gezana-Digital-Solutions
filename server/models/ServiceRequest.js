@@ -12,6 +12,9 @@ const serviceRequestSchema = new mongoose.Schema(
     preferredDate: { type: Date, required: false },
     budgetEtb: { type: Number, required: false, min: 0 },
     details: { type: String, required: true, trim: true, maxlength: 2000 },
+    photoUrls: [{ type: String, trim: true }],
+    videoUrl: { type: String, required: false, trim: true },
+    videoDurationSeconds: { type: Number, required: false, min: 0, max: 1800 },
     status: {
       type: String,
       enum: ["new", "reviewing", "matched", "closed"],

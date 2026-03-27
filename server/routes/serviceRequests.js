@@ -3,10 +3,17 @@ const router = express.Router();
 const ServiceRequest = require("../models/ServiceRequest");
 const authMiddleware = require("../middleware/auth");
 const { sendServiceRequestNotifications } = require("../utils/notificationService");
+const upload = require("../middleware/upload");
+const { getFileUrl } = require("../utils/fileHelper");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = require("../config/jwt");
 
 const isAdminLike = (role) => ["admin", "superadmin", "support"].includes(role);
+const MAX_VIDEO_DURATION_SECONDS = 30 * 60;
+const serviceRequestUpload = upload.fields([
+  { name: "photos", maxCount: 8 },
+  { name: "video", maxCount: 1 },
+]);
 
 router.get("/public", async (req, res) => {
   try {
@@ -33,7 +40,7 @@ router.get("/public", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", serviceRequestUpload, async (req, res) => {
   try {
     const {
       fullName,
@@ -71,6 +78,26 @@ router.post("/", async (req, res) => {
       }
     }
 
+    const photoFiles = Array.isArray(req.files?.photos) ? req.files.photos : [];
+    const videoFile = Array.isArray(req.files?.video) ? req.files.video[0] : null;
+    const photoUrls = photoFiles
+      .map((file) => getFileUrl(file))
+      .filter((v) => typeof v === "string" && v.trim() !== "");
+    const videoUrl = videoFile ? getFileUrl(videoFile) : undefined;
+
+    let videoDurationSeconds;
+    if (req.body.videoDurationSeconds != null && req.body.videoDurationSeconds !== "") {
+      videoDurationSeconds = Number(req.body.videoDurationSeconds);
+      if (!Number.isFinite(videoDurationSeconds) || videoDurationSeconds < 0) {
+        return res.status(400).json({ message: "videoDurationSeconds must be a valid number" });
+      }
+      if (videoDurationSeconds > MAX_VIDEO_DURATION_SECONDS) {
+        return res
+          .status(400)
+          .json({ message: "Video must be 30 minutes or shorter." });
+      }
+    }
+
     const requestDoc = await ServiceRequest.create({
       user: userId,
       fullName: fullName.trim(),
@@ -82,6 +109,9 @@ router.post("/", async (req, res) => {
       preferredDate: preferredDate ? new Date(preferredDate) : undefined,
       budgetEtb: budgetEtb != null && budgetEtb !== "" ? Number(budgetEtb) : undefined,
       details: details.trim(),
+      photoUrls,
+      videoUrl,
+      videoDurationSeconds,
     });
 
     res.status(201).json({

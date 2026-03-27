@@ -426,7 +426,10 @@
       "location": "Location / address",
       "serviceNeeded": "Service needed (e.g. plumbing, cleaning, electrician)",
       "budget": "Budget (ETB)",
-      "details": "Describe your request in detail..."
+      "details": "Describe your request in detail...",
+      "photosOptional": "Photos (optional)",
+      "videoOptional": "Video (optional, max 30 minutes)",
+      "videoHint": "Attach one video up to 30 minutes long."
     },
     "buttons": {
       "submit": "Submit Service Request",
@@ -435,7 +438,8 @@
     "messages": {
       "submitted": "Service request submitted. We will contact you soon.",
       "endpointUnavailable": "Service request endpoint is not available on the current backend. Restart the backend (or deploy latest server changes) and try again.",
-      "failed": "Failed to submit service request. Please try again."
+      "failed": "Failed to submit service request. Please try again.",
+      "videoTooLong": "Video is too long. Please upload a video that is 30 minutes or shorter."
     }
   },
   "homeFeatured": {
