@@ -1,16 +1,41 @@
 const nodemailer = require('nodemailer');
 
-const isSmtpConfigured = () =>
-  Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
+const getSmtpUser = () =>
+  String(process.env.EMAIL_USER || process.env.SMTP_USER || "").trim();
 
-// Create transporter
+const getSmtpPass = () =>
+  String(
+    process.env.EMAIL_PASSWORD ||
+      process.env.EMAIL_PASS ||
+      process.env.SMTP_PASS ||
+      process.env.SMTP_PASSWORD ||
+      ""
+  ).trim();
+
+const isSmtpConfigured = () => Boolean(getSmtpUser() && getSmtpPass());
+
+const mailFromHeader = () =>
+  `"HomeHub Digital Solutions" <${getSmtpUser()}>`;
+
+// Create transporter (Gmail by default; optional SMTP_HOST for SendGrid, SES, etc.)
 const createTransporter = () => {
+  const user = getSmtpUser();
+  const pass = getSmtpPass();
+  const host = String(process.env.SMTP_HOST || "").trim();
+  if (host) {
+    const port = Number(process.env.SMTP_PORT || 587);
+    const secure =
+      String(process.env.SMTP_SECURE || "").trim() === "1" || port === 465;
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+    });
+  }
   return nodemailer.createTransport({
-    service: 'gmail', // or any other email service
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
+    service: process.env.EMAIL_SERVICE || "gmail",
+    auth: { user, pass },
   });
 };
 
@@ -239,7 +264,7 @@ const sendWelcomeEmail = async (userEmail, userName, userRole) => {
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: userEmail,
           subject: `Welcome to HomeHub! 🎉 Your ${userRole === 'provider' ? 'Provider' : 'Account'} is Ready`,
           html: getWelcomeEmailTemplate(userName, userRole),
@@ -261,7 +286,7 @@ const sendWelcomeEmailWithReferral = async (userEmail, userName, referralCode) =
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: userEmail,
       subject: `Welcome to HomeHub! 🎉 Your Account is Ready + Your Referral Code`,
       html: getWelcomeEmailWithReferralTemplate(userName, referralCode),
@@ -339,7 +364,7 @@ const sendServicePublishedEmail = async (userEmail, userName, providerName) => {
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: userEmail,
       subject: '🎉 Your Service is Now Live on HomeHub!',
       html: getVerificationEmailTemplate(userName, providerName)
@@ -502,14 +527,14 @@ const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails)
   try {
     if (!isSmtpConfigured()) {
       console.warn(
-        "[email] Booking confirmation skipped: set EMAIL_USER and EMAIL_PASSWORD on the server (e.g. in your host env / secrets)."
+        "[email] Booking confirmation skipped: set EMAIL_USER and EMAIL_PASSWORD (or SMTP_USER / SMTP_PASS) on the server."
       );
       return { success: false, error: "Email not configured" };
     }
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: userEmail,
       subject: '🎉 Booking Confirmed - Your HomeHub Service is Scheduled!',
       html: getBookingConfirmationEmailTemplate(userName, bookingDetails),
@@ -622,7 +647,7 @@ const sendPasswordResetEmail = async (userEmail, userName, resetToken) => {
     const transporter = createTransporter();
     
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: userEmail,
       subject: '🔐 Reset Your HomeHub Password',
       html: getPasswordResetEmailTemplate(userName, resetToken),
@@ -683,7 +708,7 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
   <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">HomeHub Digital Solutions</p>
 </body></html>`;
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: toEmail,
       subject: `📋 New booking: ${professionalName} — ${customerName}`,
       html,
@@ -704,7 +729,7 @@ const sendServiceRequestConfirmationEmail = async (userEmail, userName, requestD
       ? new Date(requestDetails.preferredDate).toLocaleString()
       : "Flexible";
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: userEmail,
       subject: "✅ Service request received - HomeHub",
       html: `
@@ -740,7 +765,7 @@ const sendInternalServiceRequestAlert = async (toEmail, payload) => {
   try {
     const transporter = createTransporter();
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: toEmail,
       subject: `📩 New service request: ${payload.serviceNeeded}`,
       html: `
@@ -775,7 +800,7 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
   try {
     if (!isSmtpConfigured()) {
       console.warn(
-        "[email] Provider booking alert skipped: EMAIL_USER / EMAIL_PASSWORD not set on server."
+        "[email] Provider booking alert skipped: EMAIL_USER / EMAIL_PASSWORD (or SMTP_*) not set on server."
       );
       return { success: false, error: "Email not configured" };
     }
@@ -793,7 +818,7 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
     } = payload;
 
     const mailOptions = {
-      from: `"HomeHub Digital Solutions" <${process.env.EMAIL_USER}>`,
+      from: mailFromHeader(),
       to: toEmail,
       subject: `📌 New booking received: ${serviceName}`,
       html: `
@@ -827,6 +852,9 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
 };
 
 module.exports = {
+  getSmtpUser,
+  getSmtpPass,
+  isSmtpConfigured,
   sendWelcomeEmail,
   sendWelcomeEmailWithReferral,
   sendServicePublishedEmail,
@@ -836,6 +864,6 @@ module.exports = {
   sendProviderBookingAlertEmail,
   sendServiceRequestConfirmationEmail,
   sendInternalServiceRequestAlert,
-  createTransporter
+  createTransporter,
 };
 

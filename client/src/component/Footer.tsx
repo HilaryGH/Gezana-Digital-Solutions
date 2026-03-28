@@ -152,7 +152,7 @@ const Footer = () => {
                   <FaMapMarkerAlt className="w-3.5 h-3.5 text-blue-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span>22, Negat Building, 4th Floor.</span>
+                  <span>22, Negat Building, 5th Floor.</span>
                   <span className="text-gray-400">Addis Ababa, Ethiopia</span>
                 </div>
               </div>

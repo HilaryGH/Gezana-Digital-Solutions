@@ -20,13 +20,33 @@ const JWT_SECRET = require("../config/jwt");
 const router = express.Router();
 
 /**
- * Run booking emails/WhatsApp after the HTTP response.
- * Render/Railway/VPS keep the process alive — setImmediate completes reliably.
- * Awaiting SMTP before res.json() often hits reverse-proxy timeouts (~30s) and breaks bookings.
- * True serverless (Lambda/Vercel/Netlify Functions) may need a queue or NOTIFY_BEFORE_RESPONSE=1.
+ * Booking emails/WhatsApp:
+ * - Default: run after the response is fully sent (res "finish") so proxies don't time out.
+ * - setImmediate after res.json() is unreliable on serverless (runtime may freeze before it runs).
+ * - BOOKING_AWAIT_NOTIFICATIONS=1 — await SMTP before res (use if "finish" still doesn't run).
+ * - BOOKING_AWAIT_NOTIFICATIONS=0 — only after "finish" (default on long-lived Node).
+ * - Unset on Vercel/Lambda: we await before response so mail actually runs.
  */
+const bookingAwaitEnv = String(process.env.BOOKING_AWAIT_NOTIFICATIONS || "").trim();
+const isServerlessRuntime = Boolean(
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+);
 const awaitBookingNotifications =
-  String(process.env.BOOKING_AWAIT_NOTIFICATIONS || "").trim() === "1";
+  bookingAwaitEnv === "1" ||
+  (bookingAwaitEnv !== "0" && isServerlessRuntime);
+
+function scheduleBookingNotificationsAfterResponse(res, asyncFn) {
+  const run = () => {
+    void (async () => {
+      try {
+        await asyncFn();
+      } catch (e) {
+        console.error("❌ Booking notifications failed:", e);
+      }
+    })();
+  };
+  res.once("finish", run);
+}
 
 // Admin: Get count of all bookings
 router.get("/count", authMiddleware, async (req, res) => {
@@ -334,17 +354,15 @@ router.post("/", async (req, res) => {
         await sendProfessionalNotifications();
       }
 
+      if (!awaitBookingNotifications) {
+        scheduleBookingNotificationsAfterResponse(res, sendProfessionalNotifications);
+      }
+
       res.status(201).json({
         ...responseData,
         distance: null,
         distanceUnit: "km",
       });
-
-      if (!awaitBookingNotifications) {
-        setImmediate(() => {
-          void sendProfessionalNotifications();
-        });
-      }
 
       return;
     }
@@ -608,17 +626,15 @@ router.post("/", async (req, res) => {
       await sendServiceBookingNotifications();
     }
 
+    if (!awaitBookingNotifications) {
+      scheduleBookingNotificationsAfterResponse(res, sendServiceBookingNotifications);
+    }
+
     res.status(201).json({
       ...responseData,
       distance: booking.distance, // Distance in kilometers
       distanceUnit: 'km'
     });
-
-    if (!awaitBookingNotifications) {
-      setImmediate(() => {
-        void sendServiceBookingNotifications();
-      });
-    }
   } catch (err) {
     console.error("❌ Booking failed:", err);
     console.error("Error details:", {

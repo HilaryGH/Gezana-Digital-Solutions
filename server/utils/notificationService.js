@@ -1,4 +1,5 @@
 const {
+  getSmtpUser,
   sendWelcomeEmail,
   sendServicePublishedEmail,
   sendBookingConfirmationEmail,
@@ -143,7 +144,7 @@ const sendServiceRequestNotifications = async ({ requester, requestDetails }) =>
   const internalEmail =
     process.env.SERVICE_REQUEST_ALERT_EMAIL ||
     process.env.SUPERADMIN_NOTIFICATION_EMAIL ||
-    process.env.EMAIL_USER;
+    getSmtpUser();
   if (internalEmail) {
     results.internalEmail = await sendInternalServiceRequestAlert(internalEmail, {
       requestId: requestDetails.requestId,
