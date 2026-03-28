@@ -248,82 +248,83 @@ router.post("/", async (req, res) => {
       }
 
       const responseData = populatedBooking.toObject();
+
+      // Send emails/WhatsApp before responding. Deferred work (setImmediate) after res.json()
+      // often never runs on serverless / some PaaS hosts because the runtime freezes once the response is sent.
+      try {
+        const customerInfo = userId
+          ? {
+              name: populatedBooking.user?.name,
+              email: populatedBooking.user?.email,
+              phone: populatedBooking.user?.phone,
+              whatsapp: populatedBooking.user?.whatsapp,
+            }
+          : {
+              name: guestInfo.fullName,
+              email: guestInfo.email,
+              phone: guestInfo.phone,
+              whatsapp: guestInfo.phone,
+            };
+
+        const serviceLabel =
+          (proDoc.serviceType && String(proDoc.serviceType).trim()) || proDoc.fullName;
+        const bookingDetails = {
+          serviceName: serviceLabel,
+          providerName: proDoc.fullName,
+          date: new Date(date).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          time: new Date(date).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          price: priceNum,
+          location:
+            [proDoc.city, proDoc.location].filter(Boolean).join(", ") || "To be determined",
+          note: note || "",
+        };
+
+        await sendBookingConfirmationNotifications(customerInfo, bookingDetails);
+        await sendProviderBookingNotification({
+          provider: {
+            name: proDoc.fullName,
+            email: proDoc.email,
+          },
+          bookingDetails,
+          customer: customerInfo,
+        });
+
+        const stakeholderPayload = {
+          professionalName: proDoc.fullName,
+          serviceLabel,
+          customerName: customerInfo.name || "Customer",
+          customerEmail: customerInfo.email || "",
+          customerPhone: customerInfo.phone || "",
+          date: bookingDetails.date,
+          time: bookingDetails.time,
+          amountEtb: String(priceNum),
+          location: bookingDetails.location,
+          note: note || "",
+        };
+
+        await sendProfessionalBookingStakeholderEmails(
+          {
+            agentEmail: proDoc.agent.email,
+            agentName: proDoc.agent.name,
+          },
+          stakeholderPayload
+        );
+      } catch (notifError) {
+        console.error("❌ Error sending professional booking notifications:", notifError);
+      }
+
       res.status(201).json({
         ...responseData,
         distance: null,
         distanceUnit: "km",
-      });
-
-      setImmediate(async () => {
-        try {
-          const customerInfo = userId
-            ? {
-                name: populatedBooking.user?.name,
-                email: populatedBooking.user?.email,
-                phone: populatedBooking.user?.phone,
-                whatsapp: populatedBooking.user?.whatsapp,
-              }
-            : {
-                name: guestInfo.fullName,
-                email: guestInfo.email,
-                phone: guestInfo.phone,
-                whatsapp: guestInfo.phone,
-              };
-
-          const serviceLabel =
-            (proDoc.serviceType && String(proDoc.serviceType).trim()) || proDoc.fullName;
-          const bookingDetails = {
-            serviceName: serviceLabel,
-            providerName: proDoc.fullName,
-            date: new Date(date).toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }),
-            time: new Date(date).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            price: priceNum,
-            location:
-              [proDoc.city, proDoc.location].filter(Boolean).join(", ") || "To be determined",
-            note: note || "",
-          };
-
-          await sendBookingConfirmationNotifications(customerInfo, bookingDetails);
-          await sendProviderBookingNotification({
-            provider: {
-              name: proDoc.fullName,
-              email: proDoc.email,
-            },
-            bookingDetails,
-            customer: customerInfo,
-          });
-
-          const stakeholderPayload = {
-            professionalName: proDoc.fullName,
-            serviceLabel,
-            customerName: customerInfo.name || "Customer",
-            customerEmail: customerInfo.email || "",
-            customerPhone: customerInfo.phone || "",
-            date: bookingDetails.date,
-            time: bookingDetails.time,
-            amountEtb: String(priceNum),
-            location: bookingDetails.location,
-            note: note || "",
-          };
-
-          await sendProfessionalBookingStakeholderEmails(
-            {
-              agentEmail: proDoc.agent.email,
-              agentName: proDoc.agent.name,
-            },
-            stakeholderPayload
-          );
-        } catch (notifError) {
-          console.error("❌ Error sending professional booking notifications:", notifError);
-        }
       });
 
       return;
@@ -529,70 +530,65 @@ router.post("/", async (req, res) => {
       }
     }
 
-    // Return populated booking with user info, guestInfo, and distance immediately
-    // Send response first to prevent timeout, then send notifications in background
     const responseData = populatedBooking.toObject();
     responseData.distance = booking.distance; // Include distance in response
-    
+
+    // Send before res.json(): background work after the response is unreliable on serverless
+    // (process freezes / isolate ends), which is why booking emails worked locally but not when deployed.
+    try {
+      const customerInfo = userId ? {
+        name: populatedBooking.user?.name,
+        email: populatedBooking.user?.email,
+        phone: populatedBooking.user?.phone,
+        whatsapp: populatedBooking.user?.whatsapp
+      } : {
+        name: guestInfo.fullName,
+        email: guestInfo.email,
+        phone: guestInfo.phone,
+        whatsapp: guestInfo.phone // Use phone as whatsapp for guests
+      };
+
+      const bookingDetails = {
+        serviceName: serviceDoc.name,
+        providerName: serviceDoc.provider?.name || 'Provider',
+        date: new Date(date).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        time: new Date(date).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }),
+        price: serviceDoc.price,
+        location: serviceDoc.location || 'To be determined',
+        note: note || "",
+      };
+
+      const notificationResults = await sendBookingConfirmationNotifications(
+        customerInfo,
+        bookingDetails
+      );
+      const providerEmailResult = await sendProviderBookingNotification({
+        provider: {
+          name: serviceDoc.provider?.name || "Provider",
+          email: serviceDoc.provider?.email,
+        },
+        bookingDetails,
+        customer: customerInfo,
+      });
+      
+      console.log("✅ Booking confirmation notifications sent:", notificationResults);
+      console.log("✅ Provider booking email result:", providerEmailResult);
+    } catch (notifError) {
+      console.error("❌ Error sending booking notifications:", notifError);
+    }
+
     res.status(201).json({
       ...responseData,
       distance: booking.distance, // Distance in kilometers
       distanceUnit: 'km'
-    });
-
-    // Send booking confirmation notifications asynchronously (non-blocking)
-    // This prevents timeout issues in production where external APIs (Twilio, email) may be slow
-    setImmediate(async () => {
-      try {
-        const customerInfo = userId ? {
-          name: populatedBooking.user?.name,
-          email: populatedBooking.user?.email,
-          phone: populatedBooking.user?.phone,
-          whatsapp: populatedBooking.user?.whatsapp
-        } : {
-          name: guestInfo.fullName,
-          email: guestInfo.email,
-          phone: guestInfo.phone,
-          whatsapp: guestInfo.phone // Use phone as whatsapp for guests
-        };
-
-        const bookingDetails = {
-          serviceName: serviceDoc.name,
-          providerName: serviceDoc.provider?.name || 'Provider',
-          date: new Date(date).toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          }),
-          time: new Date(date).toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          }),
-          price: serviceDoc.price,
-          location: serviceDoc.location || 'To be determined',
-          note: note || "",
-        };
-
-        const notificationResults = await sendBookingConfirmationNotifications(
-          customerInfo,
-          bookingDetails
-        );
-        const providerEmailResult = await sendProviderBookingNotification({
-          provider: {
-            name: serviceDoc.provider?.name || "Provider",
-            email: serviceDoc.provider?.email,
-          },
-          bookingDetails,
-          customer: customerInfo,
-        });
-        
-        console.log("✅ Booking confirmation notifications sent:", notificationResults);
-        console.log("✅ Provider booking email result:", providerEmailResult);
-      } catch (notifError) {
-        console.error("❌ Error sending booking notifications:", notifError);
-        // Don't fail booking if notifications fail - booking is already created
-      }
     });
   } catch (err) {
     console.error("❌ Booking failed:", err);

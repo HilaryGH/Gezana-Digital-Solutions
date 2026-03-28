@@ -1,5 +1,8 @@
 const nodemailer = require('nodemailer');
 
+const isSmtpConfigured = () =>
+  Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
+
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -497,6 +500,12 @@ const getBookingConfirmationEmailTemplate = (userName, bookingDetails) => {
 // Send booking confirmation email
 const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails) => {
   try {
+    if (!isSmtpConfigured()) {
+      console.warn(
+        "[email] Booking confirmation skipped: set EMAIL_USER and EMAIL_PASSWORD on the server (e.g. in your host env / secrets)."
+      );
+      return { success: false, error: "Email not configured" };
+    }
     const transporter = createTransporter();
     
     const mailOptions = {
@@ -635,6 +644,12 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
     return { success: false, error: "No valid email" };
   }
   try {
+    if (!isSmtpConfigured()) {
+      console.warn(
+        "[email] Internal professional booking alert skipped: EMAIL_USER / EMAIL_PASSWORD not set."
+      );
+      return { success: false, error: "Email not configured" };
+    }
     const transporter = createTransporter();
     const {
       professionalName,
@@ -758,6 +773,12 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
     return { success: false, error: "No valid email" };
   }
   try {
+    if (!isSmtpConfigured()) {
+      console.warn(
+        "[email] Provider booking alert skipped: EMAIL_USER / EMAIL_PASSWORD not set on server."
+      );
+      return { success: false, error: "Email not configured" };
+    }
     const transporter = createTransporter();
     const {
       serviceName,
