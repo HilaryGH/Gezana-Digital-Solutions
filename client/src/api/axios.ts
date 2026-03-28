@@ -1,5 +1,16 @@
 import axios from "axios";
 
+type AxiosLikeError = {
+  message: string;
+  code?: string;
+  response?: { status?: number; statusText?: string; data?: unknown };
+  config?: { baseURL?: string; url?: string };
+};
+
+function isAxiosLikeError(e: unknown): e is AxiosLikeError {
+  return typeof e === "object" && e !== null && "config" in e && "message" in e;
+}
+
 // Environment-aware base URL
 const getBaseURL = () => {
   // Allow overriding via env var (recommended for production)
@@ -45,16 +56,18 @@ const instance = axios.create({
 // Add request interceptor for auth token and FormData handling
 instance.interceptors.request.use(
   (config) => {
-    // Add auth token if available
+    const headers = Object.assign(
+      {},
+      config.headers ?? {}
+    ) as Record<string, string | number | boolean>;
     const token = localStorage.getItem("token");
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token && !headers.Authorization) {
+      headers.Authorization = `Bearer ${token}`;
     }
-    
-    // If FormData is being sent, remove Content-Type header to let browser set it with boundary
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
+      delete headers["Content-Type"];
     }
+    config.headers = headers as typeof config.headers;
     
     // Reduced logging - only log important requests
     if (import.meta.env.DEV && (config.url?.includes('/bookings') || config.url?.includes('/user'))) {
@@ -81,14 +94,28 @@ instance.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Always log errors
-    console.error("❌ Response interceptor error:", {
-      message: error.message,
-      code: error.code,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      url: error.config?.url,
-    });
+    if (isAxiosLikeError(error)) {
+      const cfg = error.config;
+      const fullUrl =
+        cfg?.baseURL && cfg?.url
+          ? `${String(cfg.baseURL).replace(/\/$/, "")}/${String(cfg.url).replace(/^\//, "")}`
+          : cfg?.url;
+      const payload = {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        url: fullUrl,
+        data: error.response?.data,
+      };
+      try {
+        console.error("❌ API error:", JSON.stringify(payload));
+      } catch {
+        console.error("❌ API error:", payload.message, payload.status, fullUrl);
+      }
+    } else {
+      console.error("❌ Response error (non-axios):", error);
+    }
     return Promise.reject(error);
   }
 );
