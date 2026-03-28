@@ -50,19 +50,6 @@ type AgentDashboardResponse = {
   }>;
 };
 
-type Professional = {
-  _id: string;
-  name: string;
-  serviceType?: string;
-  city?: string;
-  location?: string;
-  phone?: string;
-  whatsapp?: string;
-  telegram?: string;
-  email?: string;
-  photo?: string;
-};
-
 type IdDocumentType = "fayda" | "kebele_id" | "driving_licence" | "passport";
 
 type MyProfessional = {
@@ -100,12 +87,6 @@ type ServicesOfferedItem = {
   serviceName: string;
   price: string;
   description: string;
-};
-
-type ProviderService = {
-  _id: string;
-  name: string;
-  category?: { name?: string } | null;
 };
 
 /** Homehub brand: blue + orange, alternated across actions */
@@ -149,7 +130,6 @@ const formatVerificationStatus = (status: "pending" | "approved" | "rejected") =
 const AgentDashboard = () => {
   const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [dash, setDash] = useState<AgentDashboardResponse | null>(null);
   const [myProfessionals, setMyProfessionals] = useState<MyProfessional[]>([]);
   const [directoryQuery, setDirectoryQuery] = useState("");
@@ -193,12 +173,6 @@ const AgentDashboard = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  const [servicesModalOpen, setServicesModalOpen] = useState(false);
-  const [servicesModalProvider, setServicesModalProvider] = useState<Professional | null>(null);
-  const [providerServices, setProviderServices] = useState<ProviderService[]>([]);
-  const [loadingProviderServices, setLoadingProviderServices] = useState(false);
-  const [providerServicesQuery, setProviderServicesQuery] = useState("");
-  const [providerServicesError, setProviderServicesError] = useState<string>("");
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingProfessional, setEditingProfessional] = useState<MyProfessional | null>(null);
   const [editSaving, setEditSaving] = useState(false);
@@ -241,10 +215,7 @@ const AgentDashboard = () => {
       .filter(Boolean);
 
   const serviceTypeOptions = Array.from(
-    new Set([
-      ...myProfessionals.flatMap((p) => extractServiceTypeTokens(p.serviceType)),
-      ...professionals.flatMap((p) => extractServiceTypeTokens(p.serviceType)),
-    ])
+    new Set(myProfessionals.flatMap((p) => extractServiceTypeTokens(p.serviceType)))
   ).sort((a, b) => a.localeCompare(b));
 
   const normalizedQuery = directoryQuery.trim().toLowerCase();
@@ -252,13 +223,6 @@ const AgentDashboard = () => {
 
   const filteredMyProfessionals = myProfessionals.filter((p) => {
     const matchesQuery = !normalizedQuery || p.fullName.toLowerCase().includes(normalizedQuery);
-    const matchesServiceType =
-      !normalizedServiceType || (p.serviceType || "").toLowerCase().includes(normalizedServiceType);
-    return matchesQuery && matchesServiceType;
-  });
-
-  const filteredProfessionals = professionals.filter((p) => {
-    const matchesQuery = !normalizedQuery || (p.name || "").toLowerCase().includes(normalizedQuery);
     const matchesServiceType =
       !normalizedServiceType || (p.serviceType || "").toLowerCase().includes(normalizedServiceType);
     return matchesQuery && matchesServiceType;
@@ -288,12 +252,6 @@ const AgentDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setDash(dashRes.data);
-
-        const profRes = await axios.get<{ professionals: Professional[] }>(
-          "/agents/professionals",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setProfessionals(profRes.data.professionals || []);
 
         const myRes = await axios.get<{ professionals: MyProfessional[] }>(
           "/agents/my-professionals",
@@ -468,33 +426,6 @@ const AgentDashboard = () => {
       setEditSaving(false);
     }
   };
-
-  const openProviderServices = async (provider: Professional) => {
-    setProviderServicesError("");
-    setProviderServicesQuery("");
-    setServicesModalProvider(provider);
-    setServicesModalOpen(true);
-
-    setLoadingProviderServices(true);
-    setProviderServices([]);
-    try {
-      // Public endpoint. Returns active services for a provider.
-      const res = await axios.get<ProviderService[]>(`/services/provider/${provider._id}`);
-      setProviderServices(Array.isArray(res.data) ? res.data : (res.data as any) || []);
-    } catch (e: any) {
-      setProviderServicesError(e?.response?.data?.message || e?.message || "Failed to fetch services");
-    } finally {
-      setLoadingProviderServices(false);
-    }
-  };
-
-  const filteredProviderServices = providerServices.filter((s) => {
-    const q = providerServicesQuery.trim().toLowerCase();
-    if (!q) return true;
-    const name = s.name?.toLowerCase() || "";
-    const category = s.category?.name?.toLowerCase() || "";
-    return name.includes(q) || category.includes(q);
-  });
 
   const submitProfessional = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1300,98 +1231,6 @@ const AgentDashboard = () => {
             </div>
           </div>
 
-          <div className="mt-10 border-t border-slate-200/80 pt-10">
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Platform professionals</h2>
-            <p className="mt-1 max-w-3xl text-sm text-slate-600 leading-relaxed">
-              Verified providers on Homehub. Open a profile to see the services they offer.
-            </p>
-
-            <div className="mt-5 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:mt-6 sm:gap-5">
-              {filteredProfessionals.map((p, cardIdx) => (
-                <div
-                  key={p._id}
-                  className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.03] transition hover:shadow-md hover:ring-blue-200/50 sm:p-5"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`h-14 w-14 shrink-0 rounded-2xl overflow-hidden flex items-center justify-center ring-1 ${
-                        cardIdx % 2 === 0
-                          ? "bg-gradient-to-br from-blue-100 to-blue-50 ring-blue-200/50"
-                          : "bg-gradient-to-br from-orange-100 to-amber-50 ring-orange-200/50"
-                      }`}
-                    >
-                      {p.photo ? (
-                        <img
-                          src={p.photo}
-                          alt={p.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-gray-500 font-semibold">
-                          {(p.name || "?").slice(0, 1).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-semibold text-gray-900 truncate">{p.name}</div>
-                      <div className="text-sm text-gray-600 truncate">
-                        {p.serviceType || "Service Provider"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 text-sm text-gray-700 space-y-1">
-                    <div>
-                      <span className="font-medium">Location:</span>{" "}
-                      {`${p.city || ""}${p.city && p.location ? ", " : ""}${p.location || ""}` ||
-                        "—"}
-                    </div>
-                    {p.phone && (
-                      <div>
-                        <span className="font-medium">Phone:</span> {p.phone}
-                      </div>
-                    )}
-                    {p.whatsapp && (
-                      <div>
-                        <span className="font-medium">WhatsApp:</span> {p.whatsapp}
-                      </div>
-                    )}
-                    {p.telegram && (
-                      <div>
-                        <span className="font-medium">Telegram:</span> {p.telegram}
-                      </div>
-                    )}
-                    {p.email && (
-                      <div className="truncate">
-                        <span className="font-medium">Email:</span> {p.email}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() => openProviderServices(p)}
-                      className={`w-full px-3 py-2.5 disabled:cursor-not-allowed ${
-                        cardIdx % 2 === 0 ? brand.btnBlue : brand.btnOrange
-                      }`}
-                      disabled={loadingProviderServices && servicesModalProvider?._id === p._id}
-                    >
-                      {loadingProviderServices && servicesModalProvider?._id === p._id
-                        ? "Loading services..."
-                        : "View Services"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {!error && filteredProfessionals.length === 0 && (
-              <div className="mt-4 text-gray-600">No professionals match your filters.</div>
-            )}
-          </div>
-
-          {/* Provider Services Modal */}
           {editModalOpen && editingProfessional && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-sm min-[480px]:p-4"
@@ -1537,99 +1376,6 @@ const AgentDashboard = () => {
                     </button>
                   </div>
                 </form>
-              </div>
-            </div>
-          )}
-
-          {servicesModalOpen && servicesModalProvider && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-sm min-[480px]:p-4"
-              onClick={() => {
-                setServicesModalOpen(false);
-                setServicesModalProvider(null);
-                setProviderServices([]);
-                setProviderServicesQuery("");
-                setProviderServicesError("");
-              }}
-            >
-              <div
-                className="flex max-h-[min(90vh,calc(100dvh-1.5rem))] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-blue-100/80"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="p-5 bg-gradient-to-r from-blue-600 via-blue-700 to-orange-500 text-white flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-bold truncate">
-                      Services by {servicesModalProvider.name}
-                    </h3>
-                    <p className="text-sm text-white/90 mt-1 truncate">
-                      {servicesModalProvider.serviceType || "Service provider"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setServicesModalOpen(false);
-                      setServicesModalProvider(null);
-                      setProviderServices([]);
-                      setProviderServicesQuery("");
-                      setProviderServicesError("");
-                    }}
-                    className="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-white flex items-center justify-center"
-                    aria-label="Close services modal"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="p-5 flex flex-col gap-4 overflow-y-auto">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      Search services
-                    </label>
-                    <input
-                      value={providerServicesQuery}
-                      onChange={(e) => setProviderServicesQuery(e.target.value)}
-                      placeholder="Type a service name..."
-                      className="w-full px-3 py-2 rounded-lg border border-blue-100 bg-white focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none transition"
-                    />
-                  </div>
-
-                  {providerServicesError && (
-                    <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
-                      {providerServicesError}
-                    </div>
-                  )}
-
-                  {loadingProviderServices ? (
-                    <div className="text-sm text-gray-600">Loading services...</div>
-                  ) : filteredProviderServices.length > 0 ? (
-                    <div className="space-y-3">
-                      {filteredProviderServices.map((s) => (
-                        <div
-                          key={s._id}
-                          className="rounded-xl border border-blue-100/70 p-3 bg-gradient-to-br from-blue-50/40 to-white"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="font-semibold text-gray-900 truncate">
-                                {s.name}
-                              </div>
-                              {s.category?.name && (
-                                <div className="text-xs text-gray-600 mt-1 truncate">
-                                  Category: {s.category.name}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-gray-600">
-                      No services match your search.
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           )}

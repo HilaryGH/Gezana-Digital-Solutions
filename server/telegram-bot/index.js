@@ -304,6 +304,90 @@ async function fetchServicesFromApi() {
   }
 }
 
+function filterCatalogAgentRows(rows) {
+  return rows.filter((r) => {
+    const source = String(r?.source || "").toLowerCase();
+    if (source === "provider") return false;
+    if (source === "agent" || source === "professional") return true;
+    // Backward-compatible fallback for older /api/catalog shapes
+    return (
+      r?.serviceType != null ||
+      r?.fullName != null ||
+      r?.providerName != null ||
+      r?.city != null ||
+      r?.location != null
+    );
+  });
+}
+
+function filterCatalogProviderRows(rows) {
+  return rows.filter((r) => String(r?.source || "").toLowerCase() === "provider");
+}
+
+/** Paged agent professionals from GET /api/catalog (HTTP). */
+async function fetchProfessionalsPageFromCatalogApi(cursor) {
+  const offset = parseApiOffsetCursor(cursor);
+  const rows = await fetchCatalogFromApi();
+  const professionalRows = filterCatalogAgentRows(rows);
+  const slice = professionalRows.slice(offset, offset + PAGE_SIZE);
+  const items = slice
+    .map((d) => ({
+      id: String(d?._id || d?.id || ""),
+      fullName: asDisplayText(d?.providerName || d?.fullName),
+      serviceType: asDisplayText(d?.serviceType || d?.title || d?.category),
+      city: asDisplayText(d?.city || d?.location),
+    }))
+    .filter((x) => x.id);
+  const nextCursor =
+    offset + PAGE_SIZE < professionalRows.length ? `api:${offset + PAGE_SIZE}` : null;
+  return { items, nextCursor };
+}
+
+/**
+ * Paged provider services: prefer /api/catalog provider rows, else GET /api/services.
+ * Respects `api:N` cursors used when Mongo is empty or unavailable.
+ */
+async function fetchServicesPageFromHttp(cursor) {
+  const offset = parseApiOffsetCursor(cursor);
+  const catalog = await fetchCatalogFromApi();
+  const providerRows = filterCatalogProviderRows(catalog);
+  if (providerRows.length > 0) {
+    const slice = providerRows.slice(offset, offset + PAGE_SIZE);
+    const items = slice
+      .map((d) => ({
+        id: String(d?._id || d?.id || ""),
+        name: asDisplayText(d?.title || d?.name),
+        category: asDisplayText(d?.category),
+        type: asDisplayText(d?.type || d?.subcategory),
+        price: Number(d?.price ?? 0),
+        providerName: asDisplayText(d?.providerName, "Provider"),
+      }))
+      .filter((x) => x.id);
+    const nextCursor =
+      offset + PAGE_SIZE < providerRows.length ? `api:${offset + PAGE_SIZE}` : null;
+    return { items, nextCursor };
+  }
+
+  const rows = await fetchServicesFromApi();
+  const activeRows = rows.filter(
+    (r) => r?.isActive !== false && r?.isAvailable !== false
+  );
+  const slice = activeRows.slice(offset, offset + PAGE_SIZE);
+  const items = slice
+    .map((d) => ({
+      id: String(d?._id || d?.id || ""),
+      name: asDisplayText(d?.name || d?.title),
+      category: asDisplayText(d?.category),
+      type: asDisplayText(d?.type || d?.subcategory),
+      price: Number(d?.price || 0),
+      providerName: asDisplayText(d?.providerName || d?.provider?.name, "Provider"),
+    }))
+    .filter((x) => x.id);
+  const nextCursor =
+    offset + PAGE_SIZE < activeRows.length ? `api:${offset + PAGE_SIZE}` : null;
+  return { items, nextCursor };
+}
+
 // ---------------------------------------------------------------------------
 // Data layer: cursor-based page fetch
 // ---------------------------------------------------------------------------
@@ -314,6 +398,10 @@ async function fetchServicesFromApi() {
  * @returns {Promise<{ items: Array<{id:string,fullName:string,serviceType:string,city:string}>, nextCursor: string|null }>}
  */
 async function fetchProfessionalsPage(cursor) {
+  if (cursor && typeof cursor === "string" && cursor.startsWith("api:")) {
+    return fetchProfessionalsPageFromCatalogApi(cursor);
+  }
+
   try {
     await ensureDbConnection();
     const filter = { status: "approved" };
@@ -336,36 +424,30 @@ async function fetchProfessionalsPage(cursor) {
     }));
     const nextCursor =
       hasMore && slice.length > 0 ? String(slice[slice.length - 1]._id) : null;
-    return { items, nextCursor };
+
+    if (items.length > 0) {
+      return { items, nextCursor };
+    }
+
+    // Mongo returned no rows (e.g. bot DB empty / wrong URI, or no approved pros) — load from main API.
+    if (!cursor) {
+      return fetchProfessionalsPageFromCatalogApi(null);
+    }
+    return { items: [], nextCursor: null };
   } catch (dbErr) {
     console.warn("[telegram-bot] DB fetchProfessionalsPage failed, using API fallback:", dbErr?.message || dbErr);
-    const offset = parseApiOffsetCursor(cursor);
-    const rows = await fetchCatalogFromApi();
-    const professionalRows = rows.filter((r) => {
-      const source = String(r?.source || "").toLowerCase();
-      if (source === "agent" || source === "professional") return true;
-      // Backward-compatible fallback for older /api/catalog shapes
-      return (
-        r?.serviceType != null ||
-        r?.fullName != null ||
-        r?.providerName != null ||
-        r?.city != null ||
-        r?.location != null
-      );
-    });
-    const slice = professionalRows.slice(offset, offset + PAGE_SIZE);
-    const items = slice.map((d) => ({
-      id: String(d?._id || d?.id || ""),
-      fullName: asDisplayText(d?.providerName || d?.fullName),
-      serviceType: asDisplayText(d?.serviceType || d?.title || d?.category),
-      city: asDisplayText(d?.city || d?.location),
-    }));
-    const nextCursor = offset + PAGE_SIZE < professionalRows.length ? `api:${offset + PAGE_SIZE}` : null;
-    return { items, nextCursor };
+    if (!cursor || (typeof cursor === "string" && cursor.startsWith("api:"))) {
+      return fetchProfessionalsPageFromCatalogApi(cursor);
+    }
+    return { items: [], nextCursor: null };
   }
 }
 
 async function fetchServicesPage(cursor) {
+  if (cursor && typeof cursor === "string" && cursor.startsWith("api:")) {
+    return fetchServicesPageFromHttp(cursor);
+  }
+
   try {
     await ensureDbConnection();
     const filter = { isActive: true };
@@ -401,23 +483,21 @@ async function fetchServicesPage(cursor) {
     }));
     const nextCursor =
       hasMore && slice.length > 0 ? String(slice[slice.length - 1]._id) : null;
-    return { items, nextCursor };
+
+    if (items.length > 0) {
+      return { items, nextCursor };
+    }
+
+    if (!cursor) {
+      return fetchServicesPageFromHttp(null);
+    }
+    return { items: [], nextCursor: null };
   } catch (dbErr) {
     console.warn("[telegram-bot] DB fetchServicesPage failed, using API fallback:", dbErr?.message || dbErr);
-    const offset = parseApiOffsetCursor(cursor);
-    const rows = await fetchServicesFromApi();
-    const activeRows = rows.filter((r) => r?.isActive !== false);
-    const slice = activeRows.slice(offset, offset + PAGE_SIZE);
-    const items = slice.map((d) => ({
-      id: String(d?._id || d?.id || ""),
-      name: asDisplayText(d?.name || d?.title),
-      category: asDisplayText(d?.category),
-      type: asDisplayText(d?.type || d?.subcategory),
-      price: Number(d?.price || 0),
-      providerName: asDisplayText(d?.providerName || d?.provider?.name, "Provider"),
-    }));
-    const nextCursor = offset + PAGE_SIZE < activeRows.length ? `api:${offset + PAGE_SIZE}` : null;
-    return { items, nextCursor };
+    if (!cursor || (typeof cursor === "string" && cursor.startsWith("api:"))) {
+      return fetchServicesPageFromHttp(cursor);
+    }
+    return { items: [], nextCursor: null };
   }
 }
 
