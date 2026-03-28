@@ -3,12 +3,16 @@ import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import { getCardImageUrl } from "../../utils/imageHelper";
 import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Copy,
   CreditCard,
   LayoutDashboard,
   LogOut,
   RefreshCw,
   ShoppingBag,
+  Trash2,
   UserPlus,
   Users,
   Wallet,
@@ -47,6 +51,24 @@ type AgentDashboardResponse = {
     rewardAmount: number;
     createdAt: string;
     referredUser: { name: string; email: string; joinedAt: string } | null;
+  }>;
+  recentProfessionalBookings: Array<{
+    _id: string;
+    date: string;
+    status: string;
+    paymentStatus: string;
+    paymentMethod: string;
+    professionalPrice: number | null;
+    note: string;
+    createdAt: string;
+    professional: {
+      fullName: string;
+      serviceType?: string;
+      city?: string;
+    } | null;
+    customer: { name: string; email: string | null; phone: string | null } | null;
+    commissionEtb: number | null;
+    referralRecordStatus: string | null;
   }>;
 };
 
@@ -172,6 +194,9 @@ const AgentDashboard = () => {
   ]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [bookingActionId, setBookingActionId] = useState<string | null>(null);
+  /** Show or hide the full Recent professional bookings table. */
+  const [showProfessionalBookingsList, setShowProfessionalBookingsList] = useState(true);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingProfessional, setEditingProfessional] = useState<MyProfessional | null>(null);
@@ -318,6 +343,56 @@ const AgentDashboard = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setMyProfessionals(myRes.data.professionals || []);
+  };
+
+  const refreshAgentDashboard = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const dashRes = await axios.get<AgentDashboardResponse>("/agents/dashboard", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setDash(dashRes.data);
+  };
+
+  const confirmProfessionalBooking = async (bookingId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    if (!window.confirm("Mark this booking as confirmed?")) return;
+    setBookingActionId(bookingId);
+    try {
+      await axios.put(
+        `/bookings/${bookingId}`,
+        { status: "confirmed" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await refreshAgentDashboard();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "Could not confirm booking");
+    } finally {
+      setBookingActionId(null);
+    }
+  };
+
+  const deleteProfessionalBooking = async (bookingId: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    if (
+      !window.confirm(
+        "Delete this booking permanently? Commission records tied to it will be removed. This cannot be undone."
+      )
+    )
+      return;
+    setBookingActionId(bookingId);
+    try {
+      await axios.delete(`/bookings/${bookingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await refreshAgentDashboard();
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "Could not delete booking");
+    } finally {
+      setBookingActionId(null);
+    }
   };
 
   const verifyProfessional = async (professionalId: string) => {
@@ -702,67 +777,161 @@ const AgentDashboard = () => {
                 </div>
               </div>
 
-              {/* Recent Referrals */}
+              {/* Bookings for your listed professionals — full list shown on demand */}
               <div className="mt-8">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Recent referrals</h2>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+                      Recent professional bookings
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Customers booking the professionals you listed. Open the list to review details, confirm, or
+                      delete bookings.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-expanded={showProfessionalBookingsList}
+                    onClick={() => setShowProfessionalBookingsList((v) => !v)}
+                    className={`${brand.outlineOrange} shrink-0 w-full sm:w-auto py-2.5 px-4 text-sm`}
+                  >
+                    {showProfessionalBookingsList ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" aria-hidden />
+                        Hide list
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" aria-hidden />
+                        View list
+                        <span className="tabular-nums text-orange-900/90">
+                          ({(dash.recentProfessionalBookings || []).length})
+                        </span>
+                      </>
+                    )}
+                  </button>
                 </div>
-                <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
-                  <table className="w-full min-w-[36rem] text-sm">
-                    <thead className="bg-gradient-to-r from-blue-600/10 via-orange-500/10 to-blue-600/10">
-                      <tr>
-                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Referred user</th>
-                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Type</th>
-                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Commission</th>
-                        <th className="text-left px-4 py-3 font-semibold text-slate-700">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {dash.recentReferrals.map((r) => (
-                        <tr key={r._id} className="transition-colors hover:bg-slate-50/80">
-                          <td className="px-4 py-3">
-                            {r.referredUser ? (
-                              <div>
-                                <div className="font-medium text-gray-900">{r.referredUser.name}</div>
-                                <div className="text-xs text-gray-500">{r.referredUser.email}</div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-500">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {r.usedInPurchase ? (
-                              <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-semibold">
-                                Purchase
-                              </span>
-                            ) : r.usedInRegistration ? (
-                              <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
-                                Registration
-                              </span>
-                            ) : (
-                              <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
-                                Other
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(r.rewardAmount)} ETB
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {new Date(r.createdAt).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                      {dash.recentReferrals.length === 0 && (
+                {showProfessionalBookingsList && (
+                  <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
+                    <table className="w-full min-w-[58rem] text-sm">
+                      <thead className="bg-gradient-to-r from-blue-600/10 via-orange-500/10 to-blue-600/10">
                         <tr>
-                          <td className="px-4 py-6 text-gray-600" colSpan={4}>
-                            No referrals yet.
-                          </td>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700">Customer</th>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700">Professional</th>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700">Scheduled</th>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700">Status</th>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700">Payment</th>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700">Commission</th>
+                          <th className="text-left px-4 py-3 font-semibold text-slate-700 max-w-[10rem]">Note</th>
+                          <th className="text-right px-4 py-3 font-semibold text-slate-700">Actions</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {(dash.recentProfessionalBookings || []).map((b) => {
+                          const st = (b.status || "pending").toLowerCase();
+                          const canConfirm = st === "pending";
+                          const busy = bookingActionId === b._id;
+                          return (
+                            <tr key={b._id} className="transition-colors hover:bg-slate-50/80">
+                              <td className="px-4 py-3">
+                                {b.customer ? (
+                                  <div>
+                                    <div className="font-medium text-gray-900">{b.customer.name}</div>
+                                    <div className="text-xs text-gray-500">
+                                      {[b.customer.email, b.customer.phone].filter(Boolean).join(" · ") || "—"}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                {b.professional ? (
+                                  <div>
+                                    <div className="font-medium text-gray-900">{b.professional.fullName}</div>
+                                    <div className="text-xs text-gray-500">
+                                      {[b.professional.serviceType, b.professional.city]
+                                        .filter(Boolean)
+                                        .join(" · ") || "—"}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                                {new Date(b.date).toLocaleString()}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-semibold capitalize">
+                                  {b.status || "pending"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="text-xs font-medium text-slate-700 capitalize">
+                                  {b.paymentStatus}
+                                </span>
+                                <div className="text-xs text-slate-500 capitalize">{b.paymentMethod}</div>
+                                {b.professionalPrice != null && (
+                                  <div className="text-xs text-slate-600 mt-0.5 tabular-nums">
+                                    {new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(
+                                      b.professionalPrice
+                                    )}{" "}
+                                    ETB
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-gray-700 tabular-nums">
+                                {b.commissionEtb != null
+                                  ? `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(b.commissionEtb)} ETB`
+                                  : b.paymentStatus !== "paid"
+                                    ? "After payment"
+                                    : "—"}
+                              </td>
+                              <td className="px-4 py-3 text-xs text-slate-600 max-w-[10rem] align-top">
+                                <span className="line-clamp-3 break-words" title={b.note || undefined}>
+                                  {b.note?.trim() ? b.note : "—"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right whitespace-nowrap">
+                                <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                                  {canConfirm && (
+                                    <button
+                                      type="button"
+                                      disabled={busy}
+                                      onClick={() => void confirmProfessionalBooking(b._id)}
+                                      className={`${brand.outlineBlue} py-1.5 px-2.5 text-xs`}
+                                    >
+                                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                                      Confirm
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => void deleteProfessionalBooking(b._id)}
+                                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border-2 border-red-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-red-700 shadow-sm transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:opacity-45"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {(!dash.recentProfessionalBookings || dash.recentProfessionalBookings.length === 0) && (
+                          <tr>
+                            <td className="px-4 py-6 text-gray-600" colSpan={8}>
+                              No professional bookings yet. When customers book your listed professionals, they appear
+                              here.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </>
           )}

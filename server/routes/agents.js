@@ -2,6 +2,7 @@ const express = require("express");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const User = require("../models/User");
 const Referral = require("../models/Referral");
+const Booking = require("../models/Booking");
 const AgentProfessional = require("../models/AgentProfessional");
 const upload = require("../middleware/upload");
 const { getFileUrl } = require("../utils/fileHelper");
@@ -31,6 +32,68 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
       .populate("referredUser", "name email createdAt")
       .populate("bookingId", "createdAt")
       .lean();
+
+    const professionalBookings = await Booking.find({
+      agent: me._id,
+      bookingKind: "professional",
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate("agentProfessional", "fullName serviceType city")
+      .populate("user", "name email phone")
+      .lean();
+
+    const pbIds = professionalBookings.map((b) => b._id);
+    const referralRows =
+      pbIds.length > 0
+        ? await Referral.find({
+            referrer: me._id,
+            bookingId: { $in: pbIds },
+          })
+            .select("bookingId rewardAmount status")
+            .lean()
+        : [];
+    const referralByBookingId = Object.fromEntries(
+      referralRows.map((r) => [String(r.bookingId), r])
+    );
+
+    const recentProfessionalBookings = professionalBookings.map((b) => {
+      const ref = referralByBookingId[String(b._id)];
+      const guest = b.guestInfo || {};
+      const customer = b.user
+        ? {
+            name: b.user.name,
+            email: b.user.email,
+            phone: b.user.phone,
+          }
+        : guest.fullName || guest.email || guest.phone
+          ? {
+              name: guest.fullName || "Guest",
+              email: guest.email || null,
+              phone: guest.phone || null,
+            }
+          : null;
+      return {
+        _id: b._id,
+        date: b.date,
+        status: b.status,
+        paymentStatus: b.paymentStatus,
+        paymentMethod: b.paymentMethod,
+        professionalPrice: b.professionalPrice,
+        note: b.note || "",
+        createdAt: b.createdAt,
+        professional: b.agentProfessional
+          ? {
+              fullName: b.agentProfessional.fullName,
+              serviceType: b.agentProfessional.serviceType,
+              city: b.agentProfessional.city,
+            }
+          : null,
+        customer,
+        commissionEtb: ref ? ref.rewardAmount ?? 0 : null,
+        referralRecordStatus: ref ? ref.status : null,
+      };
+    });
 
     const all = await Referral.find({ referrer: me._id }).lean();
     const registrationReferrals = all.filter((r) => r.usedInRegistration).length;
@@ -70,6 +133,7 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
             }
           : null,
       })),
+      recentProfessionalBookings,
     });
   } catch (err) {
     console.error("Error fetching agent dashboard:", err);

@@ -652,15 +652,38 @@ router.patch("/:id/cancel", authMiddleware, async (req, res) => {
   }
 });
 
-// Delete booking
+// Delete booking (seeker owns booking, or listing agent for professional bookings)
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    const booking = await Booking.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user.userId,
-    });
-
+    const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    const uid = req.user.userId;
+    const isSeekerOwner = booking.user && booking.user.toString() === uid;
+    const isListingAgent =
+      req.user.role === "agent" &&
+      booking.bookingKind === "professional" &&
+      booking.agent &&
+      booking.agent.toString() === uid;
+
+    if (!isSeekerOwner && !isListingAgent) {
+      return res.status(403).json({ message: "Not authorized to delete this booking" });
+    }
+
+    const refs = await Referral.find({ bookingId: booking._id }).lean();
+    const earningsByReferrer = new Map();
+    for (const ref of refs) {
+      const rid = String(ref.referrer);
+      const amt = Number(ref.rewardAmount || 0);
+      if (amt > 0) {
+        earningsByReferrer.set(rid, (earningsByReferrer.get(rid) || 0) + amt);
+      }
+    }
+    for (const [referrerId, sum] of earningsByReferrer) {
+      await User.findByIdAndUpdate(referrerId, { $inc: { referralEarnings: -sum } });
+    }
+    await Referral.deleteMany({ bookingId: booking._id });
+    await Booking.findByIdAndDelete(booking._id);
 
     res.json({ message: "Booking deleted successfully" });
   } catch (err) {
@@ -755,23 +778,35 @@ router.patch("/:id/payment", async (req, res) => {
   }
 });
 
-// Update booking
-// Update booking - allow provider/admin to update status
+// Update booking — seeker, provider, staff, or listing agent (professional only; status/note)
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    const isOwner = booking.user && booking.user.toString() === req.user.userId || req.user.role === "provider" || ["admin", "superadmin", "support"].includes(req.user.role);
-    if (!isOwner && booking.user) return res.status(403).json({ message: "Not authorized to update this booking" });
+    const uid = req.user.userId;
+    const isStaff = ["admin", "superadmin", "support"].includes(req.user.role);
+    const isSeekerOwner = booking.user && booking.user.toString() === uid;
+    const isProvider = req.user.role === "provider";
+    const isListingAgent =
+      req.user.role === "agent" &&
+      booking.bookingKind === "professional" &&
+      booking.agent &&
+      booking.agent.toString() === uid;
 
-    // Only update provided fields
-    if (req.body.service) booking.service = req.body.service;
-    if (req.body.date) booking.date = req.body.date;
-    if (req.body.note) booking.note = req.body.note;
-    if (req.body.status) booking.status = req.body.status;
-    if (req.body.paymentStatus) booking.paymentStatus = req.body.paymentStatus;
-    if (req.body.paymentMethod) booking.paymentMethod = req.body.paymentMethod;
+    if (isListingAgent) {
+      if (req.body.status !== undefined) booking.status = req.body.status;
+      if (req.body.note !== undefined) booking.note = req.body.note;
+    } else if (isSeekerOwner || isProvider || isStaff) {
+      if (req.body.service) booking.service = req.body.service;
+      if (req.body.date) booking.date = req.body.date;
+      if (req.body.note !== undefined) booking.note = req.body.note;
+      if (req.body.status !== undefined) booking.status = req.body.status;
+      if (req.body.paymentStatus !== undefined) booking.paymentStatus = req.body.paymentStatus;
+      if (req.body.paymentMethod !== undefined) booking.paymentMethod = req.body.paymentMethod;
+    } else {
+      return res.status(403).json({ message: "Not authorized to update this booking" });
+    }
 
     const updated = await booking.save();
     res.json(updated);

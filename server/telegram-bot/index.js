@@ -53,17 +53,71 @@ const WEBHOOK_URL = WEBHOOK_BASE_URL
 //   not the main API server. Using it here can cause the bot to call its own
 //   `/api/catalog` and `/api/services` endpoints (404) and show "No ... found."
 // - Prefer explicitly setting TELEGRAM_DATA_API_BASE_URL to the API base.
-const DATA_API_BASE_URL =
-  process.env.TELEGRAM_DATA_API_BASE_URL ||
-  process.env.API_BASE_URL ||
-  process.env.SERVER_BASE_URL ||
-  "http://localhost:5000";
+function tryParsePublicApiOrigin(envValue) {
+  if (!envValue || typeof envValue !== "string") return null;
+  try {
+    const u = new URL(envValue.trim());
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    const host = (u.hostname || "").toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1") return null;
+    return u.origin.replace(/\/+$/, "");
+  } catch {
+    return null;
+  }
+}
+
+function isLikelyPaaSHost() {
+  return Boolean(
+    process.env.RENDER ||
+      process.env.RAILWAY_ENVIRONMENT ||
+      process.env.FLY_APP_NAME ||
+      process.env.HEROKU_APP_NAME ||
+      process.env.VERCEL ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME
+  );
+}
+
+function resolveDataApiBaseUrl() {
+  const explicit = [
+    process.env.TELEGRAM_DATA_API_BASE_URL,
+    process.env.API_BASE_URL,
+    process.env.SERVER_BASE_URL,
+    process.env.SERVER_URL,
+  ]
+    .map((s) => (typeof s === "string" ? s.trim() : ""))
+    .find(Boolean);
+  if (explicit) return explicit.replace(/\/+$/, "");
+
+  // Defaulting to localhost makes /api/catalog and /api/services fail when the bot runs on a
+  // PaaS (localhost = the bot container) or when NODE_ENV=production points at a remote API.
+  const fromOAuth =
+    tryParsePublicApiOrigin(process.env.GOOGLE_REDIRECT_URI) ||
+    tryParsePublicApiOrigin(process.env.FACEBOOK_CALLBACK_URL);
+  if (fromOAuth && (process.env.NODE_ENV === "production" || isLikelyPaaSHost())) {
+    return fromOAuth;
+  }
+
+  return "http://localhost:5000";
+}
+
+const DATA_API_BASE_URL = resolveDataApiBaseUrl();
 const BOOKINGS_ENDPOINT = `${DATA_API_BASE_URL.replace(/\/+$/, "")}/api/bookings`;
 
 if (WEBHOOK_BASE_URL && DATA_API_BASE_URL === WEBHOOK_BASE_URL) {
   console.warn(
     "[telegram-bot] DATA_API_BASE_URL equals WEBHOOK_BASE_URL. " +
       "Set TELEGRAM_DATA_API_BASE_URL to your main API base URL to avoid empty listings."
+  );
+}
+
+if (
+  process.env.NODE_ENV === "production" &&
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(DATA_API_BASE_URL)
+) {
+  console.warn(
+    "[telegram-bot] DATA_API_BASE_URL points at localhost while NODE_ENV=production. " +
+      "HTTP fallbacks for listings/bookings may fail when the API is not on this machine. " +
+      "Set TELEGRAM_DATA_API_BASE_URL (e.g. https://your-api.example.com)."
   );
 }
 
@@ -282,9 +336,14 @@ async function fetchCatalogFromApi() {
     if (Array.isArray(data?.catalog)) return data.catalog;
     if (Array.isArray(data?.items)) return data.items;
     if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.result)) return data.result;
     return [];
   } catch (err) {
-    console.warn("[telegram-bot] fetchCatalogFromApi failed:", err?.message || err);
+    console.warn(
+      "[telegram-bot] fetchCatalogFromApi failed:",
+      err?.message || err,
+      err?.response?.status ? `(HTTP ${err.response.status})` : ""
+    );
     return [];
   }
 }
@@ -297,9 +356,14 @@ async function fetchServicesFromApi() {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.services)) return data.services;
     if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.result)) return data.result;
     return [];
   } catch (err) {
-    console.warn("[telegram-bot] fetchServicesFromApi failed:", err?.message || err);
+    console.warn(
+      "[telegram-bot] fetchServicesFromApi failed:",
+      err?.message || err,
+      err?.response?.status ? `(HTTP ${err.response.status})` : ""
+    );
     return [];
   }
 }
