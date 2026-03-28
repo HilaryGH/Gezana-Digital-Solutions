@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../api/axios";
+import { PUBLIC_API_ORIGIN } from "../../config/publicApi";
 import { Target, Eye, Briefcase, Users, Star, Quote, ArrowLeft, ArrowRight, Linkedin, Twitter, Facebook, Mail, Phone, MapPin, GraduationCap, Award, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -29,9 +30,9 @@ const getImageUrl = (photo: string): string => {
     return photo;
   }
   if (photo.startsWith('/uploads/')) {
-    const baseUrl = import.meta.env.DEV 
-      ? 'http://localhost:5000' 
-      : 'https://gezana-api.onrender.com';
+    const baseUrl = import.meta.env.DEV
+      ? "http://localhost:5000"
+      : PUBLIC_API_ORIGIN;
     return `${baseUrl}${photo}`;
   }
   return photo;

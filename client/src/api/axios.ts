@@ -1,4 +1,5 @@
 import axios from "axios";
+import { PUBLIC_API_BASE } from "../config/publicApi";
 
 type AxiosLikeError = {
   message: string;
@@ -42,7 +43,7 @@ const getBaseURL = () => {
   }
   // Production server (fallback)
   // NOTE: keep this aligned with the deployed backend instance
-  return "https://gezana-api-m8u7.onrender.com/api";
+  return PUBLIC_API_BASE;
 };
 
 const instance = axios.create({

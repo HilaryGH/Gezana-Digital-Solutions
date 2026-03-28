@@ -7,6 +7,7 @@ const Booking = require("../models/Booking");
 const upload = require("../middleware/upload");
 const { sendServicePublishedNotifications } = require("../utils/notificationService");
 const { getFileUrl } = require("../utils/fileHelper");
+const { publicApiOrigin } = require("../config/publicApiOrigin");
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ const buildFileBaseUrl = (req) => {
     if (envBase) {
       return envBase.replace(/\/$/, "");
     }
-    return 'https://gezana-api.onrender.com';
+    return publicApiOrigin();
   }
   
   // In development, detect the actual request origin (works for mobile on same network)
@@ -80,7 +81,11 @@ const getPhotoUrl = (req, photo) => {
     // In development ONLY, convert production URLs to localhost
     // In production, return production URLs as-is
     const isProduction = process.env.NODE_ENV === 'production';
-    if (!isProduction && photoStr.includes('gezana-api.onrender.com')) {
+    if (
+      !isProduction &&
+      (photoStr.includes("gezana-api.onrender.com") ||
+        photoStr.includes("gezana-api-m8u7.onrender.com"))
+    ) {
       // Extract the path from the production URL
       const urlPath = photoStr.replace(/^https?:\/\/[^/]+/, '');
       const localhostUrl = `${buildFileBaseUrl(req)}${urlPath}`;
@@ -92,7 +97,11 @@ const getPhotoUrl = (req, photo) => {
     }
     
     // In production, return production URLs as-is (don't modify them)
-    if (isProduction && photoStr.includes('gezana-api.onrender.com')) {
+    if (
+      isProduction &&
+      (photoStr.includes("gezana-api.onrender.com") ||
+        photoStr.includes("gezana-api-m8u7.onrender.com"))
+    ) {
       console.log('✅ Using production URL:', photoStr);
       return photoStr;
     }

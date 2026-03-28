@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../api/axios";
+import { PUBLIC_API_ORIGIN } from "../../config/publicApi";
 import { Edit, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 
 // Helper function to get correct image URL
@@ -11,9 +12,9 @@ const getImageUrl = (photo: string): string => {
   }
   // If it's a relative path starting with /uploads, construct full URL
   if (photo.startsWith('/uploads/')) {
-    const baseUrl = import.meta.env.DEV 
-      ? 'http://localhost:5000' 
-      : 'https://gezana-api.onrender.com';
+    const baseUrl = import.meta.env.DEV
+      ? "http://localhost:5000"
+      : PUBLIC_API_ORIGIN;
     return `${baseUrl}${photo}`;
   }
   // Otherwise return as is

@@ -1,3 +1,5 @@
+const { publicApiOrigin } = require("../config/publicApiOrigin");
+
 // Helper function to check if a URL is a Cloudinary URL
 const isCloudinaryUrl = (url) => {
   if (!url || typeof url !== 'string') return false;
@@ -78,7 +80,11 @@ const getStoredFileUrl = (req, storedValue) => {
     // In development ONLY, convert production URLs to localhost
     // In production, return production URLs as-is
     const isProduction = process.env.NODE_ENV === 'production';
-    if (!isProduction && storedStr.includes('gezana-api.onrender.com')) {
+    if (
+      !isProduction &&
+      (storedStr.includes("gezana-api.onrender.com") ||
+        storedStr.includes("gezana-api-m8u7.onrender.com"))
+    ) {
       const urlPath = storedStr.replace(/^https?:\/\/[^/]+/, '');
       const port = process.env.PORT || 5000;
       const localhostUrl = `http://localhost:${port}${urlPath}`;
@@ -90,7 +96,11 @@ const getStoredFileUrl = (req, storedValue) => {
     }
     
     // In production, return production URLs as-is
-    if (isProduction && storedStr.includes('gezana-api.onrender.com')) {
+    if (
+      isProduction &&
+      (storedStr.includes("gezana-api.onrender.com") ||
+        storedStr.includes("gezana-api-m8u7.onrender.com"))
+    ) {
       console.log('✅ Returning stored production URL:', storedStr);
       return storedStr;
     }
@@ -116,7 +126,7 @@ const getStoredFileUrl = (req, storedValue) => {
   
   // In production, use production URL
   if (isProduction) {
-    const baseUrl = 'https://gezana-api.onrender.com';
+    const baseUrl = publicApiOrigin();
     const fullUrl = `${baseUrl}/uploads/${cleanFile}`;
     console.log('📁 Local file URL (production):', { original: storedValue, cleaned: cleanFile, fullUrl });
     return fullUrl;

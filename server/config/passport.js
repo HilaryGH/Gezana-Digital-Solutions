@@ -3,6 +3,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const { publicApiOrigin } = require("./publicApiOrigin");
 
 // Serialize user for session
 passport.serializeUser((user, done) => {
@@ -24,9 +25,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   // Determine callback URL based on environment
   // The callback URL must be the BACKEND URL where Google will redirect
   const getCallbackURL = () => {
+    const fromEnv = String(process.env.GOOGLE_REDIRECT_URI || "").trim();
+    if (fromEnv) return fromEnv;
     if (process.env.NODE_ENV === 'production') {
-      // In production, always use the backend URL
-      return 'https://gezana-api.onrender.com/auth/google/callback';
+      return `${publicApiOrigin()}/auth/google/callback`;
     }
     // In development, use localhost backend
     return process.env.SERVER_URL 
@@ -94,8 +96,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
     }
     
     if (process.env.NODE_ENV === 'production') {
-      // In production, always use the backend URL
-      return 'https://gezana-api.onrender.com/auth/facebook/callback';
+      return `${publicApiOrigin()}/auth/facebook/callback`;
     }
     // In development, use localhost backend
     return process.env.SERVER_URL 

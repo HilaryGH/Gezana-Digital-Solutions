@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Mail, Lock } from "lucide-react"; // nice icons
 import axios from "../api/axios";
+import { PUBLIC_API_ORIGIN } from "../config/publicApi";
 
 // Get backend base URL for OAuth redirects
 const getBackendBaseURL = () => {
@@ -18,7 +19,7 @@ const getBackendBaseURL = () => {
     }
     return "http://localhost:5000";
   }
-  return "https://gezana-api.onrender.com"; // Production server
+  return PUBLIC_API_ORIGIN;
 };
 
 type LoginResponse = {

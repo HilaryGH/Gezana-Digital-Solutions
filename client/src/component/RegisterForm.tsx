@@ -1,6 +1,7 @@
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import { PUBLIC_API_ORIGIN } from "../config/publicApi";
 import { REGISTRATION_SERVICE_CATEGORIES } from "../constants/registrationServiceCategories";
 import { AgentPartnershipAgreementBody } from "../content/agentPartnershipAgreement";
 
@@ -178,7 +179,7 @@ const RegisterForm = () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
-        const response = await fetch("https://gezana-api-m8u7.onrender.com/", {
+        const response = await fetch(`${PUBLIC_API_ORIGIN}/`, {
           method: "GET",
           mode: "cors",
           signal: controller.signal,

@@ -1,3 +1,5 @@
+import { PUBLIC_API_ORIGIN } from "../config/publicApi";
+
 /**
  * Checks if a URL is a Cloudinary URL
  */
@@ -168,7 +170,12 @@ export const normalizeImageUrl = (
     // For now, we'll use production URLs directly in dev to avoid 404s
     // The backend should ideally return local URLs in development
     // In production, return all URLs as-is (don't modify them)
-    if (import.meta.env.DEV && (url.includes('gezana-api.onrender.com') || url.includes('onrender.com'))) {
+    if (
+      import.meta.env.DEV &&
+      (url.includes("gezana-api.onrender.com") ||
+        url.includes("gezana-api-m8u7.onrender.com") ||
+        url.includes("onrender.com"))
+    ) {
       // For now, keep production URLs in dev mode since local files might not exist
       // This ensures images load even if backend returns production URLs
       // TODO: Backend should return local URLs in development
@@ -258,7 +265,7 @@ export const normalizeImageUrl = (
       baseURL = 'http://localhost:5000';
     }
   } else {
-    baseURL = 'https://gezana-api.onrender.com';
+    baseURL = PUBLIC_API_ORIGIN;
   }
   
   // Remove leading slash if present
@@ -329,7 +336,12 @@ export const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event
   }
   
   // In development, if it's a production URL, try converting to current origin (mobile-friendly)
-  if (import.meta.env.DEV && (currentSrc.includes('gezana-api.onrender.com') || currentSrc.includes('onrender.com'))) {
+  if (
+    import.meta.env.DEV &&
+    (currentSrc.includes("gezana-api.onrender.com") ||
+      currentSrc.includes("gezana-api-m8u7.onrender.com") ||
+      currentSrc.includes("onrender.com"))
+  ) {
     if (!target.dataset.localhostRetried) {
       target.dataset.localhostRetried = 'true';
       const urlPath = currentSrc.replace(/^https?:\/\/[^/]+/, '');
