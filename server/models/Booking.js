@@ -27,6 +27,8 @@ const bookingSchema = new mongoose.Schema({
     enum: ["cash", "online"],
     default: "cash",
   },
+  // Explicit customer requirement details that should be shared with provider/agent
+  serviceSeekerRequirements: { type: String },
   note: { type: String },
   status: { type: String, default: "pending" },
   // Distance in kilometers between seeker and provider

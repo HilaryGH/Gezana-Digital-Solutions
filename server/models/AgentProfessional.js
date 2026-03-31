@@ -22,6 +22,13 @@ const agentProfessionalSchema = new mongoose.Schema(
       enum: ["fayda", "kebele_id", "driving_licence", "passport"],
       required: false,
     },
+    // Optional guarantor details
+    guarantorFullName: { type: String },
+    guarantorPhone: { type: String },
+    guarantorCity: { type: String },
+    guarantorPrimaryLocation: { type: String },
+    guarantorIdAttachment: { type: String },
+    guarantorPhoto: { type: String },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

@@ -71,6 +71,12 @@ const RegisterForm = () => {
     video: null as File | null,
     priceList: null as File | null,
     bbDocuments: null as File | null,
+    guarantorFullName: "",
+    guarantorPhone: "",
+    guarantorCity: "",
+    guarantorPrimaryLocation: "",
+    guarantorIdAttachment: null as File | null,
+    guarantorPhoto: null as File | null,
   });
 
   const [agentForm, setAgentForm] = useState({
@@ -994,6 +1000,63 @@ const RegisterForm = () => {
                     </div>
                   </div>
 
+                  {/* Guarantor Information */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-indigo-25 p-4 rounded-xl border border-indigo-100">
+                    <h3 className="text-lg font-semibold text-indigo-800 mb-4 font-poppins">
+                      Guarantor Information <span className="text-base font-normal text-gray-600">(optional)</span>
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          name="guarantorFullName"
+                          placeholder="Enter guarantor full name"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white font-inter"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          name="guarantorPhone"
+                          placeholder="+251 9X XXX XXXX"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white font-inter"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          name="guarantorCity"
+                          placeholder="Addis Ababa"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white font-inter"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Primary Location
+                        </label>
+                        <input
+                          type="text"
+                          name="guarantorPrimaryLocation"
+                          placeholder="Bole, Kazanchis"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white font-inter"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Document Uploads */}
                   <div className="bg-gradient-to-r from-purple-50 to-purple-25 p-4 rounded-xl border border-purple-100">
                     <h3 className="text-lg font-semibold text-purple-800 mb-4 font-poppins">Documents &amp; media <span className="text-base font-normal text-gray-600">(all optional)</span></h3>
@@ -1171,6 +1234,30 @@ const RegisterForm = () => {
                         <p className="text-xs text-gray-500">
                           Optional: upload BB (business bureau) or related documents for your service provider profile.
                         </p>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Guarantor Fayda/Kebele ID/Passport <span className="text-gray-400 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="file"
+                          name="guarantorIdAttachment"
+                          accept="application/pdf,image/*"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700 font-inter">
+                          Guarantor Photo <span className="text-gray-400 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="file"
+                          name="guarantorPhoto"
+                          accept="image/*"
+                          onChange={handleProviderChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white font-inter file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
                       </div>
               </div>
               </div>

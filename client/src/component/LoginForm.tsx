@@ -28,7 +28,16 @@ type LoginResponse = {
     id: string;
     name: string;
     email: string;
-    role: "seeker" | "provider" | "agent" | "admin" | "support" | "marketing" | "superadmin";
+    role:
+      | "seeker"
+      | "provider"
+      | "agent"
+      | "STANDARD_AGENT"
+      | "SUPER_ELITE_AGENT"
+      | "admin"
+      | "support"
+      | "marketing"
+      | "superadmin";
     createdAt: string;
   };
 };
@@ -65,7 +74,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onClose }) => {
         navigate("/seeker-dashboard");
       } else if (user.role === "provider") {
         navigate("/provider-dashboard");
-      } else if (user.role === "agent") {
+      } else if (user.role === "agent" || user.role === "STANDARD_AGENT" || user.role === "SUPER_ELITE_AGENT") {
         navigate("/agent-dashboard");
       } else if (user.role === "admin") {
         navigate("/admin-dashboard");

@@ -136,6 +136,7 @@ router.post("/", async (req, res) => {
       agentProfessional,
       professionalPrice: rawProfessionalPrice,
       date,
+      serviceSeekerRequirements,
       note,
       guestInfo,
       paymentMethod,
@@ -221,6 +222,7 @@ router.post("/", async (req, res) => {
         agent: proDoc.agent._id,
         professionalPrice: priceNum,
         date,
+        serviceSeekerRequirements,
         note,
         paymentMethod: paymentMethod || "cash",
         paymentStatus: "pending",
@@ -312,6 +314,7 @@ router.post("/", async (req, res) => {
             price: priceNum,
             location:
               [proDoc.city, proDoc.location].filter(Boolean).join(", ") || "To be determined",
+            serviceSeekerRequirements: serviceSeekerRequirements || "",
             note: note || "",
           };
 
@@ -335,6 +338,7 @@ router.post("/", async (req, res) => {
             time: bookingDetails.time,
             amountEtb: String(priceNum),
             location: bookingDetails.location,
+            serviceSeekerRequirements: serviceSeekerRequirements || "",
             note: note || "",
           };
 
@@ -480,6 +484,7 @@ router.post("/", async (req, res) => {
       serviceType: serviceTypeDoc._id,
       service,
       date,
+      serviceSeekerRequirements,
       note,
       paymentMethod: paymentMethod || 'cash', // Save payment method
       paymentStatus: paymentMethod === 'online' ? 'pending' : 'pending', // Online payments start as pending until paid
@@ -599,6 +604,7 @@ router.post("/", async (req, res) => {
           }),
           price: serviceDoc.price,
           location: serviceDoc.location || 'To be determined',
+          serviceSeekerRequirements: serviceSeekerRequirements || "",
           note: note || "",
         };
 

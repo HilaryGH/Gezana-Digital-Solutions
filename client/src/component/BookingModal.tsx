@@ -29,6 +29,7 @@ interface BookingModalProps {
 interface BookingFormData {
   date: string;
   time: string;
+  serviceSeekerRequirements: string;
   note: string;
   paymentMethod: 'cash' | 'online';
   referralCode: string; // Optional referral code
@@ -70,6 +71,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const [formData, setFormData] = useState<BookingFormData>({
     date: '',
     time: '',
+    serviceSeekerRequirements: '',
     note: '',
     paymentMethod: 'cash',
     referralCode: '',
@@ -225,6 +227,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
             agentProfessional: listingId,
             professionalPrice: parsedProfessionalPrice,
             date: bookingDateTime.toISOString(),
+            serviceSeekerRequirements: formData.serviceSeekerRequirements || '',
             note: formData.note || '',
             paymentMethod: formData.paymentMethod,
             ...(formData.referralCode ? { referralCode: formData.referralCode.trim().toUpperCase() } : {}),
@@ -242,6 +245,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
         : {
             service: listingId,
             date: bookingDateTime.toISOString(),
+            serviceSeekerRequirements: formData.serviceSeekerRequirements || '',
             note: formData.note || '',
             paymentMethod: formData.paymentMethod,
             ...(formData.referralCode ? { referralCode: formData.referralCode.trim().toUpperCase() } : {}),
@@ -690,6 +694,25 @@ const BookingModal: React.FC<BookingModalProps> = ({
               />
               <p className="text-xs text-gray-500 mt-1">
                 Have a referral code? Enter it here to support the person who referred you!
+              </p>
+            </div>
+
+            {/* Service Seeker Requirements */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <MessageSquare className="w-4 h-4 inline mr-2" />
+                Service Seeker Requirements (Optional)
+              </label>
+              <textarea
+                name="serviceSeekerRequirements"
+                value={formData.serviceSeekerRequirements}
+                onChange={handleInputChange}
+                rows={4}
+                placeholder="Describe your exact requirements, preferences, materials, access instructions, and any important constraints..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This will be shared with the assigned provider/agent.
               </p>
             </div>
 

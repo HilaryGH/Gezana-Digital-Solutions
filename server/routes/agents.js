@@ -6,15 +6,31 @@ const Booking = require("../models/Booking");
 const AgentProfessional = require("../models/AgentProfessional");
 const upload = require("../middleware/upload");
 const { getFileUrl } = require("../utils/fileHelper");
+const {
+  referStandardAgent,
+  getMyReferrals,
+} = require("../controllers/agentReferralController");
 
 const router = express.Router();
+const isAgentRole = (role) =>
+  role === "agent" || role === "STANDARD_AGENT" || role === "SUPER_ELITE_AGENT";
 
 const ID_DOCUMENT_TYPES = ["fayda", "kebele_id", "driving_licence", "passport"];
 
 const professionalUpload = upload.fields([
   { name: "photo", maxCount: 1 },
   { name: "idAttachment", maxCount: 1 },
+  { name: "guarantorIdAttachment", maxCount: 1 },
+  { name: "guarantorPhoto", maxCount: 1 },
 ]);
+
+// POST /api/agents/refer
+// Create a STANDARD_AGENT referral (SUPER_ELITE_AGENT only)
+router.post("/refer", authMiddleware, referStandardAgent);
+
+// GET /api/agents/my-referrals
+// List STANDARD_AGENT users referred by the logged-in SUPER_ELITE_AGENT
+router.get("/my-referrals", authMiddleware, getMyReferrals);
 
 // GET /api/agents/dashboard
 // Summary stats for agent dashboard (referrals, commission, performance)
@@ -24,7 +40,7 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
       "role name email referralCode referralCount referralEarnings"
     );
     if (!me) return res.status(404).json({ message: "User not found" });
-    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+    if (!isAgentRole(me.role)) return res.status(403).json({ message: "Agent access required" });
 
     const referrals = await Referral.find({ referrer: me._id })
       .sort({ createdAt: -1 })
@@ -80,6 +96,7 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
         paymentStatus: b.paymentStatus,
         paymentMethod: b.paymentMethod,
         professionalPrice: b.professionalPrice,
+        serviceSeekerRequirements: b.serviceSeekerRequirements || "",
         note: b.note || "",
         createdAt: b.createdAt,
         professional: b.agentProfessional
@@ -171,7 +188,7 @@ router.post(
     try {
       const me = await User.findById(req.user.userId).select("role");
       if (!me) return res.status(404).json({ message: "User not found" });
-      if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+      if (!isAgentRole(me.role)) return res.status(403).json({ message: "Agent access required" });
 
       const {
         fullName,
@@ -184,6 +201,10 @@ router.post(
         serviceType,
         notes,
         idDocumentType,
+        guarantorFullName,
+        guarantorPhone,
+        guarantorCity,
+        guarantorPrimaryLocation,
       } = req.body;
 
       if (!fullName || !phone) {
@@ -192,6 +213,8 @@ router.post(
 
       const photoFile = req.files?.photo?.[0];
       const idFile = req.files?.idAttachment?.[0];
+      const guarantorIdFile = req.files?.guarantorIdAttachment?.[0];
+      const guarantorPhotoFile = req.files?.guarantorPhoto?.[0];
       const photo = photoFile ? getFileUrl(photoFile) : undefined;
 
       if (idFile) {
@@ -204,6 +227,8 @@ router.post(
       }
 
       const idAttachment = idFile ? getFileUrl(idFile) : undefined;
+      const guarantorIdAttachment = guarantorIdFile ? getFileUrl(guarantorIdFile) : undefined;
+      const guarantorPhoto = guarantorPhotoFile ? getFileUrl(guarantorPhotoFile) : undefined;
 
       const doc = await AgentProfessional.create({
         agent: me._id,
@@ -218,6 +243,12 @@ router.post(
         notes,
         ...(photo ? { photo } : {}),
         ...(idAttachment ? { idAttachment, idDocumentType } : {}),
+        ...(guarantorFullName ? { guarantorFullName } : {}),
+        ...(guarantorPhone ? { guarantorPhone } : {}),
+        ...(guarantorCity ? { guarantorCity } : {}),
+        ...(guarantorPrimaryLocation ? { guarantorPrimaryLocation } : {}),
+        ...(guarantorIdAttachment ? { guarantorIdAttachment } : {}),
+        ...(guarantorPhoto ? { guarantorPhoto } : {}),
         status: "pending",
       });
 
@@ -235,7 +266,7 @@ router.get("/my-professionals", authMiddleware, async (req, res) => {
   try {
     const me = await User.findById(req.user.userId).select("role");
     if (!me) return res.status(404).json({ message: "User not found" });
-    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+    if (!isAgentRole(me.role)) return res.status(403).json({ message: "Agent access required" });
 
     const professionals = await AgentProfessional.find({ agent: me._id })
       .sort({ createdAt: -1 })
@@ -258,7 +289,7 @@ router.put(
     try {
       const me = await User.findById(req.user.userId).select("role");
       if (!me) return res.status(404).json({ message: "User not found" });
-      if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+      if (!isAgentRole(me.role)) return res.status(403).json({ message: "Agent access required" });
 
       const doc = await AgentProfessional.findOne({ _id: req.params.id, agent: me._id });
       if (!doc) return res.status(404).json({ message: "Professional not found" });
@@ -273,6 +304,10 @@ router.put(
         "location",
         "serviceType",
         "notes",
+        "guarantorFullName",
+        "guarantorPhone",
+        "guarantorCity",
+        "guarantorPrimaryLocation",
       ];
       for (const field of fields) {
         if (Object.prototype.hasOwnProperty.call(req.body, field)) {
@@ -282,6 +317,8 @@ router.put(
 
       const photoFile = req.files?.photo?.[0];
       const idFile = req.files?.idAttachment?.[0];
+      const guarantorIdFile = req.files?.guarantorIdAttachment?.[0];
+      const guarantorPhotoFile = req.files?.guarantorPhoto?.[0];
       if (photoFile) {
         doc.photo = getFileUrl(photoFile);
       }
@@ -304,6 +341,13 @@ router.put(
         doc.idDocumentType = req.body.idDocumentType;
       }
 
+      if (guarantorIdFile) {
+        doc.guarantorIdAttachment = getFileUrl(guarantorIdFile);
+      }
+      if (guarantorPhotoFile) {
+        doc.guarantorPhoto = getFileUrl(guarantorPhotoFile);
+      }
+
       await doc.save();
       res.json({ message: "Professional updated", professional: doc });
     } catch (err) {
@@ -319,7 +363,7 @@ router.patch("/my-professionals/:id/verify", authMiddleware, async (req, res) =>
   try {
     const me = await User.findById(req.user.userId).select("role");
     if (!me) return res.status(404).json({ message: "User not found" });
-    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+    if (!isAgentRole(me.role)) return res.status(403).json({ message: "Agent access required" });
 
     const doc = await AgentProfessional.findOne({ _id: req.params.id, agent: me._id });
     if (!doc) return res.status(404).json({ message: "Professional not found" });
@@ -340,7 +384,7 @@ router.delete("/my-professionals/:id", authMiddleware, async (req, res) => {
   try {
     const me = await User.findById(req.user.userId).select("role");
     if (!me) return res.status(404).json({ message: "User not found" });
-    if (me.role !== "agent") return res.status(403).json({ message: "Agent access required" });
+    if (!isAgentRole(me.role)) return res.status(403).json({ message: "Agent access required" });
 
     const existing = await AgentProfessional.findOne({ _id: req.params.id, agent: me._id });
     if (!existing) return res.status(404).json({ message: "Professional not found" });
@@ -361,7 +405,7 @@ router.get("/professionals", authMiddleware, async (req, res) => {
     const me = await User.findById(req.user.userId).select("role");
     if (!me) return res.status(404).json({ message: "User not found" });
 
-    if (me.role !== "agent") {
+    if (!isAgentRole(me.role)) {
       return res.status(403).json({ message: "Agent access required" });
     }
 

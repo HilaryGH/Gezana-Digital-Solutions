@@ -35,6 +35,8 @@ const storage = new CloudinaryStorage({
       file.fieldname === 'corporateBusinessLicense' ||
       file.fieldname === 'corporateAchievementsCertificate' ||
       file.fieldname === 'corporateTin' ||
+      file.fieldname === 'guarantorIdAttachment' ||
+      file.fieldname === 'guarantorPhoto' ||
       file.fieldname === 'bbDocuments'
     ) {
       folder = 'homehub/documents';

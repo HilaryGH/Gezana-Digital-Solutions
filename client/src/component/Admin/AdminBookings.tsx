@@ -45,6 +45,7 @@ interface Booking {
   agentProfessional?: AgentProSummary;
   agent?: BookingAgent;
   date: string;
+  serviceSeekerRequirements?: string;
   status: string;
   createdAt: string;
 }
@@ -93,6 +94,7 @@ const AdminBookings = () => {
         b.agentProfessional?.serviceType,
         b.agent?.name,
         b.agent?.email,
+        b.serviceSeekerRequirements,
         b.status,
       ].some((val) => val?.toLowerCase().includes(query))
     );
@@ -167,6 +169,7 @@ const AdminBookings = () => {
                 <th className="py-3 px-4 text-left">Provider / Agent</th>
                 <th className="py-3 px-4 text-left">Date</th>
                 <th className="py-3 px-4 text-left">Status</th>
+                <th className="py-3 px-4 text-left">Requirements</th>
                 <th className="py-3 px-4 text-left">Booked At</th>
                 <th className="py-3 px-4 text-left">Actions</th>
               </tr>
@@ -205,6 +208,9 @@ const AdminBookings = () => {
                   </td>
                   <td className="py-2 px-4 capitalize">
                     {booking.status || "N/A"}
+                  </td>
+                  <td className="py-2 px-4">
+                    {booking.serviceSeekerRequirements?.trim() || "-"}
                   </td>
                   <td className="py-2 px-4">
                     {new Date(booking.createdAt).toLocaleDateString()}

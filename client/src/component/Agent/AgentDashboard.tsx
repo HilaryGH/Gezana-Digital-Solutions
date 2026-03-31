@@ -22,11 +22,21 @@ type Me = {
   _id: string;
   name: string;
   email: string;
-  role: "agent";
+  role: "agent" | "STANDARD_AGENT" | "SUPER_ELITE_AGENT";
   agentEnabled?: boolean;
   agentType?: "individual" | "corporate";
   verificationStatus?: "pending" | "approved" | "rejected";
   isVerified?: boolean;
+};
+
+type ReferredStandardAgent = {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  cityOfResidence?: string;
+  primaryLocation?: string;
+  createdAt: string;
 };
 
 type AgentDashboardResponse = {
@@ -59,6 +69,7 @@ type AgentDashboardResponse = {
     paymentStatus: string;
     paymentMethod: string;
     professionalPrice: number | null;
+    serviceSeekerRequirements: string;
     note: string;
     createdAt: string;
     professional: {
@@ -90,6 +101,12 @@ type MyProfessional = {
   photo?: string;
   idAttachment?: string;
   idDocumentType?: IdDocumentType;
+  guarantorFullName?: string;
+  guarantorPhone?: string;
+  guarantorCity?: string;
+  guarantorPrimaryLocation?: string;
+  guarantorIdAttachment?: string;
+  guarantorPhoto?: string;
 };
 
 type EditProfessionalForm = {
@@ -163,6 +180,10 @@ const AgentDashboard = () => {
   const [idAttachmentFile, setIdAttachmentFile] = useState<File | null>(null);
   const [idDocumentType, setIdDocumentType] = useState<"" | IdDocumentType>("");
   const idAttachmentInputRef = useRef<HTMLInputElement>(null);
+  const [guarantorIdAttachmentFile, setGuarantorIdAttachmentFile] = useState<File | null>(null);
+  const [guarantorPhotoFile, setGuarantorPhotoFile] = useState<File | null>(null);
+  const guarantorIdAttachmentInputRef = useRef<HTMLInputElement>(null);
+  const guarantorPhotoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!profilePhotoFile) {
@@ -184,6 +205,10 @@ const AgentDashboard = () => {
     location: "",
     serviceType: "",
     notes: "",
+    guarantorFullName: "",
+    guarantorPhone: "",
+    guarantorCity: "",
+    guarantorPrimaryLocation: "",
     experience: "",
     startingPrice: "",
     pricingType: "fixed" as "fixed" | "hourly",
@@ -197,6 +222,19 @@ const AgentDashboard = () => {
   const [bookingActionId, setBookingActionId] = useState<string | null>(null);
   /** Show or hide the full Recent professional bookings table. */
   const [showProfessionalBookingsList, setShowProfessionalBookingsList] = useState(true);
+  const [myReferrals, setMyReferrals] = useState<ReferredStandardAgent[]>([]);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [creatingReferral, setCreatingReferral] = useState(false);
+  const [referralForm, setReferralForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    cityOfResidence: "",
+    primaryLocation: "",
+    whatsapp: "",
+    telegram: "",
+  });
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingProfessional, setEditingProfessional] = useState<MyProfessional | null>(null);
@@ -232,6 +270,8 @@ const AgentDashboard = () => {
         : "bg-amber-100 text-amber-700 border border-amber-200";
 
   const agentTierLabel = me?.agentType === "corporate" ? "Super / Elite" : "Standard";
+  const canReferStandardAgents =
+    me?.role === "SUPER_ELITE_AGENT" || (me?.role === "agent" && me?.agentType === "corporate");
 
   const extractServiceTypeTokens = (value?: string | null) =>
     (value || "")
@@ -266,7 +306,11 @@ const AgentDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (meRes.data.role !== "agent") {
+        if (
+          meRes.data.role !== "agent" &&
+          meRes.data.role !== "STANDARD_AGENT" &&
+          meRes.data.role !== "SUPER_ELITE_AGENT"
+        ) {
           navigate("/dashboard");
           return;
         }
@@ -283,6 +327,19 @@ const AgentDashboard = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMyProfessionals(myRes.data.professionals || []);
+
+        const isSuperElite =
+          meRes.data.role === "SUPER_ELITE_AGENT" ||
+          (meRes.data.role === "agent" && meRes.data.agentType === "corporate");
+        if (isSuperElite) {
+          setReferralLoading(true);
+          const refsRes = await axios.get<{ referrals: ReferredStandardAgent[] }>(
+            "/agents/my-referrals",
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setMyReferrals(refsRes.data.referrals || []);
+          setReferralLoading(false);
+        }
       } catch (e: any) {
         const message =
           e?.response?.data?.message ||
@@ -352,6 +409,55 @@ const AgentDashboard = () => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setDash(dashRes.data);
+  };
+
+  const refreshMyReferrals = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !canReferStandardAgents) return;
+    const refsRes = await axios.get<{ referrals: ReferredStandardAgent[] }>("/agents/my-referrals", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setMyReferrals(refsRes.data.referrals || []);
+  };
+
+  const submitStandardAgentReferral = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token || !canReferStandardAgents) return;
+    try {
+      setCreatingReferral(true);
+      await axios.post(
+        "/agents/refer",
+        {
+          ...referralForm,
+          name: referralForm.name.trim(),
+          email: referralForm.email.trim().toLowerCase(),
+          phone: referralForm.phone.trim(),
+          password: referralForm.password,
+          cityOfResidence: referralForm.cityOfResidence.trim(),
+          primaryLocation: referralForm.primaryLocation.trim(),
+          whatsapp: referralForm.whatsapp.trim(),
+          telegram: referralForm.telegram.trim(),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReferralForm({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        cityOfResidence: "",
+        primaryLocation: "",
+        whatsapp: "",
+        telegram: "",
+      });
+      await refreshMyReferrals();
+      alert("Standard agent referred successfully.");
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || "Failed to create referral");
+    } finally {
+      setCreatingReferral(false);
+    }
   };
 
   const confirmProfessionalBooking = async (bookingId: string) => {
@@ -555,6 +661,24 @@ const AgentDashboard = () => {
         formData.append("idAttachment", idAttachmentFile);
         formData.append("idDocumentType", idDocumentType);
       }
+      if (addForm.guarantorFullName.trim()) {
+        formData.append("guarantorFullName", addForm.guarantorFullName.trim());
+      }
+      if (addForm.guarantorPhone.trim()) {
+        formData.append("guarantorPhone", addForm.guarantorPhone.trim());
+      }
+      if (addForm.guarantorCity.trim()) {
+        formData.append("guarantorCity", addForm.guarantorCity.trim());
+      }
+      if (addForm.guarantorPrimaryLocation.trim()) {
+        formData.append("guarantorPrimaryLocation", addForm.guarantorPrimaryLocation.trim());
+      }
+      if (guarantorIdAttachmentFile) {
+        formData.append("guarantorIdAttachment", guarantorIdAttachmentFile);
+      }
+      if (guarantorPhotoFile) {
+        formData.append("guarantorPhoto", guarantorPhotoFile);
+      }
 
       await axios.post("/agents/my-professionals", formData, {
         headers: { Authorization: `Bearer ${token}` },
@@ -565,6 +689,10 @@ const AgentDashboard = () => {
       setIdAttachmentFile(null);
       setIdDocumentType("");
       if (idAttachmentInputRef.current) idAttachmentInputRef.current.value = "";
+      setGuarantorIdAttachmentFile(null);
+      setGuarantorPhotoFile(null);
+      if (guarantorIdAttachmentInputRef.current) guarantorIdAttachmentInputRef.current.value = "";
+      if (guarantorPhotoInputRef.current) guarantorPhotoInputRef.current.value = "";
 
       setAddForm({
         fullName: "",
@@ -576,6 +704,10 @@ const AgentDashboard = () => {
         location: "",
         serviceType: "",
         notes: "",
+        guarantorFullName: "",
+        guarantorPhone: "",
+        guarantorCity: "",
+        guarantorPrimaryLocation: "",
         experience: "",
         startingPrice: "",
         pricingType: "fixed",
@@ -677,7 +809,7 @@ const AgentDashboard = () => {
           )}
 
           {/* Stats */}
-          {dash && !error && (
+          {dash && !error && canReferStandardAgents && (
             <>
               <div className="relative mt-6 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 xl:grid-cols-4 sm:mt-8 sm:gap-4">
                 <div className="group rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50/95 to-white p-4 shadow-sm ring-1 ring-blue-100/40 transition hover:shadow-md sm:p-5">
@@ -776,6 +908,114 @@ const AgentDashboard = () => {
                   </p>
                 </div>
               </div>
+
+              {canReferStandardAgents && (
+                <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
+                  <div className="rounded-2xl border border-blue-200/70 bg-white p-5 shadow-sm">
+                    <h3 className="text-lg font-semibold text-slate-900">Refer Standard Agent</h3>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Create a new Standard Agent account linked to you.
+                    </p>
+                    <form onSubmit={submitStandardAgentReferral} className="mt-4 grid grid-cols-1 gap-3">
+                      <input
+                        className={brand.input}
+                        placeholder="Full name *"
+                        value={referralForm.name}
+                        onChange={(e) => setReferralForm((prev) => ({ ...prev, name: e.target.value }))}
+                        required
+                      />
+                      <input
+                        type="email"
+                        className={brand.input}
+                        placeholder="Email *"
+                        value={referralForm.email}
+                        onChange={(e) => setReferralForm((prev) => ({ ...prev, email: e.target.value }))}
+                        required
+                      />
+                      <input
+                        className={brand.input}
+                        placeholder="Phone *"
+                        value={referralForm.phone}
+                        onChange={(e) => setReferralForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        required
+                      />
+                      <input
+                        type="password"
+                        className={brand.input}
+                        placeholder="Temporary password *"
+                        value={referralForm.password}
+                        onChange={(e) => setReferralForm((prev) => ({ ...prev, password: e.target.value }))}
+                        required
+                      />
+                      <input
+                        className={brand.input}
+                        placeholder="City of residence"
+                        value={referralForm.cityOfResidence}
+                        onChange={(e) =>
+                          setReferralForm((prev) => ({ ...prev, cityOfResidence: e.target.value }))
+                        }
+                      />
+                      <input
+                        className={brand.input}
+                        placeholder="Primary location *"
+                        value={referralForm.primaryLocation}
+                        onChange={(e) =>
+                          setReferralForm((prev) => ({ ...prev, primaryLocation: e.target.value }))
+                        }
+                        required
+                      />
+                      <button type="submit" className={brand.btnBlue} disabled={creatingReferral}>
+                        {creatingReferral ? "Creating..." : "Create Referral"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="rounded-2xl border border-orange-200/70 bg-white p-5 shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-lg font-semibold text-slate-900">My referred Standard Agents</h3>
+                      <button type="button" onClick={refreshMyReferrals} className={brand.outlineOrange}>
+                        Refresh
+                      </button>
+                    </div>
+                    <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full min-w-[28rem] text-sm">
+                        <thead className="bg-slate-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left font-semibold text-slate-700">Name</th>
+                            <th className="px-3 py-2 text-left font-semibold text-slate-700">Email</th>
+                            <th className="px-3 py-2 text-left font-semibold text-slate-700">Joined</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {myReferrals.map((r) => (
+                            <tr key={r._id}>
+                              <td className="px-3 py-2 text-slate-800">{r.name}</td>
+                              <td className="px-3 py-2 text-slate-700">{r.email}</td>
+                              <td className="px-3 py-2 text-slate-600">
+                                {new Date(r.createdAt).toLocaleDateString()}
+                              </td>
+                            </tr>
+                          ))}
+                          {!referralLoading && myReferrals.length === 0 && (
+                            <tr>
+                              <td className="px-3 py-4 text-slate-500" colSpan={3}>
+                                No referrals yet.
+                              </td>
+                            </tr>
+                          )}
+                          {referralLoading && (
+                            <tr>
+                              <td className="px-3 py-4 text-slate-500" colSpan={3}>
+                                Loading referrals...
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Bookings for your listed professionals — full list shown on demand */}
               <div className="mt-8">
@@ -892,6 +1132,14 @@ const AgentDashboard = () => {
                                 <span className="line-clamp-3 break-words" title={b.note || undefined}>
                                   {b.note?.trim() ? b.note : "—"}
                                 </span>
+                                {b.serviceSeekerRequirements?.trim() && (
+                                  <span
+                                    className="mt-1 block line-clamp-3 break-words text-orange-700"
+                                    title={b.serviceSeekerRequirements}
+                                  >
+                                    Req: {b.serviceSeekerRequirements}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-4 py-3 text-right whitespace-nowrap">
                                 <div className="inline-flex flex-wrap items-center justify-end gap-2">
@@ -936,7 +1184,31 @@ const AgentDashboard = () => {
             </>
           )}
 
+          {!canReferStandardAgents && (
+            <div className="mt-8 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-slate-900">My profile</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Standard Agent access is limited to personal account information.
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Name</div>
+                  <div className="mt-1 text-sm font-medium text-slate-900">{me?.name || "—"}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</div>
+                  <div className="mt-1 text-sm font-medium text-slate-900">{me?.email || "—"}</div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Role</div>
+                  <div className="mt-1 text-sm font-medium text-slate-900">Standard Agent</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Add / My Professionals */}
+          {canReferStandardAgents && (
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
             <div className="rounded-2xl border border-slate-200/80 p-5 sm:p-6 bg-gradient-to-br from-blue-50/35 via-white to-white shadow-sm ring-1 ring-slate-900/[0.03]">
               <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Add professional</h2>
@@ -1007,6 +1279,46 @@ const AgentDashboard = () => {
                       value={addForm.location}
                       onChange={(e) =>
                         setAddForm({ ...addForm, location: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200/70 p-4 sm:p-5 bg-white/90 shadow-sm">
+                  <div className="text-sm font-semibold text-slate-900 mb-3">
+                    Guarantor (optional)
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      className={brand.input}
+                      placeholder="Guarantor Full Name"
+                      value={addForm.guarantorFullName}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, guarantorFullName: e.target.value })
+                      }
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="Guarantor Phone"
+                      value={addForm.guarantorPhone}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, guarantorPhone: e.target.value })
+                      }
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="Guarantor City"
+                      value={addForm.guarantorCity}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, guarantorCity: e.target.value })
+                      }
+                    />
+                    <input
+                      className={brand.input}
+                      placeholder="Guarantor Primary Location"
+                      value={addForm.guarantorPrimaryLocation}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, guarantorPrimaryLocation: e.target.value })
                       }
                     />
                   </div>
@@ -1159,6 +1471,45 @@ const AgentDashboard = () => {
                       {idAttachmentFile && (
                         <div className="text-xs text-gray-600 truncate" title={idAttachmentFile.name}>
                           Selected: {idAttachmentFile.name}
+                        </div>
+                      )}
+                    </div>
+                    <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50/80 p-3 space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Guarantor attachment (optional)
+                      </label>
+                      <p className="text-xs text-gray-600">
+                        Guarantor Fayda, Kebele ID, or Passport.
+                      </p>
+                      <input
+                        ref={guarantorIdAttachmentInputRef}
+                        type="file"
+                        accept="image/*,.pdf,application/pdf"
+                        onChange={(e) =>
+                          setGuarantorIdAttachmentFile(e.target.files?.[0] || null)
+                        }
+                        className="w-full sm:w-auto text-sm"
+                      />
+                      {guarantorIdAttachmentFile && (
+                        <div className="text-xs text-gray-600 truncate" title={guarantorIdAttachmentFile.name}>
+                          Selected: {guarantorIdAttachmentFile.name}
+                        </div>
+                      )}
+                    </div>
+                    <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50/80 p-3 space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Guarantor photo (optional)
+                      </label>
+                      <input
+                        ref={guarantorPhotoInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setGuarantorPhotoFile(e.target.files?.[0] || null)}
+                        className="w-full sm:w-auto text-sm"
+                      />
+                      {guarantorPhotoFile && (
+                        <div className="text-xs text-gray-600 truncate" title={guarantorPhotoFile.name}>
+                          Selected: {guarantorPhotoFile.name}
                         </div>
                       )}
                     </div>
@@ -1399,6 +1750,7 @@ const AgentDashboard = () => {
               </div>
             </div>
           </div>
+          )}
 
           {editModalOpen && editingProfessional && (
             <div

@@ -10,6 +10,8 @@ interface ProviderDocuments {
   professionalCertificate?: string | null;
   bbDocuments?: string | null;
   priceList?: string | null;
+  guarantorIdAttachment?: string | null;
+  guarantorPhoto?: string | null;
   photo?: string | null;
   video?: string | null;
   servicePhotos?: string[];
@@ -24,6 +26,10 @@ interface Provider {
   location?: string;
   serviceType?: string;
   subRole?: string;
+  guarantorFullName?: string;
+  guarantorPhone?: string;
+  guarantorCity?: string;
+  guarantorPrimaryLocation?: string;
   createdAt: string;
   isVerified: boolean;
   verificationStatus: VerificationStatus;
@@ -124,6 +130,8 @@ const AdminProvidersList = () => {
       { label: "Professional Certificate", url: provider.documents.professionalCertificate },
       { label: "BB documents", url: provider.documents.bbDocuments },
       { label: "Price List", url: provider.documents.priceList },
+      { label: "Guarantor ID", url: provider.documents.guarantorIdAttachment },
+      { label: "Guarantor Photo", url: provider.documents.guarantorPhoto },
       { label: "Brand Photo", url: provider.documents.photo },
       { label: "Intro Video", url: provider.documents.video },
     ].filter((doc) => !!doc.url);
@@ -257,6 +265,21 @@ const AdminProvidersList = () => {
                   {provider.serviceType && (
                     <p className="mt-1 text-sm text-gray-500">
                       Service Type: <span className="font-medium text-gray-700">{provider.serviceType}</span>
+                    </p>
+                  )}
+                  {(provider.guarantorFullName || provider.guarantorPhone || provider.guarantorCity || provider.guarantorPrimaryLocation) && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      Guarantor:{" "}
+                      <span className="font-medium text-gray-700">
+                        {[
+                          provider.guarantorFullName,
+                          provider.guarantorPhone,
+                          provider.guarantorCity,
+                          provider.guarantorPrimaryLocation,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ")}
+                      </span>
                     </p>
                   )}
                 </div>

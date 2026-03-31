@@ -800,6 +800,7 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
       time,
       amountEtb,
       location,
+      serviceSeekerRequirements,
       note,
     } = payload;
     const html = `
@@ -817,6 +818,7 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
     <tr><td style="padding: 6px 0;"><strong>Time</strong></td><td>${time}</td></tr>
     <tr><td style="padding: 6px 0;"><strong>Amount (ETB)</strong></td><td>${amountEtb}</td></tr>
     <tr><td style="padding: 6px 0;"><strong>Location</strong></td><td>${location || "—"}</td></tr>
+    <tr><td style="padding: 6px 0;"><strong>Seeker requirements</strong></td><td>${serviceSeekerRequirements || "—"}</td></tr>
     <tr><td style="padding: 6px 0;"><strong>Notes</strong></td><td>${note || "—"}</td></tr>
   </table>
   <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">HomeHub Digital Solutions</p>
@@ -937,6 +939,7 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
       time,
       location,
       priceEtb,
+      serviceSeekerRequirements,
       note,
     } = payload;
 
@@ -958,6 +961,7 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
             <li><strong>Time:</strong> ${time}</li>
             <li><strong>Location:</strong> ${location || "To be determined"}</li>
             <li><strong>Amount:</strong> ${priceEtb} ETB</li>
+            <li><strong>Service Seeker Requirements:</strong> ${serviceSeekerRequirements || "Not provided"}</li>
             <li><strong>Note:</strong> ${note || "No note"}</li>
           </ul>
           <p>Please review and prepare for the appointment.</p>
@@ -1016,6 +1020,69 @@ const sendDebugEmail = async (toEmail) => {
   }
 };
 
+const sendStandardAgentReferralInvitationEmail = async (userEmail, userName, referrerName) => {
+  try {
+    const mailOptions = {
+      from: mailFromHeader(),
+      to: userEmail,
+      subject: "You were invited to HomeHub as a Standard Agent",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #2E3DD3;">Welcome to HomeHub</h2>
+          <p>Hi ${userName || "there"},</p>
+          <p>You were invited by <strong>${referrerName || "a Super / Elite Agent"}</strong> to join HomeHub as a Standard Agent.</p>
+          <p>Your account has been created. Please log in and complete your profile.</p>
+          <p>
+            <a href="https://homehubdigital.netlify.app/login" style="display:inline-block;padding:10px 16px;background:#2E3DD3;color:#fff;text-decoration:none;border-radius:8px;">
+              Login to HomeHub
+            </a>
+          </p>
+        </div>
+      `,
+      text: `Hi ${userName || "there"}, you were invited by ${referrerName || "a Super / Elite Agent"} to join HomeHub as a Standard Agent.`,
+    };
+
+    const result = await verifyAndSendMail(mailOptions, "standard-agent-referral-invite");
+    return result.success
+      ? { success: true, messageId: result.messageId }
+      : { success: false, error: result.userMessage || result.error };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+const sendReferrerReferralCreatedEmail = async (toEmail, referrerName, referredName, referredEmail) => {
+  if (!toEmail || !String(toEmail).includes("@")) {
+    return { success: false, error: "No valid email" };
+  }
+  try {
+    const mailOptions = {
+      from: mailFromHeader(),
+      to: toEmail,
+      subject: "Your Standard Agent referral was created",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #2E3DD3;">Referral created</h2>
+          <p>Hi ${referrerName || "Agent"},</p>
+          <p>You successfully referred a new Standard Agent.</p>
+          <ul>
+            <li><strong>Name:</strong> ${referredName || "N/A"}</li>
+            <li><strong>Email:</strong> ${referredEmail || "N/A"}</li>
+          </ul>
+        </div>
+      `,
+      text: `Hi ${referrerName || "Agent"}, your referral was created for ${referredName || "N/A"} (${referredEmail || "N/A"}).`,
+    };
+
+    const result = await verifyAndSendMail(mailOptions, "referrer-referral-created");
+    return result.success
+      ? { success: true, messageId: result.messageId }
+      : { success: false, error: result.userMessage || result.error };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   getSmtpUser,
   getSmtpPass,
@@ -1031,6 +1098,8 @@ module.exports = {
   sendServiceRequestConfirmationEmail,
   sendInternalServiceRequestAlert,
   sendDebugEmail,
+  sendStandardAgentReferralInvitationEmail,
+  sendReferrerReferralCreatedEmail,
   verifyAndSendMail,
   getEnvDebugInfo,
 };

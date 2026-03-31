@@ -179,6 +179,7 @@ const sendProviderBookingNotification = async ({ provider, bookingDetails, custo
       location: bookingDetails.location,
       priceEtb: bookingDetails.price,
       note: bookingDetails.note || "",
+      serviceSeekerRequirements: bookingDetails.serviceSeekerRequirements || "",
     }
   );
 };

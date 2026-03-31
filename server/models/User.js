@@ -31,7 +31,17 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["seeker", "provider", "agent", "admin", "superadmin", "support", "marketing"],
+      enum: [
+        "seeker",
+        "provider",
+        "agent",
+        "STANDARD_AGENT",
+        "SUPER_ELITE_AGENT",
+        "admin",
+        "superadmin",
+        "support",
+        "marketing",
+      ],
       default: "seeker",
     },
     loyaltyPoints: {
@@ -136,6 +146,13 @@ const userSchema = new mongoose.Schema(
     /** BB documents (optional business / bureau paperwork for service providers) */
     bbDocuments: { type: String },
     credentials: [{ type: String }], // Additional credential uploads
+    // Optional guarantor details for provider/professional registration
+    guarantorFullName: { type: String },
+    guarantorPhone: { type: String },
+    guarantorCity: { type: String },
+    guarantorPrimaryLocation: { type: String },
+    guarantorIdAttachment: { type: String },
+    guarantorPhoto: { type: String },
     
     // Provider duty status
     isOnDuty: { type: Boolean, default: false },

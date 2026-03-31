@@ -6,6 +6,7 @@ interface Booking {
   _id: string;
   date: string;
   time?: string;
+  serviceSeekerRequirements?: string;
   note?: string;
   status: string;
   fullName?: string;
@@ -260,6 +261,15 @@ const ProviderBookings = () => {
                             <div>
                               <p className="text-sm text-gray-500">Note</p>
                               <p className="font-medium text-gray-700 italic">"{booking.note}"</p>
+                            </div>
+                          </div>
+                        )}
+                        {booking.serviceSeekerRequirements && (
+                          <div className="flex items-start gap-3">
+                            <FileText className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm text-gray-500">Service Seeker Requirements</p>
+                              <p className="font-medium text-orange-700">"{booking.serviceSeekerRequirements}"</p>
                             </div>
                           </div>
                         )}

@@ -57,6 +57,8 @@ const REGISTER_UPLOAD_FIELDS = [
   { name: "video", maxCount: 1 },
   { name: "priceList", maxCount: 1 },
   { name: "bbDocuments", maxCount: 1 },
+  { name: "guarantorIdAttachment", maxCount: 1 },
+  { name: "guarantorPhoto", maxCount: 1 },
   { name: "agentIdDocument", maxCount: 1 },
   { name: "agentWorkExperience", maxCount: 1 },
   { name: "agentPhoto", maxCount: 1 },
@@ -133,6 +135,10 @@ router.post(
       gender,
       femaleLedOrOwned,
       workExperience,
+      guarantorFullName,
+      guarantorPhone,
+      guarantorCity,
+      guarantorPrimaryLocation,
       // Agent fields
       agentType,
       agentTin,
@@ -160,6 +166,7 @@ router.post(
     const phoneNorm = normalizePhoneInput(phone);
     const altPhoneNorm = normalizePhoneInput(alternativePhone);
     const officePhoneNorm = normalizePhoneInput(officePhone);
+    const guarantorPhoneNorm = normalizePhoneInput(req.body.guarantorPhone);
 
     if (!isValidE164ishPhone(phoneNorm)) {
       return res.status(400).json({
@@ -172,6 +179,9 @@ router.post(
     }
     if (officePhone && !isValidE164ishPhone(officePhoneNorm)) {
       return res.status(400).json({ message: "Invalid office phone format." });
+    }
+    if (req.body.guarantorPhone && !isValidE164ishPhone(guarantorPhoneNorm)) {
+      return res.status(400).json({ message: "Invalid guarantor phone format." });
     }
 
     if (role === "seeker") {
@@ -386,6 +396,25 @@ router.post(
         if (req.files.bbDocuments) {
           userData.bbDocuments = getFileUrl(req.files.bbDocuments[0]);
         }
+        if (req.files.guarantorIdAttachment) {
+          userData.guarantorIdAttachment = getFileUrl(req.files.guarantorIdAttachment[0]);
+        }
+        if (req.files.guarantorPhoto) {
+          userData.guarantorPhoto = getFileUrl(req.files.guarantorPhoto[0]);
+        }
+      }
+
+      if (guarantorFullName) {
+        userData.guarantorFullName = guarantorFullName;
+      }
+      if (guarantorPhone) {
+        userData.guarantorPhone = guarantorPhoneNorm || guarantorPhone;
+      }
+      if (guarantorCity) {
+        userData.guarantorCity = guarantorCity;
+      }
+      if (guarantorPrimaryLocation) {
+        userData.guarantorPrimaryLocation = guarantorPrimaryLocation;
       }
     } else if (role === "agent") {
       // Agent registration (individual or corporate)

@@ -169,6 +169,10 @@ const formatProviderResponse = (providerDoc, req) => {
     location: provider.location,
     serviceType: provider.serviceType,
     subRole: provider.subRole,
+    guarantorFullName: provider.guarantorFullName,
+    guarantorPhone: provider.guarantorPhone,
+    guarantorCity: provider.guarantorCity,
+    guarantorPrimaryLocation: provider.guarantorPrimaryLocation,
     createdAt: provider.createdAt,
     isVerified: provider.isVerified,
     verificationStatus: provider.verificationStatus,
@@ -183,6 +187,8 @@ const formatProviderResponse = (providerDoc, req) => {
       professionalCertificate: toPublicFileUrl(req, provider.professionalCertificate),
       bbDocuments: toPublicFileUrl(req, provider.bbDocuments),
       priceList: toPublicFileUrl(req, provider.priceList),
+      guarantorIdAttachment: toPublicFileUrl(req, provider.guarantorIdAttachment),
+      guarantorPhoto: toPublicFileUrl(req, provider.guarantorPhoto),
       photo: toPublicFileUrl(req, provider.photo),
       video: toPublicFileUrl(req, provider.video),
       servicePhotos: Array.isArray(provider.servicePhotos)
@@ -293,7 +299,7 @@ router.get("/admin/agents", authMiddleware, async (req, res) => {
   }
 
   try {
-    const agents = await User.find({ role: "agent" })
+    const agents = await User.find({ role: { $in: ["agent", "STANDARD_AGENT", "SUPER_ELITE_AGENT"] } })
       .select("-password")
       .sort({ createdAt: -1 });
 
@@ -318,7 +324,7 @@ router.patch("/admin/agents/:agentId/enable", authMiddleware, async (req, res) =
 
   try {
     const agent = await User.findOneAndUpdate(
-      { _id: req.params.agentId, role: "agent" },
+      { _id: req.params.agentId, role: { $in: ["agent", "STANDARD_AGENT", "SUPER_ELITE_AGENT"] } },
       { agentEnabled: enabled },
       { new: true }
     ).select("-password");
