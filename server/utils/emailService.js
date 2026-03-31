@@ -1,42 +1,147 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require("resend");
 
 const getSmtpUser = () =>
-  String(process.env.EMAIL_USER || process.env.SMTP_USER || "").trim();
-
-const getSmtpPass = () =>
   String(
-    process.env.EMAIL_PASSWORD ||
-      process.env.EMAIL_PASS ||
-      process.env.SMTP_PASS ||
-      process.env.SMTP_PASSWORD ||
+    process.env.EMAIL_FROM ||
+      process.env.RESEND_FROM_EMAIL ||
+      process.env.RESEND_FROM ||
+      process.env.EMAIL_USER ||
       ""
   ).trim();
 
-const isSmtpConfigured = () => Boolean(getSmtpUser() && getSmtpPass());
+const getSmtpPass = () => "";
+
+const getResendApiKey = () => String(process.env.RESEND_API_KEY || "").trim();
+
+const isSmtpConfigured = () => Boolean(getResendApiKey() && getSmtpUser());
 
 const mailFromHeader = () =>
   `"HomeHub Digital Solutions" <${getSmtpUser()}>`;
 
-// Create transporter (Gmail by default; optional SMTP_HOST for SendGrid, SES, etc.)
-const createTransporter = () => {
-  const user = getSmtpUser();
-  const pass = getSmtpPass();
-  const host = String(process.env.SMTP_HOST || "").trim();
-  if (host) {
-    const port = Number(process.env.SMTP_PORT || 587);
-    const secure =
-      String(process.env.SMTP_SECURE || "").trim() === "1" || port === 465;
-    return nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: { user, pass },
-    });
+const getMaskedValue = (value) => {
+  if (!value) return null;
+  if (value.length <= 4) return "****";
+  return `${value.slice(0, 2)}***${value.slice(-2)}`;
+};
+
+const getEnvDebugInfo = () => {
+  const fromEmail = getSmtpUser();
+  const apiKey = getResendApiKey();
+  return {
+    nodeEnv: process.env.NODE_ENV || "development",
+    emailProvider: "resend-api",
+    resendApiKeyLoaded: Boolean(apiKey),
+    resendApiKeyMasked: getMaskedValue(apiKey),
+    emailFromLoaded: Boolean(fromEmail),
+    emailFromMasked: getMaskedValue(fromEmail),
+    // SMTP commonly fails on many PaaS platforms due to blocked outbound SMTP ports.
+    // API-based email works over HTTPS (443), which is usually open in production.
+    smtpFallbackReason:
+      "SMTP removed: Render and similar hosts may block SMTP egress (ports 465/587).",
+  };
+};
+
+const classifyEmailError = (error) => {
+  const raw = (error && (error.message || error.response || error.code || String(error))) || "Unknown email error";
+  const message = String(raw);
+  const lower = message.toLowerCase();
+
+  if (lower.includes("invalid login") || lower.includes("auth") || lower.includes("535") || lower.includes("username and password not accepted")) {
+    return {
+      type: "AUTH_FAILED",
+      userMessage: "Authentication failed. Verify RESEND_API_KEY is valid and the sender domain/email is verified in your provider.",
+    };
   }
-  return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
-    auth: { user, pass },
-  });
+  if (lower.includes("missing credentials") || lower.includes("no recipients defined")) {
+    return {
+      type: "MISSING_CREDENTIALS",
+      userMessage: "Missing email API configuration or recipient. Ensure RESEND_API_KEY, EMAIL_FROM/RESEND_FROM_EMAIL, and recipient are set.",
+    };
+  }
+  return {
+    type: "UNKNOWN",
+    userMessage: message,
+  };
+};
+
+const verifyAndSendMail = async (mailOptions, contextLabel = "generic-email") => {
+  const envDebug = getEnvDebugInfo();
+  try {
+    return await sendEmail(
+      {
+        to: mailOptions.to,
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+        text: mailOptions.text,
+        from: mailOptions.from,
+      },
+      contextLabel
+    );
+  } catch (error) {
+    const classified = classifyEmailError(error);
+    return {
+      success: false,
+      errorType: classified.type,
+      error: error && error.message ? error.message : "Email send failed",
+      userMessage: classified.userMessage || "Failed to send email.",
+      env: envDebug,
+    };
+  }
+};
+
+const sendEmail = async ({ to, subject, html, text, from }, contextLabel = "generic-email") => {
+  const envDebug = getEnvDebugInfo();
+  try {
+    const apiKey = getResendApiKey();
+    const fromAddress = String(from || mailFromHeader()).trim();
+
+    if (!apiKey || !fromAddress) {
+      const details = {
+        success: false,
+        errorType: "MISSING_CREDENTIALS",
+        error: "Email API not configured",
+        userMessage: "Missing RESEND_API_KEY or EMAIL_FROM/RESEND_FROM_EMAIL.",
+        env: envDebug,
+      };
+      console.error(`[email][${contextLabel}] Missing email API credentials`, details);
+      return details;
+    }
+
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
+      from: fromAddress,
+      to,
+      subject,
+      html,
+      text,
+    });
+
+    if (error) {
+      const message = error.message || JSON.stringify(error);
+      throw new Error(message);
+    }
+
+    return {
+      success: true,
+      messageId: data && data.id ? data.id : null,
+      provider: "resend",
+      env: envDebug,
+    };
+  } catch (error) {
+    const classified = classifyEmailError(error);
+    console.error(`[email][${contextLabel}] Resend API send failed`, {
+      message: error && error.message ? error.message : "Unknown error",
+      suggestion: classified.userMessage,
+      env: envDebug,
+    });
+    return {
+      success: false,
+      errorType: classified.type,
+      error: error && error.message ? error.message : "Email send failed",
+      userMessage: classified.userMessage,
+      env: envDebug,
+    };
+  }
 };
 
 // Stylish HTML email template for welcome message
@@ -261,8 +366,6 @@ const getWelcomeEmailWithReferralTemplate = (userName, referralCode) => {
 // Send welcome email
 const sendWelcomeEmail = async (userEmail, userName, userRole) => {
   try {
-    const transporter = createTransporter();
-    
     const mailOptions = {
       from: mailFromHeader(),
       to: userEmail,
@@ -271,9 +374,13 @@ const sendWelcomeEmail = async (userEmail, userName, userRole) => {
           text: `Welcome to HomeHub, ${userName}! Your ${userRole} account has been successfully created. Visit https://homehubdigital.netlify.app/ to get started.`
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Welcome email sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "welcome-email");
+    if (result.success) {
+      console.log('✅ Welcome email sent successfully:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    }
+    console.error('❌ Error sending welcome email:', result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error('❌ Error sending welcome email:', error);
     return { success: false, error: error.message };
@@ -283,8 +390,6 @@ const sendWelcomeEmail = async (userEmail, userName, userRole) => {
 // Send welcome email with referral code
 const sendWelcomeEmailWithReferral = async (userEmail, userName, referralCode) => {
   try {
-    const transporter = createTransporter();
-    
     const mailOptions = {
       from: mailFromHeader(),
       to: userEmail,
@@ -293,9 +398,13 @@ const sendWelcomeEmailWithReferral = async (userEmail, userName, referralCode) =
       text: `Welcome to HomeHub, ${userName}! Your account has been successfully created. Your unique referral code is: ${referralCode}. Share it with friends to earn rewards! Visit https://homehubdigital.netlify.app/ to get started.`
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Welcome email with referral code sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "welcome-email-referral");
+    if (result.success) {
+      console.log('✅ Welcome email with referral code sent successfully:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    }
+    console.error('❌ Error sending welcome email with referral:', result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error('❌ Error sending welcome email with referral:', error);
     return { success: false, error: error.message };
@@ -361,8 +470,6 @@ const getVerificationEmailTemplate = (userName, providerName) => {
 // Send service published notification
 const sendServicePublishedEmail = async (userEmail, userName, providerName) => {
   try {
-    const transporter = createTransporter();
-    
     const mailOptions = {
       from: mailFromHeader(),
       to: userEmail,
@@ -370,9 +477,13 @@ const sendServicePublishedEmail = async (userEmail, userName, providerName) => {
       html: getVerificationEmailTemplate(userName, providerName)
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Service published email sent:', info.messageId);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "service-published-email");
+    if (result.success) {
+      console.log('✅ Service published email sent:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    }
+    console.error('❌ Error sending service email:', result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error('❌ Error sending service email:', error);
     return { success: false, error: error.message };
@@ -527,12 +638,10 @@ const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails)
   try {
     if (!isSmtpConfigured()) {
       console.warn(
-        "[email] Booking confirmation skipped: set EMAIL_USER and EMAIL_PASSWORD (or SMTP_USER / SMTP_PASS) on the server."
+        "[email] Booking confirmation skipped: set RESEND_API_KEY and EMAIL_FROM (or RESEND_FROM_EMAIL) on the server."
       );
       return { success: false, error: "Email not configured" };
     }
-    const transporter = createTransporter();
-    
     const mailOptions = {
       from: mailFromHeader(),
       to: userEmail,
@@ -541,9 +650,13 @@ const sendBookingConfirmationEmail = async (userEmail, userName, bookingDetails)
       text: `Hi ${userName}, Your HomeHub booking has been confirmed! Service: ${bookingDetails.serviceName}, Date: ${bookingDetails.date}, Time: ${bookingDetails.time}, Total: ${bookingDetails.price} ETB`
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Booking confirmation email sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "booking-confirmation-email");
+    if (result.success) {
+      console.log('✅ Booking confirmation email sent successfully:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    }
+    console.error('❌ Error sending booking confirmation email:', result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error('❌ Error sending booking confirmation email:', error);
     return { success: false, error: error.message };
@@ -644,8 +757,6 @@ const getPasswordResetEmailTemplate = (userName, resetToken) => {
 // Send password reset email
 const sendPasswordResetEmail = async (userEmail, userName, resetToken) => {
   try {
-    const transporter = createTransporter();
-    
     const mailOptions = {
       from: mailFromHeader(),
       to: userEmail,
@@ -654,9 +765,13 @@ const sendPasswordResetEmail = async (userEmail, userName, resetToken) => {
       text: `Hello ${userName}, Please reset your password by clicking this link: https://homehubdigital.netlify.app/reset-password?token=${resetToken}`
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Password reset email sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "password-reset-email");
+    if (result.success) {
+      console.log('✅ Password reset email sent successfully:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    }
+    console.error('❌ Error sending password reset email:', result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error('❌ Error sending password reset email:', error);
     return { success: false, error: error.message };
@@ -671,11 +786,10 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
   try {
     if (!isSmtpConfigured()) {
       console.warn(
-        "[email] Internal professional booking alert skipped: EMAIL_USER / EMAIL_PASSWORD not set."
+        "[email] Internal professional booking alert skipped: RESEND_API_KEY / EMAIL_FROM not set."
       );
       return { success: false, error: "Email not configured" };
     }
-    const transporter = createTransporter();
     const {
       professionalName,
       serviceLabel,
@@ -714,8 +828,12 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
       html,
       text: `Professional booking: ${professionalName} for ${customerName} on ${date} at ${time}. Amount: ${amountEtb} ETB.`,
     };
-    const info = await transporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "internal-professional-booking-alert");
+    if (result.success) {
+      return { success: true, messageId: result.messageId };
+    }
+    console.error("❌ Internal professional booking alert email failed:", result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error("❌ Internal professional booking alert email failed:", error);
     return { success: false, error: error.message };
@@ -724,7 +842,6 @@ const sendInternalProfessionalBookingAlert = async (toEmail, recipientLabel, pay
 
 const sendServiceRequestConfirmationEmail = async (userEmail, userName, requestDetails) => {
   try {
-    const transporter = createTransporter();
     const preferredDateText = requestDetails.preferredDate
       ? new Date(requestDetails.preferredDate).toLocaleString()
       : "Flexible";
@@ -750,8 +867,12 @@ const sendServiceRequestConfirmationEmail = async (userEmail, userName, requestD
       text: `Hi ${userName}, we received your service request (${requestDetails.requestId}) for ${requestDetails.serviceNeeded}.`,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "service-request-confirmation-email");
+    if (result.success) {
+      return { success: true, messageId: result.messageId };
+    }
+    console.error("❌ Error sending service request confirmation email:", result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error("❌ Error sending service request confirmation email:", error);
     return { success: false, error: error.message };
@@ -763,7 +884,6 @@ const sendInternalServiceRequestAlert = async (toEmail, payload) => {
     return { success: false, error: "No valid email" };
   }
   try {
-    const transporter = createTransporter();
     const mailOptions = {
       from: mailFromHeader(),
       to: toEmail,
@@ -785,8 +905,12 @@ const sendInternalServiceRequestAlert = async (toEmail, payload) => {
       `,
       text: `New service request ${payload.requestId} from ${payload.requesterName} (${payload.requesterEmail})`,
     };
-    const info = await transporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "internal-service-request-alert");
+    if (result.success) {
+      return { success: true, messageId: result.messageId };
+    }
+    console.error("❌ Error sending internal service request alert:", result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error("❌ Error sending internal service request alert:", error);
     return { success: false, error: error.message };
@@ -800,11 +924,10 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
   try {
     if (!isSmtpConfigured()) {
       console.warn(
-        "[email] Provider booking alert skipped: EMAIL_USER / EMAIL_PASSWORD (or SMTP_*) not set on server."
+        "[email] Provider booking alert skipped: RESEND_API_KEY and EMAIL_FROM (or RESEND_FROM_EMAIL) not set on server."
       );
       return { success: false, error: "Email not configured" };
     }
-    const transporter = createTransporter();
     const {
       serviceName,
       customerName,
@@ -843,11 +966,53 @@ const sendProviderBookingAlertEmail = async (toEmail, providerName, payload) => 
       text: `New booking for ${serviceName}. Customer: ${customerName || "Customer"}, Date: ${date} ${time}, Amount: ${priceEtb} ETB.`,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
+    const result = await verifyAndSendMail(mailOptions, "provider-booking-alert-email");
+    if (result.success) {
+      return { success: true, messageId: result.messageId };
+    }
+    console.error("❌ Error sending provider booking alert email:", result);
+    return { success: false, error: result.userMessage || result.error };
   } catch (error) {
     console.error("❌ Error sending provider booking alert email:", error);
     return { success: false, error: error.message };
+  }
+};
+
+const sendDebugEmail = async (toEmail) => {
+  try {
+    const recipient = String(toEmail || getSmtpUser() || "").trim();
+    if (!recipient || !recipient.includes("@")) {
+      return {
+        success: false,
+        error: "Missing or invalid debug recipient email.",
+        env: getEnvDebugInfo(),
+      };
+    }
+
+    const mailOptions = {
+      from: mailFromHeader(),
+      to: recipient,
+      subject: "HomeHub email API debug test",
+      text: `Email API debug test from HomeHub.\nEnvironment: ${process.env.NODE_ENV || "development"}\nTimestamp: ${new Date().toISOString()}`,
+      html: `
+        <div style="font-family: Arial, sans-serif;">
+          <h3>HomeHub email API debug test</h3>
+          <p>This test email confirms whether API-based email delivery works from the current environment.</p>
+          <p><strong>Environment:</strong> ${process.env.NODE_ENV || "development"}</p>
+          <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+        </div>
+      `,
+    };
+
+    return await verifyAndSendMail(mailOptions, "debug-email-endpoint");
+  } catch (error) {
+    return {
+      success: false,
+      errorType: "UNKNOWN",
+      error: error && error.message ? error.message : "Unexpected debug email error",
+      userMessage: "Debug email failed unexpectedly.",
+      env: getEnvDebugInfo(),
+    };
   }
 };
 
@@ -855,6 +1020,7 @@ module.exports = {
   getSmtpUser,
   getSmtpPass,
   isSmtpConfigured,
+  sendEmail,
   sendWelcomeEmail,
   sendWelcomeEmailWithReferral,
   sendServicePublishedEmail,
@@ -864,6 +1030,8 @@ module.exports = {
   sendProviderBookingAlertEmail,
   sendServiceRequestConfirmationEmail,
   sendInternalServiceRequestAlert,
-  createTransporter,
+  sendDebugEmail,
+  verifyAndSendMail,
+  getEnvDebugInfo,
 };
 

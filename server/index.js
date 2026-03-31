@@ -2,22 +2,26 @@
 const dotenv = require("dotenv");
 const path = require("path");
 
-// Load .env file from server directory
-const envPath = path.join(__dirname, '.env');
-const result = dotenv.config({ path: envPath });
+if (process.env.NODE_ENV !== "production") {
+  // Load .env file from server directory for local/dev only
+  const envPath = path.join(__dirname, '.env');
+  const result = dotenv.config({ path: envPath });
 
-if (result.error) {
-  console.warn("⚠️  Warning: .env file not found or error loading it:", result.error.message);
-  console.log("📁 Looking for .env at:", envPath);
-} else {
-  console.log("✅ Environment variables loaded from .env file");
-  // Log that MONGO_URI is loaded (without showing the actual value)
-  if (process.env.MONGO_URI) {
-    const mongoURIPreview = process.env.MONGO_URI.includes('@') 
-      ? process.env.MONGO_URI.split('@')[1] 
-      : process.env.MONGO_URI;
-    console.log("📦 MONGO_URI loaded:", mongoURIPreview.substring(0, 50) + "...");
+  if (result.error) {
+    console.warn("⚠️  Warning: .env file not found or error loading it:", result.error.message);
+    console.log("📁 Looking for .env at:", envPath);
+  } else {
+    console.log("✅ Environment variables loaded from .env file");
+    // Log that MONGO_URI is loaded (without showing the actual value)
+    if (process.env.MONGO_URI) {
+      const mongoURIPreview = process.env.MONGO_URI.includes('@')
+        ? process.env.MONGO_URI.split('@')[1]
+        : process.env.MONGO_URI;
+      console.log("📦 MONGO_URI loaded:", mongoURIPreview.substring(0, 50) + "...");
+    }
   }
+} else {
+  console.log("✅ Production mode detected: using platform environment variables");
 }
 
 const express = require("express");
@@ -25,6 +29,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const session = require("express-session");
 const passport = require("./config/passport");
+const { sendDebugEmail, getEnvDebugInfo } = require("./utils/emailService");
 
 // Initialize Cloudinary if credentials are provided
 if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
@@ -296,6 +301,32 @@ app.get("/api/health/uploads", (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     cloudinaryConfigured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
   });
+});
+
+// Debug email endpoint for API-based delivery (Resend over HTTPS)
+app.get(["/debug-email", "/api/debug-email"], async (req, res) => {
+  try {
+    const to = String(req.query.to || process.env.DEBUG_EMAIL_TO || "").trim();
+    const debugResult = await sendDebugEmail(to);
+    const statusCode = debugResult.success ? 200 : 500;
+
+    return res.status(statusCode).json({
+      ok: debugResult.success,
+      message: debugResult.success
+        ? "Debug email sent successfully"
+        : "Debug email failed",
+      target: to || null,
+      diagnostics: debugResult,
+      env: getEnvDebugInfo(),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: "Debug endpoint failed unexpectedly",
+      error: error && error.message ? error.message : "Unknown error",
+      env: getEnvDebugInfo(),
+    });
+  }
 });
 
 // DB & Server
