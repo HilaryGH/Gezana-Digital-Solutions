@@ -12,6 +12,7 @@ const {
   sendBookingConfirmationNotifications,
   sendProfessionalBookingStakeholderEmails,
   sendProviderBookingNotification,
+  sendBookingInternalAlert,
 } = require("../utils/notificationService");
 const { getDistanceBetween } = require("../utils/geolocation");
 const JWT_SECRET = require("../config/jwt");
@@ -349,6 +350,17 @@ router.post("/", async (req, res) => {
             },
             stakeholderPayload
           );
+          await sendBookingInternalAlert({
+            bookingId: populatedBooking._id,
+            bookingKind: "professional",
+            serviceName: serviceLabel,
+            providerName: proDoc.fullName,
+            customerName: customerInfo.name || "Customer",
+            customerEmail: customerInfo.email || "",
+            date: bookingDetails.date,
+            location: bookingDetails.location,
+            price: priceNum,
+          });
         } catch (notifError) {
           console.error("❌ Error sending professional booking notifications:", notifError);
         }
@@ -619,6 +631,17 @@ router.post("/", async (req, res) => {
           },
           bookingDetails,
           customer: customerInfo,
+        });
+        await sendBookingInternalAlert({
+          bookingId: populatedBooking._id,
+          bookingKind: "service",
+          serviceName: serviceDoc.name,
+          providerName: serviceDoc.provider?.name || "Provider",
+          customerName: customerInfo.name || "Customer",
+          customerEmail: customerInfo.email || "",
+          date: bookingDetails.date,
+          location: bookingDetails.location,
+          price: serviceDoc.price,
         });
         
         console.log("✅ Booking confirmation notifications sent:", notificationResults);

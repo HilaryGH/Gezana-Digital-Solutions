@@ -5,7 +5,10 @@ const User = require("../models/User");
 const Review = require("../models/Review");
 const Booking = require("../models/Booking");
 const upload = require("../middleware/upload");
-const { sendServicePublishedNotifications } = require("../utils/notificationService");
+const {
+  sendServicePublishedNotifications,
+  sendServiceCreatedInternalAlert,
+} = require("../utils/notificationService");
 const { getFileUrl } = require("../utils/fileHelper");
 const { publicApiOrigin } = require("../config/publicApiOrigin");
 
@@ -242,6 +245,17 @@ router.post(
             whatsapp: provider.whatsapp
           }, newService.name);
           console.log("Service published notifications sent:", notificationResults);
+
+          await sendServiceCreatedInternalAlert({
+            serviceId: newService._id,
+            serviceName: newService.name,
+            providerName: provider.name,
+            providerEmail: provider.email,
+            category: newService.category,
+            subcategory: newService.type,
+            price: newService.price,
+            location: newService.location,
+          });
         }
       } catch (notifError) {
         console.error("Error sending service notifications:", notifError);

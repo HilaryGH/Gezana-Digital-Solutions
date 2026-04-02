@@ -37,6 +37,7 @@ import AdminTeamMembers from "../Admin/AdminTeamMembers";
 interface SuperadminStats {
   totalUsers: number;
   totalProviders: number;
+  totalAgents: number;
   totalAdmins: number;
   totalSupport: number;
   totalMarketing: number;
@@ -88,6 +89,40 @@ const formatVerificationStatus = (status: string) => {
   return "Pending";
 };
 
+const managedUserRoleBadgeClass = (role: string) => {
+  switch (role) {
+    case "superadmin":
+      return "bg-purple-100 text-purple-700";
+    case "admin":
+      return "bg-red-100 text-red-700";
+    case "support":
+      return "bg-blue-100 text-blue-700";
+    case "marketing":
+      return "bg-pink-100 text-pink-700";
+    case "STANDARD_AGENT":
+      return "bg-teal-100 text-teal-800";
+    case "SUPER_ELITE_AGENT":
+      return "bg-amber-100 text-amber-900";
+    case "agent":
+      return "bg-slate-100 text-slate-800";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
+
+const formatManagedUserRoleLabel = (role: string) => {
+  switch (role) {
+    case "STANDARD_AGENT":
+      return "Standard Agent";
+    case "SUPER_ELITE_AGENT":
+      return "Super / Elite Agent";
+    case "agent":
+      return "Agent";
+    default:
+      return role.replace(/_/g, " ").toUpperCase();
+  }
+};
+
 const SuperadminDashboard = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -95,6 +130,7 @@ const SuperadminDashboard = () => {
   const [stats, setStats] = useState<SuperadminStats>({
     totalUsers: 0,
     totalProviders: 0,
+    totalAgents: 0,
     totalAdmins: 0,
     totalSupport: 0,
     totalMarketing: 0,
@@ -232,13 +268,24 @@ const SuperadminDashboard = () => {
       // Calculate user stats by role
       const totalUsers = allUsers.length;
       const totalProviders = allUsers.filter(u => u.role === "provider").length;
+      const totalAgents = allUsers.filter(u =>
+        ["agent", "STANDARD_AGENT", "SUPER_ELITE_AGENT"].includes(u.role)
+      ).length;
       const totalAdmins = allUsers.filter(u => u.role === "admin").length;
       const totalSupport = allUsers.filter(u => u.role === "support").length;
       const totalMarketing = allUsers.filter(u => u.role === "marketing").length;
 
-      // Filter admin users (admin, superadmin, support, marketing)
-      const adminUsersList = allUsers.filter(u => 
-        ["admin", "superadmin", "support", "marketing"].includes(u.role)
+      // Staff + agents (Standard / Super-Elite / legacy agent) for superadmin user management
+      const adminUsersList = allUsers.filter(u =>
+        [
+          "admin",
+          "superadmin",
+          "support",
+          "marketing",
+          "agent",
+          "STANDARD_AGENT",
+          "SUPER_ELITE_AGENT",
+        ].includes(u.role)
       );
       setAdminUsers(adminUsersList);
 
@@ -285,6 +332,7 @@ const SuperadminDashboard = () => {
       setStats({
         totalUsers,
         totalProviders,
+        totalAgents,
         totalAdmins,
         totalSupport,
         totalMarketing,
@@ -511,7 +559,7 @@ const SuperadminDashboard = () => {
         </div>
 
         {/* Role Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
@@ -520,6 +568,18 @@ const SuperadminDashboard = () => {
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <Users className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Agents</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalAgents}</p>
+              </div>
+              <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
+                <Handshake className="w-6 h-6 text-teal-700" />
               </div>
             </div>
           </div>
@@ -566,8 +626,10 @@ const SuperadminDashboard = () => {
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Admin Users Management</h2>
-                <p className="text-gray-600 mt-1">Manage all admin, support, and marketing accounts</p>
+                <h2 className="text-2xl font-bold text-gray-900">User management</h2>
+                <p className="text-gray-600 mt-1">
+                  Admin, support, marketing, and agent accounts (including Standard and Super / Elite)
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 <button 
@@ -595,7 +657,7 @@ const SuperadminDashboard = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search admin users..."
+                  placeholder="Search users by name, email, or role..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -635,13 +697,12 @@ const SuperadminDashboard = () => {
                         </td>
                         <td className="py-3 px-4 text-gray-600">{user.email}</td>
                         <td className="py-3 px-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            user.role === "superadmin" ? "bg-purple-100 text-purple-700" :
-                            user.role === "admin" ? "bg-red-100 text-red-700" :
-                            user.role === "support" ? "bg-blue-100 text-blue-700" :
-                            "bg-pink-100 text-pink-700"
-                          }`}>
-                            {user.role.toUpperCase()}
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${managedUserRoleBadgeClass(
+                              user.role
+                            )}`}
+                          >
+                            {formatManagedUserRoleLabel(user.role)}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -682,7 +743,7 @@ const SuperadminDashboard = () => {
             ) : (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No admin users found</p>
+                <p className="text-gray-600">No matching users found</p>
               </div>
             )}
           </div>

@@ -1,5 +1,20 @@
 const mongoose = require("mongoose");
 
+const pointSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      default: undefined
+    }
+  },
+  { _id: false }
+);
+
 const serviceSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -24,15 +39,8 @@ const serviceSchema = new mongoose.Schema(
     location: { type: String }, // Keep for backward compatibility
     // GeoJSON location for geospatial queries
     coordinates: {
-      type: {
-        type: String,
-        enum: ['Point'],
-        default: 'Point'
-      },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        default: undefined
-      }
+      type: pointSchema,
+      default: undefined
     },
     // Convenience fields for easy access (optional, can be derived from coordinates)
     latitude: {
@@ -60,23 +68,60 @@ const serviceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Create 2dsphere index for geospatial queries
-serviceSchema.index({ coordinates: '2dsphere' });
+// Only index services that have valid GeoJSON coordinates.
+serviceSchema.index(
+  { coordinates: '2dsphere' },
+  { sparse: true }
+);
+
+// Normalize possible string/number inputs into a finite number.
+const toFiniteNumber = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
 
 // Pre-save middleware to sync latitude/longitude with coordinates
 serviceSchema.pre('save', function(next) {
-  // If latitude and longitude are provided, update coordinates
-  if (this.latitude != null && this.longitude != null) {
+  const lat = toFiniteNumber(this.latitude);
+  const lon = toFiniteNumber(this.longitude);
+
+  // If latitude and longitude are provided, always construct valid GeoJSON.
+  if (lat != null && lon != null && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+    this.latitude = lat;
+    this.longitude = lon;
     this.coordinates = {
       type: 'Point',
-      coordinates: [this.longitude, this.latitude] // GeoJSON format: [longitude, latitude]
+      coordinates: [lon, lat] // GeoJSON format: [longitude, latitude]
     };
+    return next();
   }
-  // If coordinates are provided, update latitude and longitude
-  else if (this.coordinates && this.coordinates.coordinates && this.coordinates.coordinates.length === 2) {
-    this.longitude = this.coordinates.coordinates[0];
-    this.latitude = this.coordinates.coordinates[1];
+
+  const rawCoords = this.coordinates && this.coordinates.coordinates;
+  if (Array.isArray(rawCoords) && rawCoords.length === 2) {
+    const coordLon = toFiniteNumber(rawCoords[0]);
+    const coordLat = toFiniteNumber(rawCoords[1]);
+
+    if (
+      coordLon != null &&
+      coordLat != null &&
+      coordLat >= -90 &&
+      coordLat <= 90 &&
+      coordLon >= -180 &&
+      coordLon <= 180
+    ) {
+      this.longitude = coordLon;
+      this.latitude = coordLat;
+      this.coordinates = {
+        type: 'Point',
+        coordinates: [coordLon, coordLat]
+      };
+      return next();
+    }
   }
+
+  // If coordinates are incomplete/invalid, remove them so 2dsphere index doesn't fail.
+  this.coordinates = undefined;
   next();
 });
 

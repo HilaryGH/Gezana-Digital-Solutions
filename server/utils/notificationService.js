@@ -1,5 +1,6 @@
 const {
   getSmtpUser,
+  sendEmail,
   sendWelcomeEmail,
   sendServicePublishedEmail,
   sendBookingConfirmationEmail,
@@ -184,6 +185,110 @@ const sendProviderBookingNotification = async ({ provider, bookingDetails, custo
   );
 };
 
+const getInternalNotificationEmail = () =>
+  process.env.INTERNAL_NOTIFICATION_EMAIL ||
+  process.env.ADMIN_NOTIFICATION_EMAIL ||
+  process.env.SUPERADMIN_NOTIFICATION_EMAIL ||
+  getSmtpUser();
+
+const escapeHtml = (value) =>
+  String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const sendInternalEventNotification = async ({ title, subject, rows }) => {
+  const toEmail = getInternalNotificationEmail();
+  if (!toEmail || !String(toEmail).includes("@")) {
+    return { success: false, error: "Internal notification email not configured" };
+  }
+
+  const safeRows = (rows || [])
+    .filter((row) => row && row.label)
+    .map((row) => ({
+      label: escapeHtml(row.label),
+      value: escapeHtml(row.value || "N/A"),
+    }));
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      <h2 style="color: #2E3DD3;">${escapeHtml(title)}</h2>
+      <table style="border-collapse: collapse; width: 100%; max-width: 640px;">
+        ${safeRows
+          .map(
+            (row) => `
+              <tr>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>${row.label}</strong></td>
+                <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${row.value}</td>
+              </tr>
+            `
+          )
+          .join("")}
+      </table>
+    </div>
+  `;
+
+  const text = `${title}\n${safeRows.map((row) => `- ${row.label}: ${row.value}`).join("\n")}`;
+  return sendEmail(
+    {
+      to: toEmail,
+      subject,
+      html,
+      text,
+    },
+    "internal-event-notification"
+  );
+};
+
+const sendRegistrationInternalAlert = async (payload) =>
+  sendInternalEventNotification({
+    title: "New user registration",
+    subject: `🆕 New registration: ${payload.name || payload.email || "Unknown user"}`,
+    rows: [
+      { label: "Name", value: payload.name },
+      { label: "Email", value: payload.email },
+      { label: "Role", value: payload.role },
+      { label: "Phone", value: payload.phone },
+      { label: "Date", value: new Date().toISOString() },
+    ],
+  });
+
+const sendBookingInternalAlert = async (payload) =>
+  sendInternalEventNotification({
+    title: "New booking created",
+    subject: `📌 New booking: ${payload.serviceName || payload.bookingKind || "Service"}`,
+    rows: [
+      { label: "Booking ID", value: payload.bookingId },
+      { label: "Booking kind", value: payload.bookingKind },
+      { label: "Service", value: payload.serviceName },
+      { label: "Provider", value: payload.providerName },
+      { label: "Customer", value: payload.customerName },
+      { label: "Customer email", value: payload.customerEmail },
+      { label: "Date", value: payload.date },
+      { label: "Location", value: payload.location },
+      { label: "Price (ETB)", value: payload.price },
+    ],
+  });
+
+const sendServiceCreatedInternalAlert = async (payload) =>
+  sendInternalEventNotification({
+    title: "New service added",
+    subject: `🛠️ New service: ${payload.serviceName || "Service"}`,
+    rows: [
+      { label: "Service ID", value: payload.serviceId },
+      { label: "Service", value: payload.serviceName },
+      { label: "Provider", value: payload.providerName },
+      { label: "Provider email", value: payload.providerEmail },
+      { label: "Category", value: payload.category },
+      { label: "Subcategory", value: payload.subcategory },
+      { label: "Price (ETB)", value: payload.price },
+      { label: "Location", value: payload.location },
+      { label: "Date", value: new Date().toISOString() },
+    ],
+  });
+
 module.exports = {
   sendWelcomeNotifications,
   sendServicePublishedNotifications,
@@ -192,5 +297,8 @@ module.exports = {
   sendBookingReminderNotifications,
   sendServiceRequestNotifications,
   sendProviderBookingNotification,
+  sendRegistrationInternalAlert,
+  sendBookingInternalAlert,
+  sendServiceCreatedInternalAlert,
 };
 

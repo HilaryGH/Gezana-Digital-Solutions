@@ -8,7 +8,10 @@ const User = require("../models/User");
 const Referral = require("../models/Referral");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
-const { sendWelcomeNotifications } = require("../utils/notificationService");
+const {
+  sendWelcomeNotifications,
+  sendRegistrationInternalAlert,
+} = require("../utils/notificationService");
 const { sendPasswordResetEmail, sendWelcomeEmailWithReferral } = require("../utils/emailService");
 const JWT_SECRET = require("../config/jwt");
 
@@ -548,6 +551,20 @@ router.post(
     } else {
       console.log("Skipping welcome notifications for admin/superadmin/support/marketing user");
     }
+
+    // Internal alert for every successful registration (fire-and-forget)
+    void (async () => {
+      try {
+        await sendRegistrationInternalAlert({
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          phone: newUser.phone,
+        });
+      } catch (alertError) {
+        console.error("Error sending internal registration alert:", alertError);
+      }
+    })();
 
     return;
   } catch (err) {

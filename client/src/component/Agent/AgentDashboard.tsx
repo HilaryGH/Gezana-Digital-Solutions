@@ -272,6 +272,11 @@ const AgentDashboard = () => {
   const agentTierLabel = me?.agentType === "corporate" ? "Super / Elite" : "Standard";
   const canReferStandardAgents =
     me?.role === "SUPER_ELITE_AGENT" || (me?.role === "agent" && me?.agentType === "corporate");
+  /** All agent roles may list/add professionals (API allows any agent). */
+  const canAddProfessionals =
+    me?.role === "agent" ||
+    me?.role === "STANDARD_AGENT" ||
+    me?.role === "SUPER_ELITE_AGENT";
 
   const extractServiceTypeTokens = (value?: string | null) =>
     (value || "")
@@ -1016,7 +1021,11 @@ const AgentDashboard = () => {
                   </div>
                 </div>
               )}
+            </>
+          )}
 
+          {dash && !error && canAddProfessionals && (
+            <>
               {/* Bookings for your listed professionals — full list shown on demand */}
               <div className="mt-8">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -1184,31 +1193,8 @@ const AgentDashboard = () => {
             </>
           )}
 
-          {!canReferStandardAgents && (
-            <div className="mt-8 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900">My profile</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Standard Agent access is limited to personal account information.
-              </p>
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Name</div>
-                  <div className="mt-1 text-sm font-medium text-slate-900">{me?.name || "—"}</div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Email</div>
-                  <div className="mt-1 text-sm font-medium text-slate-900">{me?.email || "—"}</div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Role</div>
-                  <div className="mt-1 text-sm font-medium text-slate-900">Standard Agent</div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Add / My Professionals */}
-          {canReferStandardAgents && (
+          {canAddProfessionals && (
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-10">
             <div className="rounded-2xl border border-slate-200/80 p-5 sm:p-6 bg-gradient-to-br from-blue-50/35 via-white to-white shadow-sm ring-1 ring-slate-900/[0.03]">
               <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">Add professional</h2>
